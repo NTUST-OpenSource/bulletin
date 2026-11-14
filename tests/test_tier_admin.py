@@ -6,7 +6,17 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from bulletin.registry import Board, get_board, import_seed, set_tier, tier_history
+from bulletin.registry import (
+    Board,
+    Found,
+    accept,
+    add_discovered,
+    get_board,
+    import_seed,
+    pending_boards,
+    set_tier,
+    tier_history,
+)
 from bulletin.schedule import due_boards, mark_polled
 
 if TYPE_CHECKING:
@@ -102,3 +112,26 @@ async def test_a_change_between_tiers_queues_nothing(migrated: AsyncConnection) 
 
     cur = await migrated.execute("SELECT count(*) FROM job")
     assert await cur.fetchone() == (0,)
+
+
+@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Review new boards")
+async def test_accepting_a_discovered_board(migrated: AsyncConnection) -> None:
+    """Review new boards: accepted as P4 and news, it leaves the list and the change is audited."""
+    await board_at(migrated, "P2")
+    await add_discovered(migrated, [Found(1053, 2000, "board 2000"), Found(1053, 2001, "other")])
+    [first, second] = await pending_boards(migrated)
+    assert (first.site_id, first.rcg, first.name, first.category) == (
+        1053,
+        2000,
+        "board 2000",
+        "announcement",
+    )
+
+    await accept(migrated, 1053, 2000, tier="P4", category="news")
+
+    assert await pending_boards(migrated) == [second]
+    assert await get_board(migrated, 1053, 2000) == Board(
+        1053, 2000, "h", "u", "board 2000", "news", "P4"
+    )
+    [change] = await tier_history(migrated, 1053, 2000)
+    assert (change.old_tier, change.new_tier, change.changed_by) == ("off", "P4", "cli")

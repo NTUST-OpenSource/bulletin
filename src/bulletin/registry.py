@@ -180,3 +180,33 @@ async def tier_history(conn: AsyncConnection, site_id: int, rcg: int) -> list[Ti
         (site_id, rcg),
     )
     return [TierChange(*row) for row in await cur.fetchall()]
+
+
+@dataclass(frozen=True)
+class Pending:
+    """A discovered board waiting for the operator's review."""
+
+    site_id: int
+    rcg: int
+    host: str
+    name: str
+    category: Category
+    found_at: datetime
+
+
+async def pending_boards(conn: AsyncConnection) -> list[Pending]:
+    """Return the boards pending review, oldest found first."""
+    raise NotImplementedError
+
+
+async def accept(  # noqa: PLR0913 - the board, and what the operator decided about it
+    conn: AsyncConnection,
+    site_id: int,
+    rcg: int,
+    *,
+    tier: Tier | None = None,
+    category: Category | None = None,
+    by: str = "cli",
+) -> None:
+    """Clear a board's review mark, setting its tier or category in the same step."""
+    raise NotImplementedError
