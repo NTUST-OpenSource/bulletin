@@ -162,6 +162,11 @@ class Worker:
             log.warning("poll of %s-%s failed: %r", *board, error)
             await mark_failed(conn, *board, at)
             return None, []
+        except Exception:
+            # A page the parser or detection cannot handle must not be polled again at once.
+            log.exception("poll of %s-%s failed", *board)
+            await mark_failed(conn, *board, at)
+            return None, []
         return changed, new
 
     async def job(self, conn: AsyncConnection, fetch: Fetch, job: Job, at: datetime) -> None:

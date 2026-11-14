@@ -19,6 +19,7 @@ from bulletin.worker import Worker
 from web import Answer, FakeWeb
 
 if TYPE_CHECKING:
+    import pytest
     from psycopg import AsyncConnection
 
     from bulletin.http import Fetch, Response
@@ -169,3 +170,21 @@ async def test_a_transport_error_backs_the_board_off(
     assert await polls(migrated) == [("poll", 1048, 1416, None, None, 0)]
     cur = await migrated.execute("SELECT failures FROM board")
     assert await cur.fetchone() == (1,)
+
+
+async def test_an_unreadable_page_backs_the_board_off(
+    migrated: AsyncConnection, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Failure backoff: a page that breaks the parser counts as a failed poll, not a retry loop."""
+    await import_seed(migrated, [ACADEMIC])
+
+    def unreadable(*_: object) -> list[Listed]:
+        raise ValueError
+
+    monkeypatch.setattr("bulletin.worker.parse_list", unreadable)
+    collector = worker(FakeWeb({LIST: Answer(200, body=b"<html>")}), tmp_path)
+
+    assert await collector.step(migrated)
+    assert not await collector.step(migrated)
+
+    assert await polls(migrated) == [("poll", 1048, 1416, 200, None, 0)]
