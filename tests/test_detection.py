@@ -3,8 +3,6 @@
 from datetime import UTC, date, datetime, timedelta
 from typing import TYPE_CHECKING
 
-import pytest
-
 from bulletin.archive import Listed
 from bulletin.detection import detect, prune_frontier, record_frontier
 from bulletin.events import Event, read_after
@@ -173,7 +171,6 @@ async def with_frontier(conn: AsyncConnection, article_id: int, hours_ago: int) 
     await record_frontier(conn, AT - timedelta(hours=hours_ago))
 
 
-@pytest.mark.xfail(strict=True, reason="Frontier rule")
 async def test_a_board_turned_on(migrated: AsyncConnection) -> None:
     """Frontier rule: twenty unknown announcements from last year are late discoveries."""
     await seed(migrated)
@@ -188,7 +185,6 @@ async def test_a_board_turned_on(migrated: AsyncConnection) -> None:
     }
 
 
-@pytest.mark.xfail(strict=True, reason="Frontier rule")
 async def test_a_genuinely_new_one(migrated: AsyncConnection) -> None:
     """Frontier rule: an id above the frontier of 72 hours ago is news."""
     await seed(migrated)
@@ -204,7 +200,6 @@ async def test_a_genuinely_new_one(migrated: AsyncConnection) -> None:
     )
 
 
-@pytest.mark.xfail(strict=True, reason="Frontier rule")
 async def test_a_recent_list_date_is_news(migrated: AsyncConnection) -> None:
     """Frontier rule: a list date at most 2 days before the poll makes an old id news."""
     await seed(migrated)

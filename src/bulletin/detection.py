@@ -4,6 +4,7 @@ from datetime import timedelta
 from typing import TYPE_CHECKING
 
 from bulletin.archive import publish
+from bulletin.schedule import TAIPEI
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -14,6 +15,9 @@ if TYPE_CHECKING:
     from bulletin.archive import Listed
 
 FRONTIER_KEPT = timedelta(days=7)
+# On a board not yet backfilled, news is above the frontier of this long ago, or freshly dated.
+FRONTIER_AGE = timedelta(hours=72)
+FRESH_LIST_DATE = timedelta(days=2)
 
 
 async def detect(
@@ -27,15 +31,44 @@ async def detect(
     """
     new: list[int] = []
     async with conn.transaction():
+        # A backfilled board has listed everything older, so whatever is new is news.
         backfilled = await is_backfilled(conn, board)
+        line = None if backfilled else await frontier(conn, at)
         for position, item in enumerate(items, 1):
             announcement = await find(conn, item)
             if announcement is None:
-                # A backfilled board has listed everything older, so whatever is new is news.
-                announcement = await publish(conn, item, notify=backfilled, late=False)
+                news = backfilled or is_news(item, line, at)
+                announcement = await publish(conn, item, notify=news, late=not news)
                 new.append(announcement)
             await place(conn, board, announcement, item, position, at)
     return new
+
+
+def is_news(item: Listed, line: int | None, at: datetime) -> bool:
+    """The frontier rule: above the frontier, or listed at most 2 days before the poll.
+
+    With no frontier recorded yet, nothing is news.
+    """
+    if line is None:
+        return False
+    if item.article_id is not None and item.article_id > line:
+        return True
+    return (
+        item.listed_on is not None
+        and at.astimezone(TAIPEI).date() - item.listed_on <= FRESH_LIST_DATE
+    )
+
+
+async def frontier(conn: AsyncConnection, at: datetime) -> int | None:
+    """Return the frontier of 72 hours before `at`, or the oldest while the service is younger."""
+    cur = await conn.execute(
+        "SELECT COALESCE("
+        "(SELECT max_article_id FROM frontier WHERE at <= %s ORDER BY at DESC LIMIT 1),"
+        " (SELECT max_article_id FROM frontier ORDER BY at LIMIT 1))",
+        (at - FRONTIER_AGE,),
+    )
+    row = await cur.fetchone()
+    return None if row is None else row[0]
 
 
 async def is_backfilled(conn: AsyncConnection, board: tuple[int, int]) -> bool:
