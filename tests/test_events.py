@@ -1,6 +1,8 @@
 """Requirements of the event-log capability."""
 
 import asyncio
+from dataclasses import replace
+from datetime import date
 from typing import TYPE_CHECKING
 
 import psycopg
@@ -103,3 +105,18 @@ async def test_a_revision_is_not_notify_worthy(migrated: AsyncConnection) -> Non
         with pytest.raises(ValueError, match="notify"):
             async with migrated.transaction():
                 await record(migrated, announcement, kind, notify=True)
+
+
+@pytest.mark.xfail(strict=True, reason="Late discoveries are marked")
+async def test_backfill_is_marked_late(migrated: AsyncConnection) -> None:
+    """Late discoveries are marked: a backfilled announcement is late and not notify-worthy."""
+    backfilled = Listed(1000, "www.ntust.edu.tw", 90001, None, "t", date(2019, 3, 1))
+
+    await publish(migrated, backfilled, notify=False, late=True)
+    published = (await read_after(migrated, 0))[-1]
+
+    assert published.kind is Kind.PUBLISHED
+    assert published.late
+    assert not published.notify
+    with pytest.raises(ValueError, match="late"):
+        await publish(migrated, replace(backfilled, article_id=90002), notify=True, late=True)
