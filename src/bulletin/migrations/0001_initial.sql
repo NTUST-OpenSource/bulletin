@@ -145,3 +145,12 @@ END
 $$;
 CREATE TRIGGER event_is_immutable BEFORE UPDATE OR DELETE ON event
     FOR EACH ROW EXECUTE FUNCTION event_is_immutable();
+
+-- Boards are never deleted: an off or excluded board can always be turned on again.
+CREATE FUNCTION board_is_kept() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+    RAISE EXCEPTION 'boards are never deleted';
+END
+$$;
+CREATE TRIGGER board_is_kept BEFORE DELETE ON board
+    FOR EACH ROW EXECUTE FUNCTION board_is_kept();

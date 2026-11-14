@@ -93,7 +93,6 @@ def test_the_repository_seed_loads() -> None:
     assert {b.tier for b in boards} == {"P1", "P2", "P3", "P4", "off"}
 
 
-@pytest.mark.xfail(strict=True, reason="Boards are kept")
 async def test_boards_are_never_deleted(migrated: AsyncConnection) -> None:
     """Boards are kept: an off, excluded board cannot be deleted, so it can be turned on later."""
     await import_seed(migrated, [board(1000, 9, "off", "excluded")])
