@@ -1,15 +1,20 @@
 """Requirements of the archive capability."""
 
 import json
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import pytest
+
 from bulletin.archive import fetch_article, publish
 from bulletin.detection import detect
+from bulletin.events import Kind, read_after
 from bulletin.http import Response
 from bulletin.model import Listed
 from bulletin.registry import Board, import_seed
+from bulletin.schedule import Job
+from bulletin.worker import run_job
 
 if TYPE_CHECKING:
     from psycopg import AsyncConnection
@@ -94,3 +99,43 @@ async def test_new_articles_are_queued_for_fetching(migrated: AsyncConnection) -
 
     cur = await migrated.execute("SELECT kind, ref, run_after FROM job")
     assert await cur.fetchall() == [("article", str(new), AT)]
+
+
+@pytest.mark.xfail(strict=True, reason="Revisions")
+async def test_rechecks_are_scheduled(migrated: AsyncConnection) -> None:
+    """Revisions: a new article is re-checked 1, 3, 7 and 30 days after it was first seen."""
+    await import_seed(migrated, [Board(1045, 1391, "h", "u", "n", "announcement", "P1")])
+
+    [new] = await detect(migrated, (1045, 1391), [SHE], AT)
+
+    cur = await migrated.execute("SELECT kind, ref, run_after FROM job ORDER BY run_after")
+    assert await cur.fetchall() == [
+        ("article", str(new), AT),
+        *[("recheck", str(new), AT + timedelta(days=d)) for d in (1, 3, 7, 30)],
+    ]
+
+
+@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Revisions")
+async def test_an_edited_deadline(migrated: AsyncConnection) -> None:
+    """Revisions: a changed body at the 3-day re-check is a second revision and a revised event."""
+    announcement = await publish(migrated, SHE, notify=False, late=True)
+    await fetch_article(migrated, FakeWeb(), announcement)
+    edited = PAGE.replace(b"ntustoesh@gmail.com", b"ntust.oesh@gmail.com")
+
+    await run_job(migrated, FakeWeb(edited), Job(1, "recheck", str(announcement)))
+
+    assert len(await revisions(migrated, announcement)) == 2
+    assert (await read_after(migrated, 0))[-1].kind is Kind.REVISED
+
+
+@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Revisions")
+async def test_no_change(migrated: AsyncConnection) -> None:
+    """Revisions: the same content at the 7-day re-check adds no revision or event."""
+    announcement = await publish(migrated, SHE, notify=False, late=True)
+    await fetch_article(migrated, FakeWeb(), announcement)
+    events = await read_after(migrated, 0)
+
+    await run_job(migrated, FakeWeb(), Job(1, "recheck", str(announcement)))
+
+    assert len(await revisions(migrated, announcement)) == 1
+    assert await read_after(migrated, 0) == events

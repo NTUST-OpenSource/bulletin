@@ -89,7 +89,7 @@ Article parsing ports the article half of xincord's `pages.py`.
 
 - [x] 7.1 Commit the xfail test for "Article fetch" (archive); verify it fails for the expected reason and the gate stays green
 - [x] 7.2 Implement "Article fetch" and remove the marker; verify its scenarios pass and the gate is green
-- [ ] 7.3 Commit the xfail test for "Revisions" (archive); verify it fails for the expected reason and the gate stays green
+- [x] 7.3 Commit the xfail test for "Revisions" (archive); verify it fails for the expected reason and the gate stays green
 - [ ] 7.4 Implement "Revisions" and remove the marker; verify its scenarios pass and the gate is green
 - [ ] 7.5 Commit the xfail test for "Withdrawal" (archive); verify it fails for the expected reason and the gate stays green
 - [ ] 7.6 Implement "Withdrawal" and remove the marker; verify its scenarios pass and the gate is green
