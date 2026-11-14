@@ -4,8 +4,6 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import pytest
-
 from bulletin.discovery import board_hints, discover, home_url, queue_discoveries, site_map_url
 from bulletin.markup import parse
 from bulletin.pages import list_url
@@ -30,7 +28,6 @@ SITE_MAP = b"""<div class="sitemap">
 </div>"""
 
 
-@pytest.mark.xfail(strict=True, reason="Re-discovery")
 def test_list_links_name_their_boards() -> None:
     """Re-discovery: list links give boards, each once, named by the first link's text."""
     url = site_map_url(HOST, 1053)
@@ -45,7 +42,6 @@ def test_list_links_name_their_boards() -> None:
     ]
 
 
-@pytest.mark.xfail(strict=True, reason="Re-discovery")
 async def test_a_new_board_appears(migrated: AsyncConnection) -> None:
     """Re-discovery: a new board joins off and pending review; known boards stay as they are."""
     await import_seed(migrated, [KNOWN])
@@ -90,19 +86,17 @@ RECORDED_MAP = (DISCOVERY / "student-1053-site-map.html").read_bytes()
 MENU = [1435, 1436, 1437, 1439, 1440, 1441, 1442, 1443, 1444, 1446, 1506, 1665]
 
 
-@pytest.mark.xfail(strict=True, reason="Re-discovery")
 def test_menus_and_article_links_name_boards() -> None:
     """Re-discovery: the recorded home page names boards in menu scripts and article links; the
-    recorded site map names one board in a menu script."""
+    recorded site map names two, in an article link and a menu script."""
     home = board_hints(HOME.decode(), home_url(HOST), 1053)
     site_map = board_hints(RECORDED_MAP.decode(), site_map_url(HOST, 1053), 1053)
 
     assert sorted({(f.site_id, f.rcg) for f in home}) == [(1053, n) for n in MENU]
     assert {f.name for f in home} == {""}
-    assert site_map == [Found(1053, 1506, "")]
+    assert site_map == [Found(1053, 1439, ""), Found(1053, 1506, "")]
 
 
-@pytest.mark.xfail(strict=True, reason="Re-discovery")
 async def test_a_board_from_a_recorded_menu(migrated: AsyncConnection) -> None:
     """Re-discovery: a board only a menu names is named by its own list page; known boards cost
     no request."""

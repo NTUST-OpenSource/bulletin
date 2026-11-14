@@ -53,8 +53,9 @@ polled, which the tier alone decides.
 ### Requirement: Re-discovery
 Once a month, the service SHALL read each known site's home page and site map through the request
 queue, take board numbers from list links, article links that name a board and menu entries, and
-add every board it has not seen whose list page answers, as off, pending review, named by its list
-page, with a category guessed from that name. It SHALL NOT change boards the registry holds.
+add every board it has not seen as off, pending review, with a category guessed from its name: the
+list link's text, or else the title of the board's list page, which must answer. It SHALL NOT
+change boards the registry holds.
 
 #### Scenario: A new board appears
 - **WHEN** re-discovery finds a board number on a known site that the registry does not hold
