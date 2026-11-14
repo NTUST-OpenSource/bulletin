@@ -64,7 +64,7 @@ List parsing ports xincord's `ntust_announcements/pages.py` and `markup.py`; cer
 - [x] 5.14 Implement "Failure backoff" and remove the marker; verify its scenarios pass and the gate is green
 - [x] 5.15 Commit the xfail test for "Poll log" (polling); verify it fails for the expected reason and the gate stays green
 - [x] 5.16 Implement "Poll log" and remove the marker; verify its scenarios pass and the gate is green
-- [ ] 5.17 Commit the xfail test for "School certificates" (polling); verify it fails for the expected reason and the gate stays green
+- [x] 5.17 Commit the xfail test for "School certificates" (polling); verify it fails for the expected reason and the gate stays green
 - [ ] 5.18 Implement "School certificates" and remove the marker; verify its scenarios pass and the gate is green
 - [ ] 5.19 Walk each known site's site map once a month as a `discovery` job through the queue and hand the boards found to the registry (Re-discovery); verify against a recorded site map
 
