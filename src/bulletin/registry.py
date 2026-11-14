@@ -95,3 +95,17 @@ def guess_category(name: str) -> Category:
         if pattern.search(name):
             return category
     return "announcement"
+
+
+@dataclass(frozen=True)
+class Found:
+    """A board that re-discovery saw on a known site."""
+
+    site_id: int
+    rcg: int
+    name: str
+
+
+async def add_discovered(conn: AsyncConnection, found: Iterable[Found]) -> list[tuple[int, int]]:
+    """Add the boards the registry does not hold as off and pending review; return their keys."""
+    raise NotImplementedError

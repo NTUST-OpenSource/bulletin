@@ -11,6 +11,8 @@ import pytest
 
 from bulletin.registry import (
     Board,
+    Found,
+    add_discovered,
     get_board,
     guess_category,
     import_seed,
@@ -135,3 +137,28 @@ def test_guessing_from_names() -> None:
     guesses = json.loads(fixture.read_text(encoding="utf-8"))["guesses"]
 
     assert {name: guess_category(name) for name in guesses} == guesses
+
+
+@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Re-discovery")
+async def test_a_new_board_appears(migrated: AsyncConnection) -> None:
+    """Re-discovery: a new board is added off and pending review, and is not polled."""
+    await import_seed(migrated, [board(1000, 1)])
+
+    added = await add_discovered(migrated, [Found(1000, 1, "board 1"), Found(1000, 77, "news")])
+
+    assert added == [(1000, 77)]
+    new = await get_board(migrated, 1000, 77)
+    assert new is not None
+    assert (new.tier, new.pending_review, new.host) == ("off", True, "site1000.ntust.edu.tw")
+    assert (1000, 77) not in await due_boards(migrated, datetime.now(UTC))
+
+
+@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Re-discovery")
+async def test_known_boards_are_unchanged(migrated: AsyncConnection) -> None:
+    """Re-discovery: a board the registry holds keeps its name, tier, category and review state."""
+    held = board(1000, 1, "P2", "news")
+    await import_seed(migrated, [held])
+
+    await add_discovered(migrated, [Found(1000, 1, "renamed")])
+
+    assert await get_board(migrated, 1000, 1) == held
