@@ -23,6 +23,7 @@ class Listed:
     link_url: str | None
     title: str
     listed_on: date | None = None
+    publisher: str | None = None
 
 
 @dataclass(frozen=True)
