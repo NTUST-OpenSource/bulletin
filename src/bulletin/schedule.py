@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 
 TAIPEI = ZoneInfo("Asia/Taipei")
 OFFICE_HOURS = range(8, 18)
+BACKFILL_HOURS = range(1, 6)
 # Minutes between polls: (office hours, otherwise). Office hours are weekdays 08:00-18:00 in
 # Taipei, holidays included.
 INTERVALS: dict[Tier, tuple[int, int]] = {
@@ -57,7 +58,7 @@ async def mark_polled(conn: AsyncConnection, site_id: int, rcg: int, at: datetim
 
 
 async def due_boards(conn: AsyncConnection, now: datetime) -> list[tuple[int, int]]:
-    """Return the boards due for a poll at `now`, most overdue first.
+    """Return the boards due for a poll at `now`, by tier from P1 to P4, most overdue first.
 
     The tier alone decides: every board that is not off is polled, whatever its category. A board
     never polled is due at once.
@@ -65,7 +66,8 @@ async def due_boards(conn: AsyncConnection, now: datetime) -> list[tuple[int, in
     cur = await conn.execute(
         "SELECT site_id, rcg FROM board"
         " WHERE tier <> 'off' AND (next_poll_at IS NULL OR next_poll_at <= %s)"
-        " ORDER BY next_poll_at NULLS FIRST, site_id, rcg",
+        " ORDER BY array_position(ARRAY['P1', 'P2', 'P3', 'P4'], tier),"
+        " next_poll_at NULLS FIRST, site_id, rcg",
         (now,),
     )
     return await cur.fetchall()
@@ -103,5 +105,19 @@ async def enqueue(conn: AsyncConnection, kind: JobKind, ref: str, run_after: dat
 
 
 async def next_request(conn: AsyncConnection, now: datetime) -> Poll | Job | None:
-    """Return the most urgent request due at `now`, or None."""
-    raise NotImplementedError
+    """Return the most urgent request due at `now`, or None.
+
+    Polls by tier come first, then article fetches and re-checks, attachments, re-discovery and,
+    from 01:00 to 06:00 in Taipei only, backfill.
+    """
+    due = await due_boards(conn, now)
+    if due:
+        return Poll(*due[0])
+    cur = await conn.execute(
+        "SELECT id, kind, ref FROM job WHERE run_after <= %s AND (kind <> 'backfill' OR %s)"
+        " ORDER BY CASE kind WHEN 'article' THEN 1 WHEN 'recheck' THEN 1"
+        " WHEN 'attachment' THEN 2 WHEN 'discovery' THEN 3 ELSE 4 END, run_after, id LIMIT 1",
+        (now, now.astimezone(TAIPEI).hour in BACKFILL_HOURS),
+    )
+    row = await cur.fetchone()
+    return None if row is None else Job(*row)

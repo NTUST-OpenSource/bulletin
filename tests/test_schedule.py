@@ -62,7 +62,6 @@ async def test_office_hours(migrated: AsyncConnection) -> None:
     assert await due_boards(migrated, WEDNESDAY + timedelta(minutes=5)) == [(1045, 1391)]
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Queue order")
 async def test_backfill_yields(migrated: AsyncConnection) -> None:
     """Queue order: a backfill page and a P3 poll due at 02:00 send the poll first."""
     night = datetime(2026, 11, 18, 2, 0, tzinfo=TAIPEI)
@@ -72,7 +71,6 @@ async def test_backfill_yields(migrated: AsyncConnection) -> None:
     assert await next_request(migrated, night) == Poll(1045, 1391)
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Queue order")
 async def test_daytime_backfill_waits_until_one(migrated: AsyncConnection) -> None:
     """Queue order: a backfill queued at 14:00 waits until 01:00."""
     afternoon = datetime(2026, 11, 18, 14, 0, tzinfo=TAIPEI)
@@ -84,7 +82,6 @@ async def test_daytime_backfill_waits_until_one(migrated: AsyncConnection) -> No
     assert await next_request(migrated, night) == Job(job, "backfill", "1045-1391")
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Queue order")
 async def test_polls_by_tier_then_jobs_by_kind(migrated: AsyncConnection) -> None:
     """Queue order: polls from P1 to P4, then articles, attachments and re-discovery."""
     at = WEDNESDAY
