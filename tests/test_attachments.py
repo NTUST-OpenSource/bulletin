@@ -3,8 +3,6 @@
 import json
 from pathlib import Path
 
-import pytest
-
 from bulletin.files import read_size
 from bulletin.pages import is_file, parse_article
 from web import Answer, FakeWeb
@@ -37,7 +35,6 @@ MODULE_FILE = "https://student.ntust.edu.tw/app/index.php?Action=downloadfile&fi
 FIVE_MB = 5 * 2**20
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Size without HEAD")
 async def test_range_answer() -> None:
     """Size without HEAD: a 206 with Content-Range gives the size of a /var/file/ link."""
     web = FakeWeb({VAR_FILE: Answer(206, {"Content-Range": "bytes 0-0/278993"}, b"%")})
@@ -48,7 +45,6 @@ async def test_range_answer() -> None:
     assert web.requests[0].headers == {"Range": "bytes=0-0"}
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Size without HEAD")
 async def test_a_module_file_over_five_mb() -> None:
     """Size without HEAD: Content-Length gives the size; the body of a large file is not read."""
     web = FakeWeb({MODULE_FILE: Answer(200, {"Content-Length": "7900000"}, b"x" * 16)})
@@ -59,7 +55,6 @@ async def test_a_module_file_over_five_mb() -> None:
     assert [r.body_read for r in web.requests] == [False]
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Size without HEAD")
 async def test_a_small_module_file_is_read_once() -> None:
     """Size without HEAD: a downloadfile link small enough to keep is read in the same request."""
     web = FakeWeb({MODULE_FILE: Answer(200, {"Content-Length": "4"}, b"%PDF")})
