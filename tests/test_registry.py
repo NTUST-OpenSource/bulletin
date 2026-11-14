@@ -2,16 +2,13 @@
 
 import json
 from dataclasses import asdict
+from pathlib import Path
 from typing import TYPE_CHECKING
 
-import pytest
-
-from bulletin.registry import Board, get_board, import_seed, set_tier
+from bulletin.registry import Board, get_board, import_seed, load_seed, set_tier
 from bulletin.startup import start
 
 if TYPE_CHECKING:
-    from pathlib import Path
-
     from psycopg import AsyncConnection
 
     from bulletin.registry import Category, Tier
@@ -54,7 +51,6 @@ def write_seed(path: Path, boards: list[Board]) -> Path:
 SEED = [board(1000, 167, "P3", "news"), board(1000, 168), board(1001, 1, "P1")]
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Seed import")
 async def test_first_start(db: AsyncConnection, tmp_path: Path) -> None:
     """Seed import: an empty database gets the seed's boards, tiers and categories."""
     await start(db, write_seed(tmp_path, SEED))
@@ -62,7 +58,6 @@ async def test_first_start(db: AsyncConnection, tmp_path: Path) -> None:
     assert [await get_board(db, b.site_id, b.rcg) for b in SEED] == SEED
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Seed import")
 async def test_the_owners_changes_survive_a_restart(db: AsyncConnection, tmp_path: Path) -> None:
     """Seed import: a board the seed has as P4 stays P1 once the owner set it so."""
     seed = write_seed(tmp_path, SEED)
@@ -74,7 +69,6 @@ async def test_the_owners_changes_survive_a_restart(db: AsyncConnection, tmp_pat
     assert await tier_of(db, 1000, 168) == "P1"
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Seed import")
 async def test_a_board_added_to_the_seed_later(db: AsyncConnection, tmp_path: Path) -> None:
     """Seed import: a fourth seed board is added on restart; the other three are unchanged."""
     await start(db, write_seed(tmp_path, SEED))
@@ -85,3 +79,12 @@ async def test_a_board_added_to_the_seed_later(db: AsyncConnection, tmp_path: Pa
 
     assert await get_board(db, 1002, 5) == fourth
     assert await tier_of(db, 1000, 167) == "off"
+
+
+def test_the_repository_seed_loads() -> None:
+    """Seed import: seeds/boards.json reads as boards with valid tiers and categories."""
+    boards = load_seed(Path(__file__).parents[1] / "seeds" / "boards.json")
+
+    assert len(boards) == 445
+    assert len({(b.site_id, b.rcg) for b in boards}) == len(boards)
+    assert {b.tier for b in boards} == {"P1", "P2", "P3", "P4", "off"}
