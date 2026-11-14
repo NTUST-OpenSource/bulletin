@@ -19,6 +19,8 @@ if TYPE_CHECKING:
     from bulletin.model import Listed
 
 FRONTIER_KEPT = timedelta(days=7)
+# Days after it was first seen that an article is fetched again, for edits and withdrawal.
+RECHECK_DAYS = (1, 3, 7, 30)
 # A cross-post copies another site's announcement first seen this recently, under a title this long.
 CROSS_POST_WINDOW = timedelta(days=14)
 CROSS_POST_MIN_LENGTH = 8
@@ -57,6 +59,8 @@ async def detect(
                     )
                 if item.article_id is not None:
                     await enqueue(conn, "article", str(announcement), at)
+                    for days in RECHECK_DAYS:
+                        await enqueue(conn, "recheck", str(announcement), at + timedelta(days=days))
                 new.append(announcement)
             await place(conn, board, announcement, item, position, at)
     return new

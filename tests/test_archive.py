@@ -5,8 +5,6 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import pytest
-
 from bulletin.archive import fetch_article, publish
 from bulletin.detection import detect
 from bulletin.events import Kind, read_after
@@ -97,11 +95,10 @@ async def test_new_articles_are_queued_for_fetching(migrated: AsyncConnection) -
 
     [new, _] = await detect(migrated, (1045, 1391), [SHE, pdf], AT)
 
-    cur = await migrated.execute("SELECT kind, ref, run_after FROM job")
-    assert await cur.fetchall() == [("article", str(new), AT)]
+    cur = await migrated.execute("SELECT DISTINCT kind, ref FROM job")
+    assert await cur.fetchall() == [("article", str(new)), ("recheck", str(new))]
 
 
-@pytest.mark.xfail(strict=True, reason="Revisions")
 async def test_rechecks_are_scheduled(migrated: AsyncConnection) -> None:
     """Revisions: a new article is re-checked 1, 3, 7 and 30 days after it was first seen."""
     await import_seed(migrated, [Board(1045, 1391, "h", "u", "n", "announcement", "P1")])
@@ -115,7 +112,6 @@ async def test_rechecks_are_scheduled(migrated: AsyncConnection) -> None:
     ]
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Revisions")
 async def test_an_edited_deadline(migrated: AsyncConnection) -> None:
     """Revisions: a changed body at the 3-day re-check is a second revision and a revised event."""
     announcement = await publish(migrated, SHE, notify=False, late=True)
@@ -128,7 +124,6 @@ async def test_an_edited_deadline(migrated: AsyncConnection) -> None:
     assert (await read_after(migrated, 0))[-1].kind is Kind.REVISED
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Revisions")
 async def test_no_change(migrated: AsyncConnection) -> None:
     """Revisions: the same content at the 7-day re-check adds no revision or event."""
     announcement = await publish(migrated, SHE, notify=False, late=True)
