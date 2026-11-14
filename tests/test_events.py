@@ -18,7 +18,6 @@ def content(body: str) -> Content:
     return Content(title="t", publisher="p", body_html=f"<p>{body}</p>", body_text=body)
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Events")
 async def test_a_full_life(migrated: AsyncConnection) -> None:
     """Events: stored, edited, withdrawn and restored, in that order."""
     announcement = await publish(migrated, LISTED, notify=True, late=False)
@@ -38,7 +37,6 @@ async def test_a_full_life(migrated: AsyncConnection) -> None:
     assert {e.announcement_id for e in events} == {announcement}
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Events")
 async def test_events_are_never_changed(migrated: AsyncConnection) -> None:
     """Events: an event cannot be updated or deleted."""
     await publish(migrated, LISTED, notify=True, late=False)

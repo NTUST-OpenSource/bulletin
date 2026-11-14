@@ -132,3 +132,16 @@ CREATE TABLE frontier (
     at timestamptz PRIMARY KEY,
     max_article_id bigint NOT NULL
 );
+
+-- Events are never changed; only the ten-year retention deletes them, after setting
+-- bulletin.retention for its transaction.
+CREATE FUNCTION event_is_immutable() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+    IF TG_OP = 'DELETE' AND current_setting('bulletin.retention', true) = 'on' THEN
+        RETURN OLD;
+    END IF;
+    RAISE EXCEPTION 'events are never changed';
+END
+$$;
+CREATE TRIGGER event_is_immutable BEFORE UPDATE OR DELETE ON event
+    FOR EACH ROW EXECUTE FUNCTION event_is_immutable();

@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
+from psycopg.rows import class_row
+
 if TYPE_CHECKING:
     from datetime import datetime
 
@@ -40,9 +42,22 @@ async def record(
     late: bool = False,
 ) -> int:
     """Record an event in the caller's transaction and return its id."""
-    raise NotImplementedError
+    cur = await conn.execute(
+        "INSERT INTO event (announcement_id, kind, notify, late) VALUES (%s, %s, %s, %s)"
+        " RETURNING id",
+        (announcement_id, kind, notify, late),
+    )
+    row = await cur.fetchone()
+    assert row is not None  # noqa: S101 - INSERT ... RETURNING returns its row
+    return row[0]
 
 
 async def read_after(conn: AsyncConnection, cursor: int, limit: int = 100) -> list[Event]:
     """Return up to `limit` events with ids above `cursor`, in id order."""
-    raise NotImplementedError
+    async with conn.cursor(row_factory=class_row(Event)) as cur:
+        await cur.execute(
+            "SELECT id, announcement_id, kind, notify, late, at FROM event"
+            " WHERE id > %s ORDER BY id LIMIT %s",
+            (cursor, limit),
+        )
+        return await cur.fetchall()

@@ -20,7 +20,7 @@ Each requirement gets two tasks (AGENTS.md, xfail-first): commit its failing tes
 ## 3. Event log
 
 - [x] 3.1 Commit the xfail test for "Events" (event-log); verify it fails for the expected reason and the gate stays green
-- [ ] 3.2 Implement "Events" and remove the marker; verify its scenarios pass and the gate is green
+- [x] 3.2 Implement "Events" and remove the marker; verify its scenarios pass and the gate is green
 - [ ] 3.3 Commit the xfail test for "Gap-free order" (event-log); verify it fails for the expected reason and the gate stays green
 - [ ] 3.4 Implement "Gap-free order" and remove the marker; verify its scenarios pass and the gate is green
 - [ ] 3.5 Commit the xfail test for "Notify flag" (event-log); verify it fails for the expected reason and the gate stays green
