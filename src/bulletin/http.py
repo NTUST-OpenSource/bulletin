@@ -2,7 +2,10 @@
 
 from collections.abc import Mapping
 from dataclasses import dataclass
+from importlib.metadata import version
 from typing import TYPE_CHECKING, Protocol
+
+import aiohttp
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
@@ -42,3 +45,26 @@ class Fetch(Protocol):
     ) -> Awaitable[Response]:
         """Send the request."""
         ...
+
+
+USER_AGENT = f"bulletin/{version('bulletin')} (+https://bulletin.ntust.org)"
+TIMEOUT = aiohttp.ClientTimeout(total=60)
+
+
+class Client:
+    """`Fetch` over aiohttp: the bot's User-Agent, the school's TLS context, no redirects."""
+
+    def __init__(self, session: aiohttp.ClientSession) -> None:
+        """Send every request through `session`."""
+        self._session = session
+
+    async def __call__(
+        self,
+        url: str,
+        /,
+        *,
+        headers: Mapping[str, str] | None = None,
+        keep_body: KeepBody | None = None,
+    ) -> Response:
+        """Send one GET."""
+        raise NotImplementedError
