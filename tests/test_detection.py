@@ -3,8 +3,6 @@
 from datetime import UTC, date, datetime, timedelta
 from typing import TYPE_CHECKING
 
-import pytest
-
 from bulletin.archive import Listed
 from bulletin.detection import detect, prune_frontier, record_frontier
 from bulletin.events import Event, read_after
@@ -155,7 +153,6 @@ async def published(conn: AsyncConnection, announcement: int) -> Event:
     return event
 
 
-@pytest.mark.xfail(strict=True, reason="Notify rule on backfilled boards")
 async def test_a_late_published_draft(migrated: AsyncConnection) -> None:
     """Notify rule on backfilled boards: an unknown id 2,000 below the frontier is news."""
     await seed(migrated)

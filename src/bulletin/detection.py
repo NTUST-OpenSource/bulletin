@@ -27,13 +27,24 @@ async def detect(
     """
     new: list[int] = []
     async with conn.transaction():
+        backfilled = await is_backfilled(conn, board)
         for position, item in enumerate(items, 1):
             announcement = await find(conn, item)
             if announcement is None:
-                announcement = await publish(conn, item, notify=False, late=False)
+                # A backfilled board has listed everything older, so whatever is new is news.
+                announcement = await publish(conn, item, notify=backfilled, late=False)
                 new.append(announcement)
             await place(conn, board, announcement, item, position, at)
     return new
+
+
+async def is_backfilled(conn: AsyncConnection, board: tuple[int, int]) -> bool:
+    """Whether the board's ten-year backfill is complete."""
+    cur = await conn.execute(
+        "SELECT backfilled_at IS NOT NULL FROM board WHERE site_id = %s AND rcg = %s", board
+    )
+    row = await cur.fetchone()
+    return bool(row and row[0])
 
 
 async def find(conn: AsyncConnection, item: Listed) -> int | None:
