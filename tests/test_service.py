@@ -19,7 +19,6 @@ if TYPE_CHECKING:
 TOKEN = "0123456789abcdef" * 4
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Admin API access")
 def test_settings_from_the_environment(tmp_path: Path) -> None:
     """Admin API access: tokens come as `name:token` pairs; short tokens are refused."""
     env = {
@@ -63,7 +62,6 @@ async def get(
     raise TimeoutError(url)
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Admin API access")
 async def test_the_service_serves_and_stops(schema: Schema, tmp_path: Path) -> None:
     """Both listeners answer while the worker runs; setting `stop` ends all three."""
     seed = tmp_path / "boards.json"

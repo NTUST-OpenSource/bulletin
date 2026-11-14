@@ -2,7 +2,9 @@
 
 import argparse
 import asyncio
+import logging
 import os
+import signal
 import sys
 from typing import TYPE_CHECKING, TextIO, cast
 
@@ -18,6 +20,7 @@ from bulletin.registry import (
     tier_history,
 )
 from bulletin.schedule import enqueue
+from bulletin.service import Settings, serve
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -65,6 +68,7 @@ def parser() -> argparse.ArgumentParser:
     review_accept.add_argument("--by", default="cli", help="who makes the change (default: cli)")
 
     commands.add_parser("discover", help="queue a re-discovery of every site now")
+    commands.add_parser("serve", help="run the service: both listeners and the worker")
     return root
 
 
@@ -128,12 +132,28 @@ async def _main(argv: Sequence[str]) -> int:
     from datetime import UTC, datetime  # noqa: PLC0415 - only the command line reads the clock
 
     args = parser().parse_args(argv)
+    if args.command == "serve":
+        return await _serve()
     url = os.environ.get(DATABASE_URL)
     if not url:
         print(f"bulletin: {DATABASE_URL} is not set", file=sys.stderr)
         return 2
     async with await AsyncConnection.connect(url, autocommit=True) as conn:
         return await run(conn, args, sys.stdout, datetime.now(UTC))
+
+
+async def _serve() -> int:
+    try:
+        settings = Settings.from_env(os.environ)
+    except ValueError as error:
+        print(f"bulletin: {error}", file=sys.stderr)
+        return 2
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+    stop = asyncio.Event()
+    for sig in (signal.SIGTERM, signal.SIGINT):
+        asyncio.get_running_loop().add_signal_handler(sig, stop.set)
+    await serve(settings, stop)
+    return 0
 
 
 def main() -> None:
