@@ -15,6 +15,7 @@ from bulletin.http import Response
 from bulletin.model import Listed
 from bulletin.registry import Board, import_seed
 from bulletin.schedule import Job
+from bulletin.search import search
 from bulletin.worker import run_job
 
 if TYPE_CHECKING:
@@ -249,3 +250,21 @@ async def test_the_edge_of_ten_years(migrated: AsyncConnection) -> None:
         assert await cur.fetchall() == [(stays,)]
     cur = await migrated.execute("SELECT count(*) FROM attachment")
     assert await cur.fetchone() == (len(EXPECTED["attachments"]),)
+
+
+@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Search indexes")
+async def test_a_two_character_term(migrated: AsyncConnection) -> None:
+    """Search indexes: a two-character term in the body finds the announcement, by index."""
+    announcement = await publish(migrated, SHE, notify=False, late=True)
+    await fetch_article(migrated, FakeWeb(), announcement)
+    term = EXPECTED["body_term"]
+
+    assert await search(migrated, term) == [announcement]
+    assert await search(migrated, term, titles_only=True) == []
+    async with migrated.transaction():
+        await migrated.execute("SET LOCAL enable_seqscan = off")
+        cur = await migrated.execute(
+            "EXPLAIN SELECT id FROM announcement WHERE body_text &@~ %s", (term,)
+        )
+        plan = " ".join(row[0] for row in await cur.fetchall())
+    assert "announcement_body_text" in plan
