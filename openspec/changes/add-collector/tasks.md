@@ -87,7 +87,7 @@ List parsing ports xincord's `ntust_announcements/pages.py` and `markup.py`; cer
 
 Article parsing ports the article half of xincord's `pages.py`.
 
-- [ ] 7.1 Commit the xfail test for "Article fetch" (archive); verify it fails for the expected reason and the gate stays green
+- [x] 7.1 Commit the xfail test for "Article fetch" (archive); verify it fails for the expected reason and the gate stays green
 - [ ] 7.2 Implement "Article fetch" and remove the marker; verify its scenarios pass and the gate is green
 - [ ] 7.3 Commit the xfail test for "Revisions" (archive); verify it fails for the expected reason and the gate stays green
 - [ ] 7.4 Implement "Revisions" and remove the marker; verify its scenarios pass and the gate is green

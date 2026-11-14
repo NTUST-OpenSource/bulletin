@@ -12,6 +12,8 @@ if TYPE_CHECKING:
 
     from psycopg import AsyncConnection
 
+    from bulletin.http import Fetch
+
 
 @dataclass(frozen=True)
 class Listed:
@@ -137,3 +139,16 @@ async def restore(conn: AsyncConnection, announcement_id: int) -> None:
         )
         if await cur.fetchone():
             await record(conn, announcement_id, Kind.RESTORED)
+
+
+def article_url(host: str, site_id: int, article_id: int) -> str:
+    """The article page of an announcement, on the host and site of its own link."""
+    return f"https://{host}/p/406-{site_id}-{article_id}.php"
+
+
+async def fetch_article(conn: AsyncConnection, fetch: Fetch, announcement_id: int) -> bool:
+    """Fetch an announcement's article page and store it as a revision; return whether it did.
+
+    A link entry has no article page and is left as it is.
+    """
+    raise NotImplementedError
