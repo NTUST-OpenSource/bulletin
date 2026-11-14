@@ -54,7 +54,8 @@ Markers: **[rec]** the owner followed Claude's recommendation; **[owner]** the o
 ## C. Detection
 
 - **C1 Identity** [rec]: an announcement is new when its (site, article id) was never seen; its
-  position on the list is ignored.
+  position on the list is ignored. Site and article id come from the list item's link, never from
+  the board, because boards list other sites' articles; the board only gets a placement.
 - **C2 Notify rule** [rec]: on a site whose backfill is complete, a never-seen id is a first
   publication and notify-worthy, which also covers drafts published late. Before that, and for
   ids older than ten years, notify only when the id is above the frontier of 72 hours ago or the
@@ -62,7 +63,7 @@ Markers: **[rec]** the owner followed Claude's recommendation; **[owner]** the o
 - **C3 Paging on bursts** [rec]: when every id on page 1 is new, read further pages until a known
   id appears, at most 5 pages.
 - **C4 Withdrawal** [rec]: dropping off page 1 does not mean withdrawn. Withdrawal is confirmed by
-  fetching the article: a 302 to the site's home page. Articles are re-checked 1, 3, 7 and 30 days
+  fetching the article at its own link: a 302 to the site's home page. Articles are re-checked 1, 3, 7 and 30 days
   after they were first seen.
 - **C5 Revisions** [rec]: a new revision is stored only when the content hash changes.
 
@@ -77,12 +78,13 @@ Markers: **[rec]** the owner followed Claude's recommendation; **[owner]** the o
 - **D4 Retention** [owner]: ten years, kept when the school withdraws an announcement. Full-text
   and title search cover all of it.
 - **D5 Raw pages** [rec]: each revision keeps the raw HTML of the article body.
-- **D6 Attachments** [owner]: name and URL always. Files under 5 MB on a school host are stored,
-  content-addressed by SHA-256, only while their announcement is within the last 365 days; a
-  nightly job deletes older files. Stored files are a fallback; links point at the school.
+- **D6 Attachments** [owner]: name and URL always, from the attachment module and from links in
+  the body. Files under 5 MB on a school host are stored, content-addressed by SHA-256, only while
+  their announcement is within the last 365 days; a nightly job deletes older files. Stored files
+  are a fallback; links point at the school.
 - **D7 Capacity** [rec]: about 60,000 announcements in ten years; the database stays near 2 GB
-  with the PGroonga indexes. A 57-article sample had attachments on 14% of articles and about
-  190 KB of files per article, so the one-year file store stays near 1 GB.
+  with the PGroonga indexes. A 62-article sample had attachments on 44% of articles and about
+  330 KB of files under 5 MB per article, so the one-year file store stays near 2 GB.
 
 ## E. Rendering
 

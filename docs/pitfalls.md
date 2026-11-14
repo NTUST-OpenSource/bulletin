@@ -22,7 +22,14 @@ Re-check a fact before relying on it for something new; the school changes its C
 - Article ids are one global sequence across all sites (about 33 a day; near 153,700 in November
   2026). An id belongs to exactly one site. A cross-post on another site gets a new id.
 - Board numbers are not unique: board 1927 exists on 8 sites. A board is (site, board number).
-- A withdrawn article answers 302 to the site's home page.
+- A withdrawn article answers 302 to the site's home page. So does an article id requested under
+  the wrong site: `406-1063-153625` redirects home although `406-1000-153625` exists. No real
+  withdrawal has been observed in samples yet; the three "withdrawn" articles of the survey's
+  sample were all this wrong-site case.
+- A board can list another site's articles. The secretariat's board 1063-2211 links to
+  `https://www.ntust.edu.tw/p/406-1000-153625,r167.php`. Take the article's host, site and board
+  from the list item's href, never from the board being polled.
+- A list item whose href is not a `406` page links straight to a file or another website.
 - List order is not reliable:
   - 38 boards list old articles above the newest one, and the HTML has no pin marker.
   - 68 boards are not in time order at all.
@@ -52,10 +59,18 @@ Re-check a fact before relying on it for something new; the school changes its C
 
 ## Attachments
 
-- In a sample of 57 articles, 8 had attachments: 14 files, all under 5 MB, median about 615 KB,
-  largest 2.1 MB, about 190 KB per article on average. One linked to a site outside the school.
-- Files live under `/var/file/{n}/{site}/img/...` and may sit on another school host than the
-  article (`rd-r.ntust.edu.tw`).
+- Most attachments sit in a module after the article body, not in the body:
+  `<div class="module module-ptattach">` holds `<ul class="mptattach">`, whose links point at
+  `/app/index.php?Action=downloadfile&file=<token>&fname=<token>`. The file name is the link text,
+  and also in `Content-Disposition`.
+- `downloadfile` ignores `Range`: it answers 200 with the whole file. Read the headers for
+  `Content-Length`, then close the connection.
+- Links in the body to `/var/file/{n}/{site}/img/...` honour `Range: bytes=0-0` (206 with
+  `Content-Range`). Such files may sit on another school host than the article
+  (`rd-r.ntust.edu.tw`).
+- In 62 recent articles, 27 (44%) had attachments in the module: 42 files, median about 330 KB,
+  34.3 MB in all, two over 5 MB (5.7 MB and 7.9 MB). Files under 5 MB come to about 330 KB per
+  article. An earlier count of 14% looked only at the body and was wrong.
 
 ## Discord Markdown
 

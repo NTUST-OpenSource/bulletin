@@ -35,8 +35,8 @@ article id.
 _Avoid_: post, bulletin, notice, news item
 
 **Placement**:
-An announcement appearing on a board; one announcement can be placed on several boards of its
-site.
+An announcement appearing on a board; one announcement can be placed on several boards, also on
+boards of other sites, which list it under its own site and article id.
 _Avoid_: listing, entry
 
 **Cross-post**:
