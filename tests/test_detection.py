@@ -3,6 +3,8 @@
 from datetime import UTC, date, datetime, timedelta
 from typing import TYPE_CHECKING
 
+import pytest
+
 from bulletin.archive import Listed
 from bulletin.detection import detect, prune_frontier, record_frontier
 from bulletin.events import Event, read_after
@@ -164,3 +166,62 @@ async def test_a_late_published_draft(migrated: AsyncConnection) -> None:
 
     event = await published(migrated, draft)
     assert (event.notify, event.late) == (True, False)
+
+
+async def with_frontier(conn: AsyncConnection, article_id: int, hours_ago: int) -> None:
+    await detect(conn, (1045, 1392), [article(article_id)], AT - timedelta(hours=hours_ago + 1))
+    await record_frontier(conn, AT - timedelta(hours=hours_ago))
+
+
+@pytest.mark.xfail(strict=True, reason="Frontier rule")
+async def test_a_board_turned_on(migrated: AsyncConnection) -> None:
+    """Frontier rule: twenty unknown announcements from last year are late discoveries."""
+    await seed(migrated)
+    await with_frontier(migrated, 153000, 72)
+    last_year = [article(140000 + n, date(2025, 11, 1)) for n in range(20)]
+
+    new = await detect(migrated, SECRETARIAT, last_year, AT)
+
+    assert len(new) == 20
+    assert {(e.notify, e.late) for e in [await published(migrated, a) for a in new]} == {
+        (False, True)
+    }
+
+
+@pytest.mark.xfail(strict=True, reason="Frontier rule")
+async def test_a_genuinely_new_one(migrated: AsyncConnection) -> None:
+    """Frontier rule: an id above the frontier of 72 hours ago is news."""
+    await seed(migrated)
+    await with_frontier(migrated, 153000, 80)
+    await with_frontier(migrated, 153050, 72)
+    await with_frontier(migrated, 153090, 10)
+
+    news, late = await detect(migrated, SECRETARIAT, [article(153060), article(153040)], AT)
+
+    assert ((await published(migrated, news)).notify, (await published(migrated, late)).notify) == (
+        True,
+        False,
+    )
+
+
+@pytest.mark.xfail(strict=True, reason="Frontier rule")
+async def test_a_recent_list_date_is_news(migrated: AsyncConnection) -> None:
+    """Frontier rule: a list date at most 2 days before the poll makes an old id news."""
+    await seed(migrated)
+    await with_frontier(migrated, 153000, 72)
+    entry = Listed(1045, "bulletin.ntust.edu.tw", None, PDF, "notice", date(2026, 11, 16))
+
+    recent, old = await detect(migrated, BULLETIN, [entry, article(100, date(2026, 11, 15))], AT)
+
+    assert (await published(migrated, recent)).notify
+    assert not (await published(migrated, old)).notify
+
+
+async def test_first_start(migrated: AsyncConnection) -> None:
+    """Frontier rule: with no frontier recorded, every announcement is stored and none is news."""
+    await seed(migrated)
+
+    new = await detect(migrated, BULLETIN, [article(200, AT.date()), article(199)], AT)
+
+    assert len(new) == 2
+    assert not any(e.notify for e in await read_after(migrated, 0))

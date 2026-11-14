@@ -78,7 +78,7 @@ List parsing ports xincord's `ntust_announcements/pages.py` and `markup.py`; cer
 - [x] 6.6 Implement "Frontier record" and remove the marker; verify its scenarios pass and the gate is green
 - [x] 6.7 Commit the xfail test for "Notify rule on backfilled boards" (detection); verify it fails for the expected reason and the gate stays green
 - [x] 6.8 Implement "Notify rule on backfilled boards" and remove the marker; verify its scenarios pass and the gate is green
-- [ ] 6.9 Commit the xfail test for "Frontier rule" (detection); verify it fails for the expected reason and the gate stays green
+- [x] 6.9 Commit the xfail test for "Frontier rule" (detection); verify it fails for the expected reason and the gate stays green
 - [ ] 6.10 Implement "Frontier rule" and remove the marker; verify its scenarios pass and the gate is green
 - [ ] 6.11 Commit the xfail test for "Cross-posts" (detection); verify it fails for the expected reason and the gate stays green
 - [ ] 6.12 Implement "Cross-posts" and remove the marker; verify its scenarios pass and the gate is green
