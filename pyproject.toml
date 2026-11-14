@@ -10,6 +10,9 @@ dependencies = [
     "psycopg[binary,pool]>=3.3.9",
 ]
 
+[project.scripts]
+bulletin = "bulletin.cli:main"
+
 [build-system]
 requires = ["uv_build>=0.13.7,<0.14"]
 build-backend = "uv_build"
@@ -40,6 +43,8 @@ ignore = [
 # FastAPI reads route annotations at runtime.
 "src/bulletin/web/**" = ["TC001", "TC002", "TC003"]
 "scripts/**" = ["D", "INP001", "T201"]
+# The command line prints its results.
+"src/bulletin/cli.py" = ["T201"]
 # Tests may block on small files inside async tests.
 "tests/**" = ["ASYNC240", "D", "INP001", "PLR2004", "S101"]
 
