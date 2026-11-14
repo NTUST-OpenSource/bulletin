@@ -5,6 +5,8 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import pytest
+
 from bulletin.archive import fetch_article, publish
 from bulletin.detection import detect
 from bulletin.events import Kind, read_after
@@ -95,7 +97,7 @@ async def test_new_articles_are_queued_for_fetching(migrated: AsyncConnection) -
 
     [new, _] = await detect(migrated, (1045, 1391), [SHE, pdf], AT)
 
-    cur = await migrated.execute("SELECT DISTINCT kind, ref FROM job")
+    cur = await migrated.execute("SELECT DISTINCT kind, ref FROM job ORDER BY kind")
     assert await cur.fetchall() == [("article", str(new)), ("recheck", str(new))]
 
 
@@ -134,3 +136,20 @@ async def test_no_change(migrated: AsyncConnection) -> None:
 
     assert len(await revisions(migrated, announcement)) == 1
     assert await read_after(migrated, 0) == events
+
+
+@pytest.mark.xfail(strict=True, reason="Withdrawal")
+@pytest.mark.parametrize("home", ["https://she.ntust.edu.tw/", "/", "https://she.ntust.edu.tw"])
+async def test_taken_down(migrated: AsyncConnection, home: str) -> None:
+    """Withdrawal: a re-check answering 302 to the site's home page withdraws, keeping content."""
+    announcement = await publish(migrated, SHE, notify=False, late=True)
+    await fetch_article(migrated, FakeWeb(), announcement)
+
+    await run_job(
+        migrated, FakeWeb(status=302, location=home), Job(1, "recheck", str(announcement))
+    )
+
+    cur = await migrated.execute("SELECT withdrawn_at IS NOT NULL FROM announcement")
+    assert await cur.fetchall() == [(True,)]
+    assert (await read_after(migrated, 0))[-1].kind is Kind.WITHDRAWN
+    assert len(await revisions(migrated, announcement)) == 1
