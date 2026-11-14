@@ -38,7 +38,6 @@ async def tier_of(conn: AsyncConnection) -> str:
     return board.tier
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Admin API access")
 @pytest.mark.parametrize("headers", [{}, {"Authorization": "Bearer wrong"}, {"Authorization": "x"}])
 async def test_missing_token(migrated: AsyncConnection, headers: dict[str, str]) -> None:
     """Admin API access: a request without a valid token gets 401 and changes nothing."""
@@ -57,3 +56,22 @@ async def test_the_public_port() -> None:
         response = await http.put(TIER, json={"tier": "P1"})
 
     assert response.status_code == 404
+
+
+async def test_routes_with_a_token(migrated: AsyncConnection) -> None:
+    """Change a tier and Tier audit through the admin API, under the token holder's name."""
+    await import_seed(migrated, [Board(1053, 1435, "h", "u", "n", "announcement", "P2")])
+    auth = {"Authorization": "Bearer example-token-owner"}
+
+    async with client(admin(migrated)) as http:
+        changed = await http.put(TIER, json={"tier": "P1"}, headers=auth)
+        unknown = await http.put("/admin/boards/1053-9/tier", json={"tier": "P1"}, headers=auth)
+        bad_tier = await http.put(TIER, json={"tier": "P9"}, headers=auth)
+        history = await http.get("/admin/boards/1053-1435/tier-changes", headers=auth)
+        listed = await http.get("/admin/boards", params={"tier": "P1"}, headers=auth)
+
+    assert (changed.status_code, unknown.status_code, bad_tier.status_code) == (204, 404, 422)
+    assert [(c["old_tier"], c["new_tier"], c["changed_by"]) for c in history.json()] == [
+        ("P2", "P1", "owner")
+    ]
+    assert [(b["site_id"], b["rcg"], b["tier"]) for b in listed.json()] == [(1053, 1435, "P1")]

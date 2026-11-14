@@ -1,14 +1,13 @@
 """The ordered record of what happened to announcements, read by clients from a cursor."""
 
 from dataclasses import dataclass
+from datetime import datetime
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
 from psycopg.pq import TransactionStatus
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from psycopg import AsyncConnection
 
 

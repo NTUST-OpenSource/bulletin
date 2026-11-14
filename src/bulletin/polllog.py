@@ -1,12 +1,10 @@
 """The log of every request sent to a school host."""
 
 from dataclasses import dataclass
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from psycopg import AsyncConnection
 
 

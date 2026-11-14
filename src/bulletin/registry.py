@@ -3,6 +3,7 @@
 import json
 import re
 from dataclasses import dataclass
+from datetime import datetime
 from importlib import resources
 from typing import TYPE_CHECKING, Literal, cast
 
@@ -10,7 +11,6 @@ from bulletin.schedule import interval
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
-    from datetime import datetime
     from pathlib import Path
 
     from psycopg import AsyncConnection
@@ -232,3 +232,17 @@ async def accept(  # noqa: PLR0913 - the board, and what the operator decided ab
         if await cur.fetchone() is None:
             msg = f"no board {site_id}-{rcg}"
             raise LookupError(msg)
+
+
+async def list_boards(
+    conn: AsyncConnection, *, tier: Tier | None = None, pending: bool | None = None
+) -> list[Board]:
+    """Return the registry's boards, optionally only one tier's or only those pending review."""
+    cur = await conn.execute(
+        "SELECT b.site_id, b.rcg, s.host, s.unit, b.name, b.category, b.tier, b.pending_review"
+        " FROM board b JOIN site s USING (site_id)"
+        " WHERE (%s::text IS NULL OR b.tier = %s) AND (%s::bool IS NULL OR b.pending_review = %s)"
+        " ORDER BY b.site_id, b.rcg",
+        (tier, tier, pending, pending),
+    )
+    return [Board(*row) for row in await cur.fetchall()]

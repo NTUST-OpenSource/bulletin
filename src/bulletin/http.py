@@ -1,10 +1,11 @@
 """What the collector needs from HTTP: one GET at a time, redirects not followed."""
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
-    from collections.abc import Awaitable, Callable, Mapping
+    from collections.abc import Awaitable, Callable
 
 
 @dataclass(frozen=True)

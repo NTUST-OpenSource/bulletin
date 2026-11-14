@@ -3,10 +3,8 @@
 import hashlib
 import json
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Literal
-
-if TYPE_CHECKING:
-    from datetime import date
+from datetime import date
+from typing import Literal
 
 
 @dataclass(frozen=True)

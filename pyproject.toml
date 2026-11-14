@@ -37,9 +37,15 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
+# FastAPI reads route annotations at runtime.
+"src/bulletin/web/**" = ["TC001", "TC002", "TC003"]
 "scripts/**" = ["D", "INP001", "T201"]
 # Tests may block on small files inside async tests.
 "tests/**" = ["ASYNC240", "D", "INP001", "PLR2004", "S101"]
+
+[tool.ruff.lint.flake8-type-checking]
+# The admin API returns dataclasses, which pydantic reads at runtime.
+runtime-evaluated-decorators = ["dataclasses.dataclass"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
