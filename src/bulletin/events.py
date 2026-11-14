@@ -5,7 +5,6 @@ from enum import StrEnum
 from typing import TYPE_CHECKING
 
 from psycopg.pq import TransactionStatus
-from psycopg.rows import class_row
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -51,6 +50,9 @@ async def record(
     The transaction lock makes ids commit in the order they are taken, so a reader resuming after
     the last id it saw never misses one.
     """
+    if notify and kind is not Kind.PUBLISHED:
+        msg = f"a {kind} event is never notify-worthy"
+        raise ValueError(msg)
     if conn.info.transaction_status is TransactionStatus.IDLE:
         msg = "events are recorded inside a transaction"
         raise RuntimeError(msg)
@@ -67,10 +69,13 @@ async def record(
 
 async def read_after(conn: AsyncConnection, cursor: int, limit: int = 100) -> list[Event]:
     """Return up to `limit` events with ids above `cursor`, in id order."""
-    async with conn.cursor(row_factory=class_row(Event)) as cur:
+    async with conn.cursor() as cur:
         await cur.execute(
             "SELECT id, announcement_id, kind, notify, late, at FROM event"
             " WHERE id > %s ORDER BY id LIMIT %s",
             (cursor, limit),
         )
-        return await cur.fetchall()
+        return [
+            Event(id_, announcement_id, Kind(kind), notify, late, at)
+            for id_, announcement_id, kind, notify, late, at in await cur.fetchall()
+        ]

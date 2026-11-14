@@ -89,7 +89,6 @@ async def test_events_need_a_transaction(migrated: AsyncConnection) -> None:
         await record(migrated, 1, Kind.REVISED)
 
 
-@pytest.mark.xfail(strict=True, reason="Notify flag")
 async def test_a_revision_is_not_notify_worthy(migrated: AsyncConnection) -> None:
     """Notify flag: only published events may be notify-worthy."""
     announcement = await publish(migrated, LISTED, notify=True, late=False)
