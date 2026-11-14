@@ -26,7 +26,7 @@ dev = [
 
 [tool.ruff]
 line-length = 100
-src = ["src", "scripts", "tests"]
+src = ["src", "scripts", "tests", "tests/support"]
 
 [tool.ruff.lint]
 select = ["ALL"]
@@ -44,7 +44,7 @@ convention = "google"
 
 [tool.pyright]
 include = ["src", "scripts", "tests"]
-extraPaths = ["scripts"]
+extraPaths = ["scripts", "tests/support"]
 pythonVersion = "3.14"
 typeCheckingMode = "strict"
 venvPath = "."
@@ -53,7 +53,7 @@ venv = ".venv"
 [tool.pytest]
 minversion = "9.0"
 testpaths = ["tests"]
-pythonpath = ["scripts"]
+pythonpath = ["scripts", "tests/support"]
 addopts = ["--import-mode=importlib"]
 strict = true
 xfail_strict = true
