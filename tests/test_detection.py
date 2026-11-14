@@ -3,8 +3,11 @@
 from datetime import UTC, date, datetime, timedelta
 from typing import TYPE_CHECKING
 
+import pytest
+
 from bulletin.archive import Listed
 from bulletin.detection import detect
+from bulletin.events import read_after
 from bulletin.registry import Board, import_seed
 
 if TYPE_CHECKING:
@@ -108,3 +111,18 @@ async def announcement_id(conn: AsyncConnection, site_id: int, article_id: int) 
     row = await cur.fetchone()
     assert row is not None
     return row[0]
+
+
+@pytest.mark.xfail(strict=True, reason="Recycled articles")
+async def test_a_redated_article(migrated: AsyncConnection) -> None:
+    """Recycled articles: a newer list date updates the placement and records no event."""
+    await seed(migrated)
+    await detect(migrated, BULLETIN, [article(500, date(2021, 5, 3))], AT)
+    events = await read_after(migrated, 0)
+
+    new = await detect(migrated, BULLETIN, [article(500, date(2026, 11, 12))], AT)
+
+    assert new == []
+    assert await read_after(migrated, 0) == events
+    cur = await migrated.execute("SELECT listed_on FROM placement")
+    assert await cur.fetchall() == [(date(2026, 11, 12),)]
