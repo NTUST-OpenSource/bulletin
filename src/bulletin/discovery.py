@@ -26,8 +26,17 @@ def site_map_url(host: str, site_id: int) -> str:
     return f"https://{host}/p/17-{site_id}.php"
 
 
-def parse_site_map(page: str, url: str) -> list[Found]:
-    """Read the boards a site map links to, in page order, each once, with its link text."""
+def home_url(host: str) -> str:
+    """A site's home page."""
+    return f"https://{host}/index.php"
+
+
+def board_hints(page: str, url: str, site_id: int) -> list[Found]:  # noqa: ARG001
+    """Read the boards a page of site `site_id` names, in page order, each once.
+
+    A list link names its board; article links and menu entries give only the number, so the
+    name is empty.
+    """
     found: dict[tuple[int, int], Found] = {}
     for anchor in parse(page).select("a"):
         link = urlsplit(urljoin(url, anchor.attr("href").strip()))
@@ -54,7 +63,7 @@ async def discover(
     cur = await conn.execute("SELECT site_id FROM site")
     known = {r[0] for r in await cur.fetchall()}
     async with conn.transaction():
-        found = [f for f in parse_site_map(response.text(), url) if f.site_id in known]
+        found = [f for f in board_hints(response.text(), url, site_id) if f.site_id in known]
         added = await add_discovered(conn, found)
         await conn.execute("UPDATE site SET discovered_at = %s WHERE site_id = %s", (at, site_id))
     return added

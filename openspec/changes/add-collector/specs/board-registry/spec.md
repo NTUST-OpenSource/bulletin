@@ -51,9 +51,10 @@ polled, which the tier alone decides.
 - **THEN** it is polled daily like any other P4 board
 
 ### Requirement: Re-discovery
-Once a month, the service SHALL walk each known site's site map and the board links on its pages,
-through the request queue, and add every board it has not seen as off, pending review, with a
-category guessed from its name. It SHALL NOT change boards the registry already holds.
+Once a month, the service SHALL read each known site's home page and site map through the request
+queue, take board numbers from list links, article links that name a board and menu entries, and
+add every board it has not seen whose list page answers, as off, pending review, named by its list
+page, with a category guessed from that name. It SHALL NOT change boards the registry holds.
 
 #### Scenario: A new board appears
 - **WHEN** re-discovery finds a board number on a known site that the registry does not hold
