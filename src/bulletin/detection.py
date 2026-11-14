@@ -57,11 +57,12 @@ async def place(  # noqa: PLR0913, PLR0917 - a placement's key and what the list
     position: int,
     at: datetime,
 ) -> None:
-    """Record that `board` lists `announcement` at `position`."""
+    """Record that `board` lists `announcement` at `position`, keeping the newest list date."""
     await conn.execute(
         "INSERT INTO placement (site_id, rcg, announcement_id, listed_on, first_seen_at,"
         " last_seen_at, last_position) VALUES (%s, %s, %s, %s, %s, %s, %s)"
         " ON CONFLICT (site_id, rcg, announcement_id) DO UPDATE"
-        " SET last_seen_at = EXCLUDED.last_seen_at, last_position = EXCLUDED.last_position",
+        " SET last_seen_at = EXCLUDED.last_seen_at, last_position = EXCLUDED.last_position,"
+        " listed_on = GREATEST(placement.listed_on, EXCLUDED.listed_on)",
         (*board, announcement, item.listed_on, at, at, position),
     )

@@ -3,8 +3,6 @@
 from datetime import UTC, date, datetime, timedelta
 from typing import TYPE_CHECKING
 
-import pytest
-
 from bulletin.archive import Listed
 from bulletin.detection import detect
 from bulletin.events import read_after
@@ -113,7 +111,6 @@ async def announcement_id(conn: AsyncConnection, site_id: int, article_id: int) 
     return row[0]
 
 
-@pytest.mark.xfail(strict=True, reason="Recycled articles")
 async def test_a_redated_article(migrated: AsyncConnection) -> None:
     """Recycled articles: a newer list date updates the placement and records no event."""
     await seed(migrated)
