@@ -2,6 +2,8 @@
 
 from typing import TYPE_CHECKING
 
+from bulletin.archive import publish
+
 if TYPE_CHECKING:
     from collections.abc import Sequence
     from datetime import datetime
@@ -16,6 +18,50 @@ async def detect(
 ) -> list[int]:
     """Store the new announcements among `items` and place every item on `board`.
 
-    Return the ids of the new announcements, in page order.
+    Return the ids of the new announcements, in page order. An item's identity is its link's site
+    and article id, or the board's site and the URL for link entries; position, list date and
+    title do not matter.
     """
-    raise NotImplementedError
+    new: list[int] = []
+    async with conn.transaction():
+        for position, item in enumerate(items, 1):
+            announcement = await find(conn, item)
+            if announcement is None:
+                announcement = await publish(conn, item, notify=False, late=False)
+                new.append(announcement)
+            await place(conn, board, announcement, item, position, at)
+    return new
+
+
+async def find(conn: AsyncConnection, item: Listed) -> int | None:
+    """Return the id of the stored announcement with `item`'s identity, or None."""
+    if item.article_id is not None:
+        cur = await conn.execute(
+            "SELECT id FROM announcement WHERE site_id = %s AND article_id = %s",
+            (item.site_id, item.article_id),
+        )
+    else:
+        cur = await conn.execute(
+            "SELECT id FROM announcement WHERE site_id = %s AND link_url = %s",
+            (item.site_id, item.link_url),
+        )
+    row = await cur.fetchone()
+    return None if row is None else row[0]
+
+
+async def place(  # noqa: PLR0913, PLR0917 - a placement's key and what the list showed
+    conn: AsyncConnection,
+    board: tuple[int, int],
+    announcement: int,
+    item: Listed,
+    position: int,
+    at: datetime,
+) -> None:
+    """Record that `board` lists `announcement` at `position`."""
+    await conn.execute(
+        "INSERT INTO placement (site_id, rcg, announcement_id, listed_on, first_seen_at,"
+        " last_seen_at, last_position) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+        " ON CONFLICT (site_id, rcg, announcement_id) DO UPDATE"
+        " SET last_seen_at = EXCLUDED.last_seen_at, last_position = EXCLUDED.last_position",
+        (*board, announcement, item.listed_on, at, at, position),
+    )

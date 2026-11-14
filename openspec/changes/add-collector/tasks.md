@@ -71,7 +71,7 @@ List parsing ports xincord's `ntust_announcements/pages.py` and `markup.py`; cer
 ## 6. Detection
 
 - [x] 6.1 Commit the xfail test for "New announcement" (detection); verify it fails for the expected reason and the gate stays green
-- [ ] 6.2 Implement "New announcement" and remove the marker; verify its scenarios pass and the gate is green
+- [x] 6.2 Implement "New announcement" and remove the marker; verify its scenarios pass and the gate is green
 - [ ] 6.3 Commit the xfail test for "Recycled articles" (detection); verify it fails for the expected reason and the gate stays green
 - [ ] 6.4 Implement "Recycled articles" and remove the marker; verify its scenarios pass and the gate is green
 - [ ] 6.5 Commit the xfail test for "Frontier record" (detection); verify it fails for the expected reason and the gate stays green

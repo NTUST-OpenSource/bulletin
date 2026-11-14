@@ -3,8 +3,6 @@
 from datetime import UTC, date, datetime, timedelta
 from typing import TYPE_CHECKING
 
-import pytest
-
 from bulletin.archive import Listed
 from bulletin.detection import detect
 from bulletin.registry import Board, import_seed
@@ -43,7 +41,6 @@ async def placements(conn: AsyncConnection) -> set[tuple[int, int, int, int | No
     return {tuple(row) for row in await cur.fetchall()}
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="New announcement")
 async def test_an_item_moves_up_from_page_two(migrated: AsyncConnection) -> None:
     """New announcement: a known item taking a freed place on page 1 is not new."""
     await seed(migrated)
@@ -56,7 +53,6 @@ async def test_an_item_moves_up_from_page_two(migrated: AsyncConnection) -> None
     assert again == []
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="New announcement")
 async def test_a_pinned_old_announcement(migrated: AsyncConnection) -> None:
     """New announcement: a known two-year-old item pinned above newer ones is not new."""
     await seed(migrated)
@@ -69,7 +65,6 @@ async def test_a_pinned_old_announcement(migrated: AsyncConnection) -> None:
     assert await announcement_id(migrated, 1045, 100) not in new
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="New announcement")
 async def test_a_known_announcement_on_a_second_board(migrated: AsyncConnection) -> None:
     """New announcement: a stored item on another board gains a placement and is not new."""
     await seed(migrated)
@@ -84,7 +79,6 @@ async def test_a_known_announcement_on_a_second_board(migrated: AsyncConnection)
     }
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="New announcement")
 async def test_another_sites_article(migrated: AsyncConnection) -> None:
     """New announcement: site 1000's article listed by board 1063-2211 belongs to site 1000."""
     await seed(migrated)
@@ -94,7 +88,6 @@ async def test_another_sites_article(migrated: AsyncConnection) -> None:
     assert await placements(migrated) == {(1063, 2211, 1000, 153625, None)}
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="New announcement")
 async def test_a_link_entry(migrated: AsyncConnection) -> None:
     """New announcement: an item linking to a PDF is a link entry of the board's site."""
     await seed(migrated)
