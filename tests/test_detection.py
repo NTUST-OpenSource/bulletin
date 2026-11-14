@@ -3,8 +3,6 @@
 from datetime import UTC, date, datetime, timedelta
 from typing import TYPE_CHECKING
 
-import pytest
-
 from bulletin.archive import Listed
 from bulletin.detection import detect, prune_frontier, record_frontier
 from bulletin.events import read_after
@@ -127,7 +125,6 @@ async def test_a_redated_article(migrated: AsyncConnection) -> None:
     assert await cur.fetchall() == [(date(2026, 11, 12),)]
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Frontier record")
 async def test_hourly_record(migrated: AsyncConnection) -> None:
     """Frontier record: the highest stored article id is recorded with the time."""
     await seed(migrated)
@@ -139,7 +136,6 @@ async def test_hourly_record(migrated: AsyncConnection) -> None:
     assert await cur.fetchall() == [(ten, 153700)]
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Frontier record")
 async def test_records_are_kept_for_seven_days(migrated: AsyncConnection) -> None:
     """Frontier record: records younger than 7 days stay."""
     await seed(migrated)

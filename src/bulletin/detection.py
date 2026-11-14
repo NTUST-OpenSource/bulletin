@@ -1,5 +1,6 @@
 """Which items on a polled list are new announcements, and which of those are news."""
 
+from datetime import timedelta
 from typing import TYPE_CHECKING
 
 from bulletin.archive import publish
@@ -11,6 +12,8 @@ if TYPE_CHECKING:
     from psycopg import AsyncConnection
 
     from bulletin.archive import Listed
+
+FRONTIER_KEPT = timedelta(days=7)
 
 
 async def detect(
@@ -69,10 +72,22 @@ async def place(  # noqa: PLR0913, PLR0917 - a placement's key and what the list
 
 
 async def record_frontier(conn: AsyncConnection, at: datetime) -> int | None:
-    """Record the highest article id stored on any site, at `at`; return it."""
-    raise NotImplementedError
+    """Record the highest article id stored on any site, at `at`; return it.
+
+    Nothing is recorded while no article is stored.
+    """
+    cur = await conn.execute(
+        "INSERT INTO frontier (at, max_article_id)"
+        " SELECT %s, max(article_id) FROM announcement HAVING max(article_id) IS NOT NULL"
+        " ON CONFLICT (at) DO UPDATE SET max_article_id = EXCLUDED.max_article_id"
+        " RETURNING max_article_id",
+        (at,),
+    )
+    row = await cur.fetchone()
+    return None if row is None else row[0]
 
 
 async def prune_frontier(conn: AsyncConnection, now: datetime) -> int:
     """Delete frontier records older than 7 days; return how many."""
-    raise NotImplementedError
+    cur = await conn.execute("DELETE FROM frontier WHERE at < %s", (now - FRONTIER_KEPT,))
+    return cur.rowcount
