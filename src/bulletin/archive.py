@@ -8,6 +8,8 @@ from bulletin.events import Kind, record
 from bulletin.pages import parse_article
 
 if TYPE_CHECKING:
+    from datetime import datetime
+
     from psycopg import AsyncConnection
 
     from bulletin.http import Fetch
@@ -149,3 +151,8 @@ async def fetch_article(conn: AsyncConnection, fetch: Fetch, announcement_id: in
     if withdrawn:
         await restore(conn, announcement_id)
     return True
+
+
+async def prune(conn: AsyncConnection, now: datetime) -> int:
+    """Delete announcements first seen or listed more than ten years ago, with all they hold."""
+    raise NotImplementedError

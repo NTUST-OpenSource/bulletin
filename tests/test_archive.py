@@ -1,13 +1,14 @@
 """Requirements of the archive capability."""
 
 import json
-from datetime import UTC, datetime, timedelta
+from dataclasses import replace
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
 
-from bulletin.archive import fetch_article, publish
+from bulletin.archive import fetch_article, prune, publish, withdraw
 from bulletin.detection import detect
 from bulletin.events import Kind, read_after
 from bulletin.http import Response
@@ -226,3 +227,26 @@ async def test_back_online(migrated: AsyncConnection) -> None:
     cur = await migrated.execute("SELECT withdrawn_at FROM announcement")
     assert await cur.fetchall() == [(None,)]
     assert (await read_after(migrated, 0))[-1].kind is Kind.RESTORED
+
+
+@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Ten-year retention")
+async def test_the_edge_of_ten_years(migrated: AsyncConnection) -> None:
+    """Ten-year retention: only the announcement listed ten years and a day ago is deleted."""
+    await import_seed(migrated, [Board(1068, 1, "h", "u", "n", "announcement", "P2")])
+    now = AT
+    old = replace(SHE, listed_on=date(2016, 11, 17))
+    kept = replace(SHE, article_id=152870, listed_on=date(2017, 11, 18))
+    [gone, stays] = await detect(migrated, (1068, 1), [old, kept], now)
+    for announcement in (gone, stays):
+        await fetch_article(migrated, FakeWeb(), announcement)
+    await withdraw(migrated, gone)
+
+    assert await prune(migrated, now) == 1
+
+    cur = await migrated.execute("SELECT id FROM announcement")
+    assert await cur.fetchall() == [(stays,)]
+    for table in ("revision", "event"):
+        cur = await migrated.execute(f"SELECT DISTINCT announcement_id FROM {table}")  # noqa: S608
+        assert await cur.fetchall() == [(stays,)]
+    cur = await migrated.execute("SELECT count(*) FROM attachment")
+    assert await cur.fetchone() == (len(EXPECTED["attachments"]),)
