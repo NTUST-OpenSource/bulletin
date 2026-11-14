@@ -87,3 +87,20 @@ async def test_events_need_a_transaction(migrated: AsyncConnection) -> None:
     """Gap-free order: outside a transaction the lock would be released before the insert."""
     with pytest.raises(RuntimeError):
         await record(migrated, 1, Kind.REVISED)
+
+
+@pytest.mark.xfail(strict=True, reason="Notify flag")
+async def test_a_revision_is_not_notify_worthy(migrated: AsyncConnection) -> None:
+    """Notify flag: only published events may be notify-worthy."""
+    announcement = await publish(migrated, LISTED, notify=True, late=False)
+    await revise(migrated, announcement, content("first"))
+    await revise(migrated, announcement, content("edited"))
+
+    revised = (await read_after(migrated, 0))[-1]
+
+    assert revised.kind is Kind.REVISED
+    assert not revised.notify
+    for kind in (Kind.REVISED, Kind.WITHDRAWN, Kind.RESTORED):
+        with pytest.raises(ValueError, match="notify"):
+            async with migrated.transaction():
+                await record(migrated, announcement, kind, notify=True)
