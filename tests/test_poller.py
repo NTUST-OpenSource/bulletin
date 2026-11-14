@@ -4,8 +4,6 @@ from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
 
-import pytest
-
 from bulletin.archive import Listed
 from bulletin.poller import handle_page
 from bulletin.registry import Board, import_seed
@@ -32,7 +30,6 @@ class Detections:
         self.pages.append((board, list(items)))
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Unchanged pages")
 async def test_same_page_twice(migrated: AsyncConnection) -> None:
     """Unchanged pages: the second identical poll is unchanged and detection does not run."""
     await import_seed(migrated, [Board(1045, 1391, "h", "u", "n", "announcement", "P1")])
