@@ -15,7 +15,7 @@ Each requirement gets two tasks (AGENTS.md, xfail-first): commit its failing tes
 
 - [ ] 2.1 Add the storage test fixture: a throwaway schema on `BULLETIN_TEST_DATABASE_URL`, skipped when unset, failing when `BULLETIN_REQUIRE_DB=1`; verify both paths with a test
 - [ ] 2.2 Add the migration runner (numbered SQL files, `schema_migration`) and the first migration with the tables of design.md; verify a test applies it to an empty schema and a second run changes nothing
-- [ ] 2.3 Record list and article pages as fixtures under `tests/fixtures/` (table and list layouts, a board without dates, a file link, a withdrawn article's 302, an article with attachments), one request at a time; verify every fixture names its source URL and date
+- [ ] 2.3 Record list and article pages as fixtures under `tests/fixtures/` (table and list layouts, a board without dates, a file link, a board listing another site's article, a withdrawn article's 302, an article with a `ptattach` module and body `/var/file/` links), one request at a time; verify every fixture names its source URL and date
 
 ## 3. Event log
 

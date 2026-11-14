@@ -50,12 +50,13 @@ Backfill SHALL only run from 01:00 to 06:00 Asia/Taipei.
 
 ### Requirement: List page fetch
 A poll SHALL fetch the board's static list page 1, `/p/403-{site}-{board}-1.php` on the board's
-host, with the bot's User-Agent, and read each item's article id or link, title, list date when the
-board shows one, and publisher when the board lists one.
+host, with the bot's User-Agent, and read each item's link, title, list date when the board shows
+one, and publisher when the board lists one. For a link to an article page, the article's host,
+site and id SHALL come from the link, not from the polled board.
 
 #### Scenario: A table board
 - **WHEN** a recorded table-layout list page is polled
-- **THEN** every item's article id, title and list date are read in page order
+- **THEN** every item's article site and id, title and list date are read in page order
 
 #### Scenario: A link to a file
 - **WHEN** an item links straight to a file instead of an article

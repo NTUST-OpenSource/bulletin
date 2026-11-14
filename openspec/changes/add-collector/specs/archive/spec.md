@@ -8,14 +8,18 @@ and holds it for ten years, also after the school has taken it down.
 ## ADDED Requirements
 
 ### Requirement: Article fetch
-For each new announcement with an article id, the service SHALL fetch its article page and store
-the first revision: title, publisher, the body as text and as raw HTML, and the attachment links.
-An item without an article id SHALL be stored with its URL and title only.
+For each new announcement with an article id, the service SHALL fetch its article page from the
+host and site in its own link and store the first revision: title, publisher, the body as text and
+as raw HTML, and the attachments. A link entry SHALL be stored with its URL and title only.
 
 #### Scenario: A recorded article
 - **WHEN** a new announcement's article page is fetched from a recorded fixture
 - **THEN** its first revision holds the fixture's title, publisher, body text, body HTML and
   attachment links
+
+#### Scenario: Another site's article
+- **WHEN** board 1063-2211 lists site 1000's article 153625
+- **THEN** the article page is requested at `https://www.ntust.edu.tw/p/406-1000-153625.php`
 
 #### Scenario: A file link on the bulletin board
 - **WHEN** a new item links straight to a PDF
@@ -35,9 +39,10 @@ store a new revision and record a revised event; otherwise it SHALL store nothin
 - **THEN** no revision or event is added
 
 ### Requirement: Withdrawal
-An article page that answers with a redirect to its site's home page SHALL mark the announcement
-withdrawn, with the time, and record a withdrawn event; its revisions SHALL be kept. Leaving a
-board's page 1 SHALL NOT by itself mark an announcement withdrawn.
+An article page requested at the announcement's own host, site and article id that answers with
+a redirect to that site's home page SHALL mark the announcement withdrawn, with the time, and
+record a withdrawn event; its revisions SHALL be kept. Leaving a board's page 1 SHALL NOT by itself
+mark it withdrawn, nor SHALL a request built from the listing board's site.
 
 #### Scenario: Taken down
 - **WHEN** a re-check of an article answers 302 to the site's home page
@@ -46,6 +51,11 @@ board's page 1 SHALL NOT by itself mark an announcement withdrawn.
 #### Scenario: Pushed to page 2
 - **WHEN** an announcement drops off page 1 while newer ones arrive
 - **THEN** it is not withdrawn
+
+#### Scenario: Re-checking another site's article
+- **WHEN** site 1000's article 153625, listed by board 1063-2211, is re-checked
+- **THEN** the request goes to `www.ntust.edu.tw` for `406-1000-153625`, never to the
+  secretariat's host for `406-1063-153625`
 
 ### Requirement: Prompt withdrawal check
 When an announcement leaves a board's page 1 and no new item took a place on that page, the service

@@ -9,10 +9,10 @@ reach people as news.
 ## ADDED Requirements
 
 ### Requirement: New announcement
-A list item SHALL be a new announcement when its site and article id, or its site and URL for an
-item without an article id, were never stored. Its position on the list, its list date and its
-title SHALL NOT matter. A new announcement SHALL be stored with a placement on the board and
-queued for its article fetch.
+An item linking to an article page SHALL be identified by the site and article id in its link,
+whichever board lists it; any other item is a link entry, identified by the polled board's site
+and the URL. An item SHALL be a new announcement when its identity was never stored; position,
+list date and title SHALL NOT matter. It SHALL be stored with a placement on the polled board.
 
 #### Scenario: An item moves up from page 2
 - **WHEN** an announcement leaves page 1 and a known announcement from page 2 takes its place
@@ -23,8 +23,16 @@ queued for its article fetch.
 - **THEN** no new announcement is stored
 
 #### Scenario: A known announcement on a second board
-- **WHEN** a stored announcement appears on another board of its site
+- **WHEN** a stored announcement appears on another board, of its own site or another
 - **THEN** it gains a placement on that board and is not new
+
+#### Scenario: Another site's article
+- **WHEN** board 1063-2211 lists `https://www.ntust.edu.tw/p/406-1000-153625,r167.php`
+- **THEN** the announcement is site 1000's article 153625, with a placement on board 1063-2211
+
+#### Scenario: A link entry
+- **WHEN** a board of site 1045 lists an item linking to a PDF
+- **THEN** it is stored as a link entry of site 1045 identified by the PDF's URL
 
 ### Requirement: Recycled articles
 When a stored announcement appears again with a newer list date, the service SHALL update its

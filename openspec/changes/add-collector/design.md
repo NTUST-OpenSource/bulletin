@@ -49,8 +49,19 @@ interval in the same transaction, which is all "the next scheduling pass" needs.
 
 aiohttp, as in the ported xincord code, with automatic redirects off: a withdrawal is a 302 the
 service must see. The NTUST TLS context (`ntust_tls` ported with its certificate) is used for
-`*.ntust.edu.tw` only. User-Agent: `bulletin/<version> (+https://bulletin.ntust.org)`. Tests use
+`*.ntust.edu.tw` only. Attachment sizes come from a one-byte range GET for `/var/file/` links and
+from the headers of a streamed GET for `downloadfile` links, which ignore `Range`; the connection
+is closed before the body when the file is not stored. User-Agent: `bulletin/<version> (+https://bulletin.ntust.org)`. Tests use
 recorded pages and a fake transport; nothing in the test suite reaches the network.
+
+### Identity comes from the link
+
+Boards list other sites' articles (`docs/pitfalls.md`), and an article id requested under the
+wrong site redirects home exactly like a withdrawal. The list parser therefore returns each item's
+host, site, article id and board from its href; an announcement is keyed by the href's site and
+id, the polled board only gets a placement, and article fetches and re-checks use the stored host
+and site. Items whose href is not a `406` page are link entries keyed by the polled board's site
+and URL. The ported xincord parser builds article URLs from the board's site and must be changed.
 
 ### Detection state is per board
 
@@ -79,10 +90,10 @@ considered and rejected as weight without an ORM.
 | `site` | `site_id` PK, `host`, `unit` |
 | `board` | (`site_id`, `rcg`) PK, `name`, `category`, `tier` (`P1`-`P4`, `off`), `pending_review`, `found_at`, `fingerprint`, `last_polled_at`, `next_poll_at`, `failures`, `backfill_page`, `backfilled_at` |
 | `tier_change` | `id`, `site_id`, `rcg`, `old_tier`, `new_tier`, `by`, `at` |
-| `announcement` | `id` identity, `site_id`, `article_id` (nullable), `link_url`, `title`, `publisher`, `listed_on`, `first_seen_at`, `late`, `cross_post_of`, `withdrawn_at`, `body_text` (latest revision, indexed), `current_revision`; unique (`site_id`, `article_id`) and (`site_id`, `link_url`) |
+| `announcement` | `id` identity, `site_id` and `host` (from the link), `article_id` (nullable), `link_url`, `title`, `publisher`, `listed_on`, `first_seen_at`, `late`, `cross_post_of`, `withdrawn_at`, `body_text` (latest revision, indexed), `current_revision`; unique (`site_id`, `article_id`) and (`site_id`, `link_url`) |
 | `placement` | (`site_id`, `rcg`, `announcement_id`) PK, `listed_on`, `first_seen_at`, `last_seen_at`, `last_position` |
 | `revision` | `id`, `announcement_id`, `fetched_at`, `title`, `body_html`, `body_text`, `content_hash` |
-| `attachment` | `id`, `revision_id`, `name`, `url`, `size`, `sha256` (set while a copy exists or existed) |
+| `attachment` | `id`, `revision_id`, `name`, `url`, `origin` (`module`, `body`), `size`, `sha256` (set while a copy exists or existed) |
 | `event` | `id` from a sequence, `announcement_id`, `kind`, `notify`, `late`, `at` |
 | `job` | `id`, `kind` (`article`, `recheck`, `attachment`, `discovery`, `backfill`), `ref`, `run_after`, `attempts`, `last_error` |
 | `poll` | `id`, `purpose`, `site_id`, `rcg`, `at`, `status`, `bytes`, `ms`, `changed`, `new_ids` |
@@ -131,8 +142,10 @@ Rate limiting (F4) and the Cloudflare cache rule (F3) belong to `add-public-api`
   list pages, the deep ones taking 5-8 s each on the server. At one request every 2.5 s inside a
   five-hour night, about 6,700 requests a night: roughly two weeks.
 - Storage: database near 2 GB after ten years including the PGroonga indexes (25,000 documents
-  with 56 MB of text grew the database by 233 MB); stored files near 1 GB, bounded by the one-year
-  window.
+  with 56 MB of text grew the database by 233 MB); stored files near 2 GB, bounded by the one-year
+  window: 44% of articles carry attachments, about 330 KB of files under 5 MB per article.
+- Attachments: about 25 downloads a day for new articles; backfilling the last year's files adds
+  about 4,000 requests.
 
 ### User-visible changes for review
 
