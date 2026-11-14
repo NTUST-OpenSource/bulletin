@@ -1,8 +1,12 @@
 """Requirements of the backfill capability."""
 
+import json
+import re
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
+
+import pytest
 
 from bulletin.backfill import queue_walks, walk
 from bulletin.detection import detect
@@ -27,6 +31,12 @@ RECENT = (LISTS / "academic-course.html").read_bytes()
 OLD = RECENT.replace(b"2026-", b"2015-")
 LANGUAGE = (LISTS / "language-center-recruitment.html").read_bytes()
 EMPTY = b'<div id="pageptlist"></div>'
+# The pager's page count, as the school-wide bulletin board shows it: 385 pages.
+PAGER = re.findall(
+    rb'<span class="pg-txt">[^<]*<span>385</span>[^<]*</span>',
+    (LISTS / "bulletin-1045-1391.html").read_bytes(),
+)[0]
+PAST_THE_LAST = json.loads((LISTS / "past-the-last-page.json").read_text())
 
 
 def page(n: int) -> str:
@@ -49,20 +59,21 @@ async def backfill_state(conn: AsyncConnection) -> tuple[object, ...] | None:
     return await cur.fetchone()
 
 
+@pytest.mark.xfail(strict=True, reason="Ten-year walk")
 async def test_a_board_with_three_pages(migrated: AsyncConnection) -> None:
-    """Ten-year walk: pages 2 and 3 are stored and the walk ends after the last page."""
+    """Ten-year walk: pages 2 and 3 are stored and the walk ends at the pager's last page."""
     await import_seed(migrated, [ACADEMIC])
-    web = FakeWeb({page(2): Answer(200, body=RECENT), page(3): Answer(200, body=LANGUAGE)})
-    web.answers[page(4)] = Answer(200, body=EMPTY)
+    last = LANGUAGE + PAGER.replace(b"385", b"3")
+    web = FakeWeb({page(2): Answer(200, body=RECENT), page(3): Answer(200, body=last)})
 
     assert await queue_walks(migrated, AT) == 1
     assert await queue_walks(migrated, AT) == 0
     await walk_to_the_end(migrated, web)
 
-    assert [r.url for r in web.requests] == [page(2), page(3), page(4)]
+    assert [r.url for r in web.requests] == [page(2), page(3)]
     cur = await migrated.execute("SELECT count(*) FROM announcement")
     assert await cur.fetchone() == (8,)
-    assert await backfill_state(migrated) == (4, AT)
+    assert await backfill_state(migrated) == (3, AT)
     assert await queue_walks(migrated, AT) == 0
 
 
@@ -129,3 +140,17 @@ async def test_backfill_finds_an_unseen_announcement(migrated: AsyncConnection) 
     await detect(migrated, BOARD, [], AT)
     cur = await migrated.execute("SELECT count(*) FROM job WHERE kind = 'recheck'")
     assert await cur.fetchone() == (0,)
+
+
+@pytest.mark.xfail(strict=True, reason="Ten-year walk")
+async def test_a_page_past_the_last(migrated: AsyncConnection) -> None:
+    """Ten-year walk: a list page past the last one redirects home, which ends the walk."""
+    await import_seed(migrated, [ACADEMIC])
+    await migrated.execute("UPDATE board SET backfill_page = 50")
+    location = {"Location": PAST_THE_LAST["location"]}
+    web = FakeWeb({page(50): Answer(PAST_THE_LAST["status"], location)})
+
+    await walk(migrated, web, BOARD, AT)
+
+    assert await backfill_state(migrated) == (50, AT)
+    assert await walks(migrated) == []

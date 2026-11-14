@@ -1,7 +1,10 @@
 """List page fetch: what a board's list page holds, read from recorded pages."""
 
+import json
 from datetime import date
 from pathlib import Path
+
+import pytest
 
 from bulletin.model import Listed
 from bulletin.pages import parse_list
@@ -63,3 +66,37 @@ def test_a_link_that_is_not_an_article() -> None:
     )
     assert link.title.endswith("2026 summer")
     assert all(i.listed_on is not None for i in items)
+
+
+@pytest.mark.xfail(strict=True, reason="List page fetch")
+def test_the_publisher_column() -> None:
+    """List page fetch: a board that lists a publisher gives each item its publisher."""
+    expected = json.loads(read("bulletin-1045-1391.json"))
+    url = "https://bulletin.ntust.edu.tw/p/403-1045-1391-1.php"
+
+    items = parse_list(read("bulletin-1045-1391.html"), url, 1045)
+
+    assert len(items) == expected["items"]
+    first = expected["first"]
+    assert (items[0].site_id, items[0].article_id, items[0].listed_on) == (
+        first["site_id"],
+        first["article_id"],
+        date.fromisoformat(first["listed_on"]),
+    )
+    assert [i.publisher for i in items] == expected["publishers"]
+    assert [i.link_url for i in items if i.article_id is None] == [
+        "https://bulletin.ntust.edu.tw/p/450-1045-152885,c0.php?Lang=zh-tw"
+    ]
+
+
+@pytest.mark.xfail(strict=True, reason="List page fetch")
+def test_a_board_listing_another_sites_articles() -> None:
+    """List page fetch: identity comes from the link, `404` news pages included."""
+    url = "https://www.secretariat.ntust.edu.tw/p/403-1063-2211-1.php"
+
+    items = parse_list(read("secretariat-1063-2211.html"), url, 1063)
+
+    assert len(items) == 10
+    assert all(i.article_id is not None for i in items)
+    keys = {(i.host, i.site_id, i.article_id) for i in items}
+    assert {("www.ntust.edu.tw", 1000, 153625), ("www.ntust.edu.tw", 1000, 153631)} <= keys
