@@ -229,7 +229,6 @@ async def test_back_online(migrated: AsyncConnection) -> None:
     assert (await read_after(migrated, 0))[-1].kind is Kind.RESTORED
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Ten-year retention")
 async def test_the_edge_of_ten_years(migrated: AsyncConnection) -> None:
     """Ten-year retention: only the announcement listed ten years and a day ago is deleted."""
     await import_seed(migrated, [Board(1068, 1, "h", "u", "n", "announcement", "P2")])

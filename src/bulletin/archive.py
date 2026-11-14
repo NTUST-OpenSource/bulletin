@@ -154,5 +154,33 @@ async def fetch_article(conn: AsyncConnection, fetch: Fetch, announcement_id: in
 
 
 async def prune(conn: AsyncConnection, now: datetime) -> int:
-    """Delete announcements first seen or listed more than ten years ago, with all they hold."""
-    raise NotImplementedError
+    """Delete announcements first seen or listed more than ten years ago, with all they hold.
+
+    Withdrawn ones go too; return how many announcements were deleted.
+    """
+    async with conn.transaction():
+        cur = await conn.execute(
+            "SELECT id FROM announcement WHERE first_seen_at < %s - interval '10 years'"
+            " OR listed_on < (%s - interval '10 years')::date",
+            (now, now),
+        )
+        old = [row[0] for row in await cur.fetchall()]
+        if not old:
+            return 0
+        # The event trigger lets this transaction delete events.
+        await conn.execute("SET LOCAL bulletin.retention = 'on'")
+        for statement in (
+            "UPDATE announcement SET current_revision = NULL WHERE id = ANY(%s)",
+            "UPDATE announcement SET cross_post_of = NULL WHERE cross_post_of = ANY(%s)",
+            (
+                "DELETE FROM attachment WHERE revision_id IN"
+                " (SELECT id FROM revision WHERE announcement_id = ANY(%s))"
+            ),
+            "DELETE FROM revision WHERE announcement_id = ANY(%s)",
+            "DELETE FROM placement WHERE announcement_id = ANY(%s)",
+            "DELETE FROM event WHERE announcement_id = ANY(%s)",
+            "DELETE FROM job WHERE kind IN ('article', 'recheck') AND ref::bigint = ANY(%s)",
+            "DELETE FROM announcement WHERE id = ANY(%s)",
+        ):
+            await conn.execute(statement, (old,))
+    return len(old)
