@@ -1,9 +1,14 @@
 """Attachment sizes, and copies of small school files kept for a year."""
 
+import asyncio
+import hashlib
 import re
+from datetime import timedelta
 from http import HTTPStatus
 from typing import TYPE_CHECKING
 from urllib.parse import urlsplit
+
+from bulletin.tls import is_school
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
@@ -14,6 +19,9 @@ if TYPE_CHECKING:
 
     from bulletin.http import Fetch
 
+# School files under this size are kept while their announcement is within the window.
+MAX_KEPT = 5 * 2**20
+FILE_WINDOW = timedelta(days=365)
 CONTENT_RANGE = re.compile(r"bytes \d+-\d+/(\d+)")
 
 
@@ -65,9 +73,42 @@ class FileStore:
         """Where the file with `digest` is kept."""
         return self.root / digest[:2] / digest
 
+    def put(self, content: bytes) -> str:
+        """Keep `content` once, written whole before it appears; return its digest."""
+        digest = hashlib.sha256(content).hexdigest()
+        path = self.path(digest)
+        if not path.exists():
+            path.parent.mkdir(parents=True, exist_ok=True)
+            partial = path.with_suffix(".part")
+            partial.write_bytes(content)
+            partial.replace(path)
+        return digest
+
 
 async def keep_files(
     conn: AsyncConnection, fetch: Fetch, store: FileStore, announcement_id: int, now: datetime
 ) -> None:
-    """Read the sizes of an announcement's attachments and keep copies of small school files."""
-    raise NotImplementedError
+    """Read the sizes of an announcement's attachments and keep copies of small school files.
+
+    Only announcements first seen or listed within the last 365 days, and only attachments on
+    the school's hosts, are requested; files under 5 MB are kept once per digest.
+    """
+    cur = await conn.execute(
+        "SELECT f.id, f.url FROM attachment f"
+        " JOIN announcement a ON f.revision_id = a.current_revision"
+        " WHERE a.id = %s AND f.size IS NULL"
+        " AND (a.first_seen_at > %s OR a.listed_on > %s::date) ORDER BY f.id",
+        (announcement_id, now - FILE_WINDOW, now - FILE_WINDOW),
+    )
+    for attachment, url in await cur.fetchall():
+        if not is_school(urlsplit(str(url)).hostname or ""):
+            continue
+        size, content = await read_size(fetch, url, lambda size: size < MAX_KEPT)
+        if content is None and size is not None and size < MAX_KEPT:
+            response = await fetch(url)
+            content = response.body if response.status == HTTPStatus.OK else None
+        digest = None if content is None else await asyncio.to_thread(store.put, content)
+        await conn.execute(
+            "UPDATE attachment SET size = %s, sha256 = %s WHERE id = %s",
+            (size, digest, attachment),
+        )

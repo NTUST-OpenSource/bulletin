@@ -6,8 +6,6 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import pytest
-
 from bulletin.archive import publish, revise
 from bulletin.files import FileStore, keep_files, read_size
 from bulletin.model import Attachment, Content, Listed
@@ -89,7 +87,6 @@ async def recorded(conn: AsyncConnection) -> dict[str, tuple[int | None, str | N
     return {url: (size, digest) for url, size, digest in await cur.fetchall()}
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Stored copies")
 async def test_a_small_school_file(migrated: AsyncConnection, tmp_path: Path) -> None:
     """Stored copies: a 600 KB school PDF is stored, with its size and digest recorded."""
     pdf = b"%PDF" + b"0" * (600 * 1024 - 4)
@@ -104,7 +101,6 @@ async def test_a_small_school_file(migrated: AsyncConnection, tmp_path: Path) ->
     assert store.path(digest).read_bytes() == pdf
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Stored copies")
 async def test_a_large_file(migrated: AsyncConnection, tmp_path: Path) -> None:
     """Stored copies: a 7 MB attachment keeps its name, URL and size only."""
     web = FakeWeb({MODULE_FILE: Answer(200, {"Content-Length": str(7 * 2**20)}, b"x")})
@@ -116,7 +112,6 @@ async def test_a_large_file(migrated: AsyncConnection, tmp_path: Path) -> None:
     assert list(tmp_path.iterdir()) == []
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Stored copies")
 async def test_a_file_outside_the_school(migrated: AsyncConnection, tmp_path: Path) -> None:
     """Stored copies: an attachment outside ntust.edu.tw is neither requested nor stored."""
     outside = "https://drive.example.com/notice.pdf"
@@ -129,7 +124,6 @@ async def test_a_file_outside_the_school(migrated: AsyncConnection, tmp_path: Pa
     assert await recorded(migrated) == {outside: (None, None)}
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Stored copies")
 async def test_the_same_file_twice(migrated: AsyncConnection, tmp_path: Path) -> None:
     """Stored copies: two links to the same content keep one copy."""
     other = VAR_FILE.replace("notice", "copy")

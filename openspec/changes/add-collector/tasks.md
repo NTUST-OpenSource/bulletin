@@ -107,7 +107,7 @@ Article parsing ports the article half of xincord's `pages.py`.
 - [x] 8.1 Commit the xfail test for "Attachment records" (attachments); verify it fails for the expected reason and the gate stays green
 - [x] 8.2 Implement "Attachment records" and remove the marker; verify its scenarios pass and the gate is green
 - [x] 8.3 Commit the xfail test for "Stored copies" (attachments); verify it fails for the expected reason and the gate stays green
-- [ ] 8.4 Implement "Stored copies" and remove the marker; verify its scenarios pass and the gate is green
+- [x] 8.4 Implement "Stored copies" and remove the marker; verify its scenarios pass and the gate is green
 - [x] 8.5 Commit the xfail test for "Size without HEAD" (attachments); verify it fails for the expected reason and the gate stays green
 - [x] 8.6 Implement "Size without HEAD" and remove the marker; verify its scenarios pass and the gate is green
 - [ ] 8.7 Commit the xfail test for "One-year file window" (attachments); verify it fails for the expected reason and the gate stays green

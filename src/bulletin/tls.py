@@ -30,8 +30,11 @@ def default_context() -> ssl.SSLContext:
     return ssl.create_default_context()
 
 
+def is_school(host: str) -> bool:
+    """Whether `host` is one of the school's: `ntust.edu.tw` or under it."""
+    return host == "ntust.edu.tw" or host.endswith(".ntust.edu.tw")
+
+
 def context_for(host: str) -> ssl.SSLContext:
     """Return the TLS context for requests to `host`: relaxed for `*.ntust.edu.tw` only."""
-    if host == "ntust.edu.tw" or host.endswith(".ntust.edu.tw"):
-        return school_context()
-    return default_context()
+    return school_context() if is_school(host) else default_context()
