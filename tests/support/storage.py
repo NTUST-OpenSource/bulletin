@@ -1,6 +1,7 @@
 """Throwaway schemas on the test database for storage tests."""
 
 from contextlib import asynccontextmanager
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
@@ -24,14 +25,27 @@ def database_url(environ: Mapping[str, str]) -> str:
     pytest.skip(f"{URL_VARIABLE} is not set")
 
 
+@dataclass(frozen=True)
+class Schema:
+    """A schema of the test database that connections search first."""
+
+    url: str
+    name: str
+
+    async def connect(self) -> AsyncConnection:
+        """Open an autocommit connection whose search path starts at this schema."""
+        return await AsyncConnection.connect(
+            self.url, autocommit=True, options=f"-c search_path={self.name},public"
+        )
+
+
 @asynccontextmanager
-async def throwaway_schema(url: str) -> AsyncGenerator[AsyncConnection]:
-    """Yield an autocommit connection whose search path starts at a new, empty schema."""
-    schema = sql.Identifier(f"test_{uuid4().hex}")
-    async with await AsyncConnection.connect(url, autocommit=True) as conn:
-        await conn.execute(sql.SQL("CREATE SCHEMA {}").format(schema))
+async def throwaway_schema(url: str) -> AsyncGenerator[Schema]:
+    """Create a new, empty schema and drop it with everything in it afterwards."""
+    name = f"test_{uuid4().hex}"
+    async with await AsyncConnection.connect(url, autocommit=True) as admin:
+        await admin.execute(sql.SQL("CREATE SCHEMA {}").format(sql.Identifier(name)))
         try:
-            await conn.execute(sql.SQL("SET search_path TO {}, public").format(schema))
-            yield conn
+            yield Schema(url, name)
         finally:
-            await conn.execute(sql.SQL("DROP SCHEMA {} CASCADE").format(schema))
+            await admin.execute(sql.SQL("DROP SCHEMA {} CASCADE").format(sql.Identifier(name)))
