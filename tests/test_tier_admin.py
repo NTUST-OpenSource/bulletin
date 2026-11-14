@@ -114,7 +114,6 @@ async def test_a_change_between_tiers_queues_nothing(migrated: AsyncConnection) 
     assert await cur.fetchone() == (0,)
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Review new boards")
 async def test_accepting_a_discovered_board(migrated: AsyncConnection) -> None:
     """Review new boards: accepted as P4 and news, it leaves the list and the change is audited."""
     await board_at(migrated, "P2")

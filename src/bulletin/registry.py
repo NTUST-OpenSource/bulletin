@@ -18,6 +18,7 @@ if TYPE_CHECKING:
 type Tier = Literal["P1", "P2", "P3", "P4", "off"]
 type Category = Literal["announcement", "news", "regulation", "course", "excluded"]
 TIERS: tuple[Tier, ...] = ("P1", "P2", "P3", "P4", "off")
+CATEGORIES: tuple[Category, ...] = ("announcement", "news", "regulation", "course", "excluded")
 
 # The name patterns of categories.json, in the order they are tried.
 GUESSES: list[tuple[Category, re.Pattern[str]]] = [
@@ -196,7 +197,12 @@ class Pending:
 
 async def pending_boards(conn: AsyncConnection) -> list[Pending]:
     """Return the boards pending review, oldest found first."""
-    raise NotImplementedError
+    cur = await conn.execute(
+        "SELECT b.site_id, b.rcg, s.host, b.name, b.category, b.found_at"
+        " FROM board b JOIN site s USING (site_id) WHERE b.pending_review"
+        " ORDER BY b.found_at, b.site_id, b.rcg"
+    )
+    return [Pending(*row) for row in await cur.fetchall()]
 
 
 async def accept(  # noqa: PLR0913 - the board, and what the operator decided about it
@@ -208,5 +214,21 @@ async def accept(  # noqa: PLR0913 - the board, and what the operator decided ab
     category: Category | None = None,
     by: str = "cli",
 ) -> None:
-    """Clear a board's review mark, setting its tier or category in the same step."""
-    raise NotImplementedError
+    """Clear a board's review mark, setting its tier or category in the same step.
+
+    A tier change is audited as by `set_tier`; an unknown category raises ValueError.
+    """
+    if category is not None and category not in CATEGORIES:
+        msg = f"unknown category {category}"
+        raise ValueError(msg)
+    async with conn.transaction():
+        if tier is not None:
+            await set_tier(conn, site_id, rcg, tier, by=by)
+        cur = await conn.execute(
+            "UPDATE board SET pending_review = false, category = COALESCE(%s, category)"
+            " WHERE site_id = %s AND rcg = %s RETURNING rcg",
+            (category, site_id, rcg),
+        )
+        if await cur.fetchone() is None:
+            msg = f"no board {site_id}-{rcg}"
+            raise LookupError(msg)
