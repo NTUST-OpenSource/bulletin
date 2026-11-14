@@ -5,7 +5,7 @@ Each requirement gets two tasks (AGENTS.md, xfail-first): commit its failing tes
 
 ## 1. Scaffolding and the gate
 
-- [ ] 1.1 Create `pyproject.toml` for Python 3.14 with uv (FastAPI, psycopg 3, aiohttp; dev: pytest, coverage, ruff, pyright, prek) and `uv.lock`; verify `uv sync --locked` succeeds
+- [x] 1.1 Create `pyproject.toml` for Python 3.14 with uv (FastAPI, psycopg 3, aiohttp; dev: pytest, coverage, ruff, pyright, prek) and `uv.lock`; verify `uv sync --locked` succeeds
 - [ ] 1.2 Configure ruff `select = ["ALL"]` with documented ignores, pyright strict and branch coverage of at least 85%, add `scripts/gate.sh` as in xincord and a smoke test importing the package; verify `scripts/gate.sh` passes
 - [ ] 1.3 Port `scripts/check_commit_msg.py` with its test from xincord and add `.pre-commit-config.yaml` (ruff, pyright, no CJK in `*.py`, commit-msg, the gate on pre-push); verify `uv run prek run --all-files` passes and a commit with a CJK subject is refused
 - [ ] 1.4 Add the Claude Code hooks from xincord (`.claude/settings.json`: ruff on edited `.py`, the gate on stop); verify editing a badly formatted file gets reformatted
