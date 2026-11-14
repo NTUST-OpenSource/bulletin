@@ -26,7 +26,11 @@ class Detections:
         self.pages: list[tuple[tuple[int, int], list[Listed]]] = []
 
     async def __call__(
-        self, _conn: AsyncConnection, board: tuple[int, int], items: Sequence[Listed]
+        self,
+        _conn: AsyncConnection,
+        board: tuple[int, int],
+        items: Sequence[Listed],
+        _at: datetime,
     ) -> None:
         self.pages.append((board, list(items)))
 

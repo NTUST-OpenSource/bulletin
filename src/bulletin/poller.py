@@ -17,7 +17,9 @@ if TYPE_CHECKING:
 # A burst reads at most this many pages.
 LAST_BURST_PAGE = 5
 
-type Detect = Callable[[AsyncConnection, tuple[int, int], Sequence[Listed]], Awaitable[None]]
+type Detect = Callable[
+    [AsyncConnection, tuple[int, int], Sequence[Listed], datetime], Awaitable[object]
+]
 
 
 def fingerprint(items: Sequence[Listed]) -> str:
@@ -53,7 +55,7 @@ async def handle_page(
                 "UPDATE board SET fingerprint = %s WHERE site_id = %s AND rcg = %s",
                 (current, site_id, rcg),
             )
-            await detect(conn, board, items)
+            await detect(conn, board, items, at)
         await mark_polled(conn, site_id, rcg, at)
     return changed
 
@@ -87,9 +89,9 @@ async def poll_board(
             extra += items
 
     async def detect_all(
-        conn: AsyncConnection, board: tuple[int, int], page_one: Sequence[Listed]
+        conn: AsyncConnection, board: tuple[int, int], page_one: Sequence[Listed], at: datetime
     ) -> None:
-        await detect(conn, board, [*page_one, *extra])
+        await detect(conn, board, [*page_one, *extra], at)
 
     return await handle_page(conn, board, first, at, detect_all)
 
