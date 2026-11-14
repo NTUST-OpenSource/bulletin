@@ -53,3 +53,17 @@ async def handle_page(
             await detect(conn, board, items)
         await mark_polled(conn, site_id, rcg, at)
     return changed
+
+
+type ReadPage = Callable[[int], Awaitable[list[Listed]]]
+
+
+async def poll_board(
+    conn: AsyncConnection,
+    board: tuple[int, int],
+    read_page: ReadPage,
+    at: datetime,
+    detect: Detect,
+) -> bool:
+    """Poll a board's page 1, and later pages on a burst; return whether page 1 changed."""
+    raise NotImplementedError
