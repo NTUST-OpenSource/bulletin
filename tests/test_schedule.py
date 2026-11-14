@@ -19,7 +19,6 @@ WEDNESDAY = datetime(2026, 11, 18, 10, 0, tzinfo=TAIPEI)
 SATURDAY = datetime(2026, 11, 21, 10, 0, tzinfo=TAIPEI)
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Tier intervals")
 @pytest.mark.parametrize(
     ("tier", "at", "minutes"),
     [
@@ -40,13 +39,11 @@ def test_interval_by_tier_and_window(tier: Tier, at: datetime, minutes: int) -> 
     assert interval(tier, at) == timedelta(minutes=minutes)
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Tier intervals")
 def test_off_boards_have_no_interval() -> None:
     """Tier intervals: an off board is never due."""
     assert interval("off", WEDNESDAY) is None
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Tier intervals")
 async def test_office_hours(migrated: AsyncConnection) -> None:
     """Tier intervals: a P1 board polled at 10:00 on a Wednesday is due at 10:05."""
     await import_seed(migrated, [Board(1045, 1391, "h", "u", "n", "announcement", "P1")])
