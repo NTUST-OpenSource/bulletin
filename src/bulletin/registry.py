@@ -82,29 +82,38 @@ async def get_board(conn: AsyncConnection, site_id: int, rcg: int) -> Board | No
     return None if row is None else Board(*row)
 
 
-async def set_tier(conn: AsyncConnection, site_id: int, rcg: int, tier: Tier) -> None:
+async def set_tier(
+    conn: AsyncConnection, site_id: int, rcg: int, tier: Tier, *, by: str = "cli"
+) -> None:
     """Change a board's tier, due again one new interval after its last poll.
 
-    An unknown tier raises ValueError and an unknown board LookupError; neither changes anything.
+    The change is recorded with `by`, who made it. An unknown tier raises ValueError and an
+    unknown board LookupError; neither changes anything.
     """
     if tier not in TIERS:
         msg = f"unknown tier {tier}"
         raise ValueError(msg)
     async with conn.transaction():
         cur = await conn.execute(
-            "SELECT last_polled_at FROM board WHERE site_id = %s AND rcg = %s FOR UPDATE",
+            "SELECT tier, last_polled_at FROM board WHERE site_id = %s AND rcg = %s FOR UPDATE",
             (site_id, rcg),
         )
         row = await cur.fetchone()
         if row is None:
             msg = f"no board {site_id}-{rcg}"
             raise LookupError(msg)
-        last: datetime | None = row[0]
+        old, last = row
         step = None if last is None else interval(tier, last)
         await conn.execute(
             "UPDATE board SET tier = %s, next_poll_at = %s WHERE site_id = %s AND rcg = %s",
             (tier, None if last is None or step is None else last + step, site_id, rcg),
         )
+        if old != tier:
+            await conn.execute(
+                "INSERT INTO tier_change (site_id, rcg, old_tier, new_tier, changed_by)"
+                " VALUES (%s, %s, %s, %s, %s)",
+                (site_id, rcg, old, tier, by),
+            )
 
 
 def guess_category(name: str) -> Category:
@@ -140,3 +149,23 @@ async def add_discovered(conn: AsyncConnection, found: Iterable[Found]) -> list[
             )
             added += await cur.fetchall()
     return added
+
+
+@dataclass(frozen=True)
+class TierChange:
+    """A board's tier change: from what, to what, by whom and when."""
+
+    old_tier: Tier
+    new_tier: Tier
+    changed_by: str
+    changed_at: datetime
+
+
+async def tier_history(conn: AsyncConnection, site_id: int, rcg: int) -> list[TierChange]:
+    """Return a board's tier changes, newest first."""
+    cur = await conn.execute(
+        "SELECT old_tier, new_tier, changed_by, changed_at FROM tier_change"
+        " WHERE site_id = %s AND rcg = %s ORDER BY changed_at DESC, id DESC",
+        (site_id, rcg),
+    )
+    return [TierChange(*row) for row in await cur.fetchall()]

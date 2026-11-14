@@ -128,8 +128,8 @@ Article parsing ports the article half of xincord's `pages.py`.
 
 - [x] 10.1 Commit the xfail test for "Change a tier" (tier-admin); verify it fails for the expected reason and the gate stays green
 - [x] 10.2 Implement "Change a tier" and remove the marker; verify its scenarios pass and the gate is green
-- [ ] 10.3 Commit the xfail test for "Tier audit" (tier-admin); verify it fails for the expected reason and the gate stays green
-- [ ] 10.4 Implement "Tier audit" and remove the marker; verify its scenarios pass and the gate is green
+- [x] 10.3 Commit the xfail test for "Tier audit" (tier-admin); verify it fails for the expected reason and the gate stays green
+- [x] 10.4 Implement "Tier audit" and remove the marker; verify its scenarios pass and the gate is green
 - [ ] 10.5 Commit the xfail test for "Turning a board on" (tier-admin); verify it fails for the expected reason and the gate stays green
 - [ ] 10.6 Implement "Turning a board on" and remove the marker; verify its scenarios pass and the gate is green
 - [ ] 10.7 Commit the xfail test for "Review new boards" (tier-admin); verify it fails for the expected reason and the gate stays green

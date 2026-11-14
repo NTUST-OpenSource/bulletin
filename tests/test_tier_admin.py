@@ -6,7 +6,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from bulletin.registry import Board, get_board, import_seed, set_tier
+from bulletin.registry import Board, get_board, import_seed, set_tier, tier_history
 from bulletin.schedule import due_boards, mark_polled
 
 if TYPE_CHECKING:
@@ -65,3 +65,17 @@ async def test_an_unknown_tier(migrated: AsyncConnection) -> None:
     board = await get_board(migrated, 1053, 1435)
     assert board is not None
     assert board.tier == "P2"
+
+
+async def test_two_changes(migrated: AsyncConnection) -> None:
+    """Tier audit: P4 to P2 by the CLI, then P1 through the API, listed newest first."""
+    await board_at(migrated, "P4")
+
+    await set_tier(migrated, 1053, 1435, "P2")
+    await set_tier(migrated, 1053, 1435, "P1", by="owner-laptop")
+
+    history = await tier_history(migrated, 1053, 1435)
+    assert [(c.old_tier, c.new_tier, c.changed_by) for c in history] == [
+        ("P2", "P1", "owner-laptop"),
+        ("P4", "P2", "cli"),
+    ]
