@@ -1,10 +1,15 @@
 """Requirements of the detection capability."""
 
+import json
+from dataclasses import replace
 from datetime import UTC, date, datetime, timedelta
+from pathlib import Path
 from typing import TYPE_CHECKING
 
+import pytest
+
 from bulletin.archive import Listed
-from bulletin.detection import detect, prune_frontier, record_frontier
+from bulletin.detection import detect, normalize, prune_frontier, record_frontier
 from bulletin.events import Event, read_after
 from bulletin.registry import Board, import_seed
 
@@ -220,3 +225,43 @@ async def test_first_start(migrated: AsyncConnection) -> None:
 
     assert len(new) == 2
     assert not any(e.notify for e in await read_after(migrated, 0))
+
+
+TITLES = json.loads((Path(__file__).parent / "fixtures" / "cross-posts.json").read_text("utf-8"))
+
+
+@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Cross-posts")
+def test_normalized_titles() -> None:
+    """Cross-posts: prefixes, filler words, punctuation and spaces are dropped."""
+    assert normalize(TITLES["original"]) == TITLES["normalized"]
+    assert normalize(TITLES["copy"]) == TITLES["normalized"]
+
+
+@pytest.mark.xfail(strict=True, reason="Cross-posts")
+async def test_the_bulletin_boards_copy(migrated: AsyncConnection) -> None:
+    """Cross-posts: the bulletin board's copy of yesterday's office post is linked, not news."""
+    await seed(migrated)
+    office = replace(article(153500, site_id=1063), title=TITLES["original"])
+    [original] = await detect(migrated, SECRETARIAT, [office], AT - timedelta(days=1))
+    await migrated.execute("UPDATE announcement SET first_seen_at = %s", (AT - timedelta(days=1),))
+    await migrated.execute("UPDATE board SET backfilled_at = %s", (AT - timedelta(days=30),))
+
+    [copy] = await detect(migrated, BULLETIN, [replace(article(153600), title=TITLES["copy"])], AT)
+
+    cur = await migrated.execute("SELECT cross_post_of FROM announcement WHERE id = %s", (copy,))
+    assert await cur.fetchone() == (original,)
+    assert (await published(migrated, copy)).notify is False
+
+
+async def test_short_generic_titles(migrated: AsyncConnection) -> None:
+    """Cross-posts: two sites' posts with the same four-character title are not linked."""
+    await seed(migrated)
+    await migrated.execute("UPDATE board SET backfilled_at = %s", (AT - timedelta(days=30),))
+    short = TITLES["short"]
+    await detect(migrated, SECRETARIAT, [replace(article(1, site_id=1063), title=short)], AT)
+
+    [second] = await detect(migrated, BULLETIN, [replace(article(2), title=short)], AT)
+
+    cur = await migrated.execute("SELECT cross_post_of FROM announcement WHERE id = %s", (second,))
+    assert await cur.fetchone() == (None,)
+    assert (await published(migrated, second)).notify is True

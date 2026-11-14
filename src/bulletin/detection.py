@@ -135,3 +135,8 @@ async def prune_frontier(conn: AsyncConnection, now: datetime) -> int:
     """Delete frontier records older than 7 days; return how many."""
     cur = await conn.execute("DELETE FROM frontier WHERE at < %s", (now - FRONTIER_KEPT,))
     return cur.rowcount
+
+
+def normalize(title: str) -> str:
+    """Reduce a title to what cross-posts share: no bracketed prefix, filler word or punctuation."""
+    raise NotImplementedError
