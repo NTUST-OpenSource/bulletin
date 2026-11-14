@@ -6,8 +6,6 @@ from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import pytest
-
 from bulletin.archive import Listed
 from bulletin.detection import detect, normalize, prune_frontier, record_frontier
 from bulletin.events import Event, read_after
@@ -230,14 +228,12 @@ async def test_first_start(migrated: AsyncConnection) -> None:
 TITLES = json.loads((Path(__file__).parent / "fixtures" / "cross-posts.json").read_text("utf-8"))
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Cross-posts")
 def test_normalized_titles() -> None:
     """Cross-posts: prefixes, filler words, punctuation and spaces are dropped."""
     assert normalize(TITLES["original"]) == TITLES["normalized"]
     assert normalize(TITLES["copy"]) == TITLES["normalized"]
 
 
-@pytest.mark.xfail(strict=True, reason="Cross-posts")
 async def test_the_bulletin_boards_copy(migrated: AsyncConnection) -> None:
     """Cross-posts: the bulletin board's copy of yesterday's office post is linked, not news."""
     await seed(migrated)

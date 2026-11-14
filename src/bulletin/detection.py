@@ -1,6 +1,10 @@
 """Which items on a polled list are new announcements, and which of those are news."""
 
+import json
+import re
+import unicodedata
 from datetime import timedelta
+from importlib import resources
 from typing import TYPE_CHECKING
 
 from bulletin.archive import publish
@@ -15,6 +19,12 @@ if TYPE_CHECKING:
     from bulletin.archive import Listed
 
 FRONTIER_KEPT = timedelta(days=7)
+# A cross-post copies another site's announcement first seen this recently, under a title this long.
+CROSS_POST_WINDOW = timedelta(days=14)
+CROSS_POST_MIN_LENGTH = 8
+_TITLES = json.loads((resources.files("bulletin") / "titles.json").read_text(encoding="utf-8"))
+PREFIX = re.compile(_TITLES["prefix"])
+FILLER = re.compile(_TITLES["words"])
 # On a board not yet backfilled, news is above the frontier of this long ago, or freshly dated.
 FRONTIER_AGE = timedelta(hours=72)
 FRESH_LIST_DATE = timedelta(days=2)
@@ -37,8 +47,14 @@ async def detect(
         for position, item in enumerate(items, 1):
             announcement = await find(conn, item)
             if announcement is None:
-                news = backfilled or is_news(item, line, at)
+                original = await cross_post_of(conn, item, at)
+                news = (backfilled or is_news(item, line, at)) and original is None
                 announcement = await publish(conn, item, notify=news, late=not news)
+                if original is not None:
+                    await conn.execute(
+                        "UPDATE announcement SET cross_post_of = %s WHERE id = %s",
+                        (original, announcement),
+                    )
                 new.append(announcement)
             await place(conn, board, announcement, item, position, at)
     return new
@@ -139,4 +155,20 @@ async def prune_frontier(conn: AsyncConnection, now: datetime) -> int:
 
 def normalize(title: str) -> str:
     """Reduce a title to what cross-posts share: no bracketed prefix, filler word or punctuation."""
-    raise NotImplementedError
+    text = FILLER.sub("", PREFIX.sub("", title))
+    return "".join(
+        c for c in text if not unicodedata.category(c).startswith(("P", "Z", "C"))
+    ).casefold()
+
+
+async def cross_post_of(conn: AsyncConnection, item: Listed, at: datetime) -> int | None:
+    """Return another site's announcement of the last 14 days with `item`'s normalized title."""
+    key = normalize(item.title)
+    if len(key) < CROSS_POST_MIN_LENGTH:
+        return None
+    cur = await conn.execute(
+        "SELECT id, title FROM announcement WHERE site_id <> %s AND first_seen_at > %s"
+        " ORDER BY first_seen_at, id",
+        (item.site_id, at - CROSS_POST_WINDOW),
+    )
+    return next((id_ for id_, title in await cur.fetchall() if normalize(title) == key), None)

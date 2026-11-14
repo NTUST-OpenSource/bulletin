@@ -1,0 +1,5 @@
+{
+  "_comment": "Title normalization for cross-posts: leading bracketed prefixes, then the words for forwarded and announcement.",
+  "prefix": "^(?:\\s*[【\\[(（〔「][^】\\])）〕」]*[】\\])）〕」])+",
+  "words": "轉知|轉發|轉載|公告"
+}
