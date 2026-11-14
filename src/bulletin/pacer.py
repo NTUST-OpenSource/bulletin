@@ -31,7 +31,7 @@ class Pacer:
 
     def pause(self, seconds: float) -> None:
         """Hold every request back for `seconds` from now, as after a WAF block."""
-        raise NotImplementedError
+        self._ready_at = max(self._ready_at, self._clock() + seconds)
 
     @asynccontextmanager
     async def slot(self) -> AsyncGenerator[None]:
@@ -43,4 +43,6 @@ class Pacer:
             try:
                 yield
             finally:
-                self._ready_at = self._clock() + self._gap + self._random() * self._jitter
+                self._ready_at = max(
+                    self._ready_at, self._clock() + self._gap + self._random() * self._jitter
+                )

@@ -40,7 +40,6 @@ async def test_two_polls_due_at_once() -> None:
     assert second_start - first_end == pytest.approx(2.5)
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Failure backoff")
 async def test_waf_block_pauses_the_queue() -> None:
     """Failure backoff: after HTTP 406 no request starts within 15 minutes."""
     clock = FakeClock()

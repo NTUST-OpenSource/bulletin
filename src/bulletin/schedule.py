@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 TAIPEI = ZoneInfo("Asia/Taipei")
 OFFICE_HOURS = range(8, 18)
 BACKFILL_HOURS = range(1, 6)
+MAX_BACKOFF = timedelta(days=1)
 # Minutes between polls: (office hours, otherwise). Office hours are weekdays 08:00-18:00 in
 # Taipei, holidays included.
 INTERVALS: dict[Tier, tuple[int, int]] = {
@@ -124,5 +125,23 @@ async def next_request(conn: AsyncConnection, now: datetime) -> Poll | Job | Non
 
 
 async def mark_failed(conn: AsyncConnection, site_id: int, rcg: int, at: datetime) -> datetime:
-    """Record a failed poll at `at`, back the board's next poll off, and return when it is due."""
-    raise NotImplementedError
+    """Record a failed poll at `at`, back the board's next poll off, and return when it is due.
+
+    The interval doubles for each consecutive failure, up to one day; a success resets it.
+    """
+    cur = await conn.execute(
+        "UPDATE board SET failures = failures + 1 WHERE site_id = %s AND rcg = %s"
+        " RETURNING tier, failures",
+        (site_id, rcg),
+    )
+    row = await cur.fetchone()
+    if row is None:
+        msg = f"no board {site_id}-{rcg}"
+        raise LookupError(msg)
+    tier, failures = row
+    step = interval(tier, at) or MAX_BACKOFF
+    due = at + min(step * 2**failures, MAX_BACKOFF)
+    await conn.execute(
+        "UPDATE board SET next_poll_at = %s WHERE site_id = %s AND rcg = %s", (due, site_id, rcg)
+    )
+    return due
