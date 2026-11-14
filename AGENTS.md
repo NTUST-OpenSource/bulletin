@@ -15,8 +15,6 @@ keeps them for ten years, and serves them through a public API and a web fronten
 
 ## Commands
 
-The Python project does not exist yet; the first tasks of `add-collector` create it.
-
 ```sh
 uv sync                       # create or update .venv from uv.lock
 uv run prek install           # install the git hooks once per clone
