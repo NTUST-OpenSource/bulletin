@@ -209,7 +209,6 @@ async def test_one_item_gone_for_a_new_one(migrated: AsyncConnection) -> None:
     assert await prompt_rechecks(migrated, later + timedelta(hours=1)) == []
 
 
-@pytest.mark.xfail(strict=True, reason="Restored announcements")
 async def test_back_online(migrated: AsyncConnection) -> None:
     """Restored announcements: listed again and answering 200, it is restored."""
     await import_seed(migrated, [Board(1068, 1, "h", "u", "n", "announcement", "P2")])
@@ -219,7 +218,7 @@ async def test_back_online(migrated: AsyncConnection) -> None:
 
     await detect(migrated, (1068, 1), [SHE], later)
     cur = await migrated.execute(
-        "SELECT id, kind, ref FROM job WHERE kind = 'recheck' AND run_after <= %s", (later,)
+        "SELECT id, kind, ref FROM job WHERE kind = 'recheck' AND run_after = %s", (later,)
     )
     [job] = [Job(*row) for row in await cur.fetchall()]
     await run_job(migrated, FakeWeb(), job)

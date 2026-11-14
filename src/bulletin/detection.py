@@ -49,7 +49,10 @@ async def detect(
         listed_before = await last_listed(conn, board)
         listed_now: set[int] = set()
         for position, item in enumerate(items, 1):
-            announcement = await find(conn, item)
+            announcement, withdrawn = await find(conn, item)
+            if withdrawn:
+                # Listed again: it may be back online.
+                await enqueue(conn, "recheck", str(announcement), at)
             if announcement is None:
                 original = await cross_post_of(conn, item, at)
                 news = (backfilled or is_news(item, line, at)) and original is None
@@ -121,20 +124,22 @@ async def is_backfilled(conn: AsyncConnection, board: tuple[int, int]) -> bool:
     return bool(row and row[0])
 
 
-async def find(conn: AsyncConnection, item: Listed) -> int | None:
-    """Return the id of the stored announcement with `item`'s identity, or None."""
+async def find(conn: AsyncConnection, item: Listed) -> tuple[int | None, bool]:
+    """Return the stored announcement with `item`'s identity, or None, and if it is withdrawn."""
     if item.article_id is not None:
         cur = await conn.execute(
-            "SELECT id FROM announcement WHERE site_id = %s AND article_id = %s",
+            "SELECT id, withdrawn_at IS NOT NULL FROM announcement"
+            " WHERE site_id = %s AND article_id = %s",
             (item.site_id, item.article_id),
         )
     else:
         cur = await conn.execute(
-            "SELECT id FROM announcement WHERE site_id = %s AND link_url = %s",
+            "SELECT id, withdrawn_at IS NOT NULL FROM announcement"
+            " WHERE site_id = %s AND link_url = %s",
             (item.site_id, item.link_url),
         )
     row = await cur.fetchone()
-    return None if row is None else row[0]
+    return (None, False) if row is None else (row[0], row[1])
 
 
 async def place(  # noqa: PLR0913, PLR0917 - a placement's key and what the list showed

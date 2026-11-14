@@ -123,18 +123,19 @@ def article_url(host: str, site_id: int, article_id: int) -> str:
 async def fetch_article(conn: AsyncConnection, fetch: Fetch, announcement_id: int) -> bool:
     """Fetch an announcement's article page and store it as a revision; return whether it did.
 
-    A redirect to the site's home page withdraws the announcement. A link entry has no article
-    page and is left as it is.
+    A redirect to the site's home page withdraws the announcement, and an answer with content
+    restores a withdrawn one. A link entry has no article page and is left as it is.
     """
     cur = await conn.execute(
-        "SELECT host, site_id, article_id, publisher FROM announcement WHERE id = %s",
+        "SELECT host, site_id, article_id, publisher, withdrawn_at IS NOT NULL"
+        " FROM announcement WHERE id = %s",
         (announcement_id,),
     )
     row = await cur.fetchone()
     if row is None:
         msg = f"no announcement {announcement_id}"
         raise LookupError(msg)
-    host, site_id, article_id, publisher = row
+    host, site_id, article_id, publisher, withdrawn = row
     if article_id is None:
         return False
     url = article_url(host, site_id, article_id)
@@ -145,4 +146,6 @@ async def fetch_article(conn: AsyncConnection, fetch: Fetch, announcement_id: in
     if response.status != HTTPStatus.OK:
         return False
     await revise(conn, announcement_id, parse_article(response.text(), url, publisher))
+    if withdrawn:
+        await restore(conn, announcement_id)
     return True
