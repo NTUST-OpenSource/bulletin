@@ -68,12 +68,13 @@ _Avoid_: sticky
 ## Discovery
 
 **First publication**:
-The moment an announcement becomes public on the school's site for the first time.
+The moment an announcement becomes public on the school's site for the first time, which can be
+long after the school assigned its article id, for a draft published late.
 _Avoid_: new post (ambiguous with first seen)
 
 **Late discovery**:
-An announcement bulletin first sees well after its first publication, such as a draft published
-late or one on a board that was off; it does not count as news.
+An announcement bulletin first sees well after its first publication, such as one on a board that
+was off; it does not count as news.
 _Avoid_: old post, stale post
 
 **Frontier**:
