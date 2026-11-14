@@ -3,9 +3,11 @@
 from datetime import UTC, date, datetime, timedelta
 from typing import TYPE_CHECKING
 
+import pytest
+
 from bulletin.archive import Listed
 from bulletin.detection import detect, prune_frontier, record_frontier
-from bulletin.events import read_after
+from bulletin.events import Event, read_after
 from bulletin.registry import Board, import_seed
 
 if TYPE_CHECKING:
@@ -146,3 +148,22 @@ async def test_records_are_kept_for_seven_days(migrated: AsyncConnection) -> Non
     assert await prune_frontier(migrated, AT) == 1
     cur = await migrated.execute("SELECT at FROM frontier")
     assert await cur.fetchall() == [(AT - timedelta(days=6),)]
+
+
+async def published(conn: AsyncConnection, announcement: int) -> Event:
+    [event] = [e for e in await read_after(conn, 0) if e.announcement_id == announcement]
+    return event
+
+
+@pytest.mark.xfail(strict=True, reason="Notify rule on backfilled boards")
+async def test_a_late_published_draft(migrated: AsyncConnection) -> None:
+    """Notify rule on backfilled boards: an unknown id 2,000 below the frontier is news."""
+    await seed(migrated)
+    await detect(migrated, (1045, 1392), [article(150000)], AT - timedelta(hours=80))
+    await record_frontier(migrated, AT - timedelta(hours=73))
+    await migrated.execute("UPDATE board SET backfilled_at = %s", (AT - timedelta(days=30),))
+
+    [draft] = await detect(migrated, BULLETIN, [article(148000, date(2026, 9, 1))], AT)
+
+    event = await published(migrated, draft)
+    assert (event.notify, event.late) == (True, False)
