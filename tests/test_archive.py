@@ -6,8 +6,9 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from bulletin.archive import Listed, fetch_article, publish
+from bulletin.archive import fetch_article, publish
 from bulletin.http import Response
+from bulletin.model import Listed
 
 if TYPE_CHECKING:
     from psycopg import AsyncConnection

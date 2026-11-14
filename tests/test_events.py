@@ -8,8 +8,9 @@ from typing import TYPE_CHECKING
 import psycopg
 import pytest
 
-from bulletin.archive import Content, Listed, publish, restore, revise, withdraw
+from bulletin.archive import publish, restore, revise, withdraw
 from bulletin.events import Kind, read_after, record
+from bulletin.model import Content, Listed
 
 if TYPE_CHECKING:
     from psycopg import AsyncConnection

@@ -4,7 +4,8 @@ from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
 
-from bulletin.archive import Listed, publish
+from bulletin.archive import publish
+from bulletin.model import Listed
 from bulletin.poller import handle_page, poll_board
 from bulletin.registry import Board, import_seed
 from bulletin.schedule import mark_polled

@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
     from psycopg import AsyncConnection
 
-    from bulletin.archive import Listed
+    from bulletin.model import Listed
 
 FRONTIER_KEPT = timedelta(days=7)
 # A cross-post copies another site's announcement first seen this recently, under a title this long.

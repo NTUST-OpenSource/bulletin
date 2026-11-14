@@ -3,7 +3,7 @@
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from bulletin.archive import Content
+    from bulletin.model import Content
 
 
 def parse_article(page: str, url: str, publisher: str | None = None) -> Content:

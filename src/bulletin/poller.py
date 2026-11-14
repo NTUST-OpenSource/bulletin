@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
     from psycopg import AsyncConnection
 
-    from bulletin.archive import Listed
+    from bulletin.model import Listed
 
 # A burst reads at most this many pages.
 LAST_BURST_PAGE = 5

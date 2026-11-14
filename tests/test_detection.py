@@ -6,9 +6,9 @@ from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from bulletin.archive import Listed
 from bulletin.detection import detect, normalize, prune_frontier, record_frontier
 from bulletin.events import Event, read_after
+from bulletin.model import Listed
 from bulletin.registry import Board, import_seed
 
 if TYPE_CHECKING:
