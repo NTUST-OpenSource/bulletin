@@ -76,3 +76,8 @@ async def set_tier(conn: AsyncConnection, site_id: int, rcg: int, tier: Tier) ->
     if await cur.fetchone() is None:
         msg = f"no board {site_id}-{rcg}"
         raise LookupError(msg)
+
+
+def guess_category(name: str) -> Category:
+    """Guess a newly discovered board's category from its name."""
+    raise NotImplementedError

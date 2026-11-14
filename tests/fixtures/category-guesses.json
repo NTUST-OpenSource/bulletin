@@ -1,0 +1,18 @@
+{
+  "_source": "Board names as NTUST sites use them, with the category a new board of that name gets.",
+  "guesses": {
+    "首頁Banner": "excluded",
+    "活動相簿": "excluded",
+    "影音專區": "excluded",
+    "常見問題": "excluded",
+    "中心成員": "excluded",
+    "表單下載": "regulation",
+    "相關法規": "regulation",
+    "媒體報導": "news",
+    "榮譽榜": "news",
+    "活動紀錄": "news",
+    "最新公告": "announcement",
+    "最新資訊": "announcement",
+    "徵才公告": "announcement"
+  }
+}

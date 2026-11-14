@@ -9,7 +9,14 @@ from typing import TYPE_CHECKING
 import psycopg
 import pytest
 
-from bulletin.registry import Board, get_board, import_seed, load_seed, set_tier
+from bulletin.registry import (
+    Board,
+    get_board,
+    guess_category,
+    import_seed,
+    load_seed,
+    set_tier,
+)
 from bulletin.schedule import due_boards
 from bulletin.startup import start
 
@@ -120,3 +127,12 @@ async def test_an_excluded_board_turned_on(migrated: AsyncConnection) -> None:
     due = await due_boards(migrated, datetime.now(UTC))
 
     assert sorted(due) == [(1000, 1), (1000, 3)]
+
+
+@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Category guess")
+def test_guessing_from_names() -> None:
+    """Category guess: banners, downloads, media coverage and announcements by their names."""
+    fixture = Path(__file__).parent / "fixtures" / "category-guesses.json"
+    guesses = json.loads(fixture.read_text(encoding="utf-8"))["guesses"]
+
+    assert {name: guess_category(name) for name in guesses} == guesses
