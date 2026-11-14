@@ -4,8 +4,6 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import pytest
-
 from bulletin.backfill import queue_walks, walk
 from bulletin.detection import detect
 from bulletin.events import read_after
@@ -51,7 +49,6 @@ async def backfill_state(conn: AsyncConnection) -> tuple[object, ...] | None:
     return await cur.fetchone()
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Ten-year walk")
 async def test_a_board_with_three_pages(migrated: AsyncConnection) -> None:
     """Ten-year walk: pages 2 and 3 are stored and the walk ends after the last page."""
     await import_seed(migrated, [ACADEMIC])
@@ -69,7 +66,6 @@ async def test_a_board_with_three_pages(migrated: AsyncConnection) -> None:
     assert await queue_walks(migrated, AT) == 0
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Ten-year walk")
 async def test_ten_years_reached(migrated: AsyncConnection) -> None:
     """Ten-year walk: a page of items older than ten years ends the walk and stores none."""
     await import_seed(migrated, [ACADEMIC])
@@ -85,7 +81,6 @@ async def test_ten_years_reached(migrated: AsyncConnection) -> None:
     assert await backfill_state(migrated) == (40, AT)
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Backfill articles")
 async def test_article_bodies(migrated: AsyncConnection) -> None:
     """Backfill articles: each stored article is fetched through a backfill job."""
     await import_seed(migrated, [ACADEMIC])
@@ -105,7 +100,6 @@ async def test_article_bodies(migrated: AsyncConnection) -> None:
     assert await cur.fetchone() == (1,)
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Resumable progress")
 async def test_restart_in_the_middle(migrated: AsyncConnection) -> None:
     """Resumable progress: a walk continues at the next unread page; a finished one stays done."""
     await import_seed(migrated, [ACADEMIC])
@@ -121,7 +115,6 @@ async def test_restart_in_the_middle(migrated: AsyncConnection) -> None:
     assert await queue_walks(migrated, AT) == 0
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="No announcements from backfill")
 async def test_backfill_finds_an_unseen_announcement(migrated: AsyncConnection) -> None:
     """No announcements from backfill: the published events are late and not notify-worthy.
 

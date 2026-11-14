@@ -116,13 +116,13 @@ Article parsing ports the article half of xincord's `pages.py`.
 ## 9. Backfill
 
 - [x] 9.1 Commit the xfail test for "Ten-year walk" (backfill); verify it fails for the expected reason and the gate stays green
-- [ ] 9.2 Implement "Ten-year walk" and remove the marker; verify its scenarios pass and the gate is green
+- [x] 9.2 Implement "Ten-year walk" and remove the marker; verify its scenarios pass and the gate is green
 - [x] 9.3 Commit the xfail test for "Backfill articles" (backfill); verify it fails for the expected reason and the gate stays green
-- [ ] 9.4 Implement "Backfill articles" and remove the marker; verify its scenarios pass and the gate is green
+- [x] 9.4 Implement "Backfill articles" and remove the marker; verify its scenarios pass and the gate is green
 - [x] 9.5 Commit the xfail test for "Resumable progress" (backfill); verify it fails for the expected reason and the gate stays green
-- [ ] 9.6 Implement "Resumable progress" and remove the marker; verify its scenarios pass and the gate is green
+- [x] 9.6 Implement "Resumable progress" and remove the marker; verify its scenarios pass and the gate is green
 - [x] 9.7 Commit the xfail test for "No announcements from backfill" (backfill); verify it fails for the expected reason and the gate stays green
-- [ ] 9.8 Implement "No announcements from backfill" and remove the marker; verify its scenarios pass and the gate is green
+- [x] 9.8 Implement "No announcements from backfill" and remove the marker; verify its scenarios pass and the gate is green
 
 ## 10. Tier admin
 

@@ -12,11 +12,12 @@ import aiohttp
 
 from bulletin import archive, polllog
 from bulletin.archive import fetch_article
+from bulletin.backfill import queue_walks, walk
 from bulletin.detection import detect, prune_frontier, record_frontier
 from bulletin.files import FileStore, keep_files, prune_files
 from bulletin.http import Fetch, Response
 from bulletin.pacer import Pacer
-from bulletin.pages import list_url, parse_list
+from bulletin.pages import PageError, list_url, parse_list
 from bulletin.poller import poll_board
 from bulletin.polllog import Entry, log_request
 from bulletin.registry import get_board
@@ -37,10 +38,6 @@ WAF_PAUSE = 15 * 60
 JOB_RETRY = timedelta(hours=1)
 # The nightly cleanup runs on the first step of a day from this hour, Taipei time.
 CLEANUP_HOUR = 3
-
-
-class PageError(Exception):
-    """A list page answered with something other than 200."""
 
 
 @dataclass(frozen=True)
@@ -90,9 +87,12 @@ class Paced:
 
 
 async def run_job(conn: AsyncConnection, fetch: Fetch, job: Job) -> bool:
-    """Do what an article or re-check job asks, then remove it; return whether a page was stored."""
+    """Fetch the article an article, re-check or backfill job names, then remove the job.
+
+    Return whether a page was stored.
+    """
     match job.kind:
-        case "article" | "recheck":
+        case "article" | "recheck" | "backfill":
             stored = await fetch_article(conn, fetch, int(job.ref))
         case _:
             raise NotImplementedError(job.kind)
@@ -175,6 +175,11 @@ class Worker:
             if job.kind == "attachment":
                 await keep_files(conn, fetch, self.store, int(job.ref), at)
                 await conn.execute("DELETE FROM job WHERE id = %s", (job.id,))
+            elif job.kind == "backfill" and "-" in job.ref:
+                # A board's walk, `<site>-<board>`; the others fetch an article.
+                site, _, rcg = job.ref.partition("-")
+                await walk(conn, fetch, (int(site), int(rcg)), at)
+                await conn.execute("DELETE FROM job WHERE id = %s", (job.id,))
             elif await run_job(conn, fetch, job):
                 await enqueue(conn, "attachment", job.ref, at)
         except Exception as error:  # noqa: BLE001 - a failing job must not stop the queue
@@ -192,6 +197,7 @@ class Worker:
         if hour != self.hour:
             await record_frontier(conn, hour)
             await prune_frontier(conn, now)
+            await queue_walks(conn, now)
             self.hour = hour
         local = now.astimezone(TAIPEI)
         if local.hour >= CLEANUP_HOUR and local.date() != self.cleaned:

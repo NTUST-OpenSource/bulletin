@@ -188,3 +188,20 @@ async def test_an_unreadable_page_backs_the_board_off(
     assert not await collector.step(migrated)
 
     assert await polls(migrated) == [("poll", 1048, 1416, 200, None, 0)]
+
+
+async def test_a_night_step_walks_a_board(migrated: AsyncConnection, tmp_path: Path) -> None:
+    """Ten-year walk: inside the backfill window, the hourly upkeep queues the walk it runs."""
+    await import_seed(migrated, [ACADEMIC])
+    await migrated.execute("UPDATE board SET next_poll_at = %s", (NOW + timedelta(days=1),))
+    night = NOW - timedelta(hours=8)  # 02:00 in Taipei
+    second = LIST.replace("-1.php", "-2.php")
+    web = FakeWeb({second: Answer(200, body=b'<div id="pageptlist"></div>')})
+    collector = Worker(web, worker(web, tmp_path).pacer, FileStore(tmp_path), lambda: night)
+
+    assert await collector.step(migrated)
+
+    assert [r.url for r in web.requests] == [second]
+    assert await polls(migrated) == [("backfill", None, None, 200, None, 0)]
+    cur = await migrated.execute("SELECT backfilled_at FROM board")
+    assert await cur.fetchone() == (night,)

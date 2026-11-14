@@ -39,6 +39,10 @@ FILE_EXTENSIONS = frozenset(
 )
 
 
+class PageError(Exception):
+    """A list page answered with something other than 200."""
+
+
 def is_file(url: str) -> bool:
     """Whether a body link points at a file rather than a page."""
     parts = urlsplit(url)

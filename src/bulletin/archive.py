@@ -179,7 +179,11 @@ async def prune(conn: AsyncConnection, now: datetime) -> int:
             "DELETE FROM revision WHERE announcement_id = ANY(%s)",
             "DELETE FROM placement WHERE announcement_id = ANY(%s)",
             "DELETE FROM event WHERE announcement_id = ANY(%s)",
-            "DELETE FROM job WHERE kind IN ('article', 'recheck') AND ref::bigint = ANY(%s)",
+            # Board walks are `<site>-<board>`; every other ref is an announcement id.
+            (
+                "DELETE FROM job WHERE kind IN ('article', 'recheck', 'backfill')"
+                " AND ref = ANY(%s::bigint[]::text[])"
+            ),
             "DELETE FROM announcement WHERE id = ANY(%s)",
         ):
             await conn.execute(statement, (old,))

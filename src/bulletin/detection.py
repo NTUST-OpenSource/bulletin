@@ -77,12 +77,15 @@ async def detect(
 
 
 async def last_listed(conn: AsyncConnection, board: tuple[int, int]) -> set[int]:
-    """Return the articles the board listed at its last changed poll."""
+    """Return the articles the board listed at its last changed poll.
+
+    Placements without a position come from the backfill and are left out.
+    """
     cur = await conn.execute(
         "SELECT p.announcement_id FROM placement p JOIN announcement a ON a.id = p.announcement_id"
         " WHERE p.site_id = %s AND p.rcg = %s AND a.article_id IS NOT NULL"
-        " AND p.last_seen_at = (SELECT max(last_seen_at) FROM placement"
-        " WHERE site_id = %s AND rcg = %s)",
+        " AND p.last_position IS NOT NULL AND p.last_seen_at = (SELECT max(last_seen_at)"
+        " FROM placement WHERE site_id = %s AND rcg = %s AND last_position IS NOT NULL)",
         (*board, *board),
     )
     return {row[0] for row in await cur.fetchall()}
