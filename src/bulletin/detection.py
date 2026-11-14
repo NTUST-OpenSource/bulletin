@@ -46,6 +46,8 @@ async def detect(
         # A backfilled board has listed everything older, so whatever is new is news.
         backfilled = await is_backfilled(conn, board)
         line = None if backfilled else await frontier(conn, at)
+        listed_before = await last_listed(conn, board)
+        listed_now: set[int] = set()
         for position, item in enumerate(items, 1):
             announcement = await find(conn, item)
             if announcement is None:
@@ -63,7 +65,24 @@ async def detect(
                         await enqueue(conn, "recheck", str(announcement), at + timedelta(days=days))
                 new.append(announcement)
             await place(conn, board, announcement, item, position, at)
+            listed_now.add(announcement)
+        if not new:
+            # Nothing new pushed them off, so they may have been withdrawn.
+            for gone in sorted(listed_before - listed_now):
+                await enqueue(conn, "recheck", str(gone), at)
     return new
+
+
+async def last_listed(conn: AsyncConnection, board: tuple[int, int]) -> set[int]:
+    """Return the articles the board listed at its last changed poll."""
+    cur = await conn.execute(
+        "SELECT p.announcement_id FROM placement p JOIN announcement a ON a.id = p.announcement_id"
+        " WHERE p.site_id = %s AND p.rcg = %s AND a.article_id IS NOT NULL"
+        " AND p.last_seen_at = (SELECT max(last_seen_at) FROM placement"
+        " WHERE site_id = %s AND rcg = %s)",
+        (*board, *board),
+    )
+    return {row[0] for row in await cur.fetchall()}
 
 
 def is_news(item: Listed, line: int | None, at: datetime) -> bool:

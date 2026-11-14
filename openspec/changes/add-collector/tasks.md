@@ -94,7 +94,7 @@ Article parsing ports the article half of xincord's `pages.py`.
 - [x] 7.5 Commit the xfail test for "Withdrawal" (archive); verify it fails for the expected reason and the gate stays green
 - [x] 7.6 Implement "Withdrawal" and remove the marker; verify its scenarios pass and the gate is green
 - [x] 7.7 Commit the xfail test for "Prompt withdrawal check" (archive); verify it fails for the expected reason and the gate stays green
-- [ ] 7.8 Implement "Prompt withdrawal check" and remove the marker; verify its scenarios pass and the gate is green
+- [x] 7.8 Implement "Prompt withdrawal check" and remove the marker; verify its scenarios pass and the gate is green
 - [ ] 7.9 Commit the xfail test for "Restored announcements" (archive); verify it fails for the expected reason and the gate stays green
 - [ ] 7.10 Implement "Restored announcements" and remove the marker; verify its scenarios pass and the gate is green
 - [ ] 7.11 Commit the xfail test for "Ten-year retention" (archive); verify it fails for the expected reason and the gate stays green

@@ -184,7 +184,6 @@ async def prompt_rechecks(conn: AsyncConnection, by: datetime) -> list[str]:
     return [ref for (ref,) in await cur.fetchall()]
 
 
-@pytest.mark.xfail(strict=True, reason="Prompt withdrawal check")
 async def test_one_item_gone_nothing_new(migrated: AsyncConnection) -> None:
     """Prompt withdrawal check: an item gone from page 1 with nothing new is re-checked soon."""
     await import_seed(migrated, [Board(1068, 1, "h", "u", "n", "announcement", "P2")])
