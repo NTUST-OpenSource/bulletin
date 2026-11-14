@@ -1,15 +1,18 @@
 """Requirements of the event-log capability."""
 
+import asyncio
 from typing import TYPE_CHECKING
 
 import psycopg
 import pytest
 
 from bulletin.archive import Content, Listed, publish, restore, revise, withdraw
-from bulletin.events import Kind, read_after
+from bulletin.events import Kind, read_after, record
 
 if TYPE_CHECKING:
     from psycopg import AsyncConnection
+
+    from storage import Schema
 
 LISTED = Listed(site_id=1000, host="www.ntust.edu.tw", article_id=153625, link_url=None, title="t")
 
@@ -45,3 +48,37 @@ async def test_events_are_never_changed(migrated: AsyncConnection) -> None:
         await migrated.execute("UPDATE event SET notify = false")
     with pytest.raises(psycopg.errors.RaiseException):
         await migrated.execute("DELETE FROM event")
+
+
+@pytest.mark.xfail(strict=True, reason="Gap-free order")
+async def test_concurrent_writers(schema: Schema, migrated: AsyncConnection) -> None:
+    """Gap-free order: a reader resuming from its last id gets both writers' events once each."""
+    announcement = await publish(migrated, LISTED, notify=True, late=False)
+    start = (await read_after(migrated, 0))[-1].id
+    first_recorded = asyncio.Event()
+    release_first = asyncio.Event()
+
+    async def first_writer(conn: AsyncConnection) -> None:
+        async with conn.transaction():
+            await record(conn, announcement, Kind.REVISED)
+            first_recorded.set()
+            await release_first.wait()
+
+    async def second_writer(conn: AsyncConnection) -> None:
+        async with conn.transaction():
+            await record(conn, announcement, Kind.REVISED)
+
+    async with await schema.connect() as first, await schema.connect() as second:
+        first_task = asyncio.create_task(first_writer(first))
+        await first_recorded.wait()
+        second_task = asyncio.create_task(second_writer(second))
+        # Room for the second writer to commit, if nothing holds it back.
+        await asyncio.sleep(0.3)
+        seen = await read_after(migrated, start)
+        release_first.set()
+        await asyncio.gather(first_task, second_task)
+        seen += await read_after(migrated, seen[-1].id if seen else start)
+
+    ids = [e.id for e in seen]
+    assert len(ids) == 2
+    assert len(set(ids)) == 2
