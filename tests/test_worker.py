@@ -100,7 +100,7 @@ async def test_a_failing_job_waits(migrated: AsyncConnection, tmp_path: Path) ->
     cur = await migrated.execute("SELECT attempts, run_after, last_error FROM job")
     attempts, run_after, error = await cur.fetchone() or (None, None, "")
     assert (attempts, run_after) == (1, NOW + timedelta(hours=1))
-    assert "NotImplementedError" in error
+    assert error == "LookupError('no site 1053')"
 
 
 async def test_an_article_queues_its_attachments(migrated: AsyncConnection, tmp_path: Path) -> None:

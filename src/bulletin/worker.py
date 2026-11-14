@@ -14,6 +14,7 @@ from bulletin import archive, polllog
 from bulletin.archive import fetch_article
 from bulletin.backfill import queue_walks, walk
 from bulletin.detection import detect, prune_frontier, record_frontier
+from bulletin.discovery import discover, queue_discoveries
 from bulletin.files import FileStore, keep_files, prune_files
 from bulletin.http import Fetch, Response
 from bulletin.pacer import Pacer
@@ -175,6 +176,9 @@ class Worker:
             if job.kind == "attachment":
                 await keep_files(conn, fetch, self.store, int(job.ref), at)
                 await conn.execute("DELETE FROM job WHERE id = %s", (job.id,))
+            elif job.kind == "discovery":
+                await discover(conn, fetch, int(job.ref), at)
+                await conn.execute("DELETE FROM job WHERE id = %s", (job.id,))
             elif job.kind == "backfill" and "-" in job.ref:
                 # A board's walk, `<site>-<board>`; the others fetch an article.
                 site, _, rcg = job.ref.partition("-")
@@ -198,6 +202,7 @@ class Worker:
             await record_frontier(conn, hour)
             await prune_frontier(conn, now)
             await queue_walks(conn, now)
+            await queue_discoveries(conn, now)
             self.hour = hour
         local = now.astimezone(TAIPEI)
         if local.hour >= CLEANUP_HOUR and local.date() != self.cleaned:

@@ -3,8 +3,6 @@
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
 
-import pytest
-
 from bulletin.discovery import discover, parse_site_map, queue_discoveries, site_map_url
 from bulletin.registry import Board, Found, get_board, import_seed
 from web import Answer, FakeWeb
@@ -27,7 +25,6 @@ SITE_MAP = b"""<div class="sitemap">
 </div>"""
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Re-discovery")
 def test_parse_a_site_map() -> None:
     """Re-discovery: the boards a site map links to, each once, with the first link's text."""
     url = site_map_url(HOST, 1053)
@@ -41,7 +38,6 @@ def test_parse_a_site_map() -> None:
     ]
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Re-discovery")
 async def test_a_new_board_appears(migrated: AsyncConnection) -> None:
     """Re-discovery: a new board joins off and pending review; known boards stay as they are."""
     await import_seed(migrated, [KNOWN])
@@ -58,7 +54,6 @@ async def test_a_new_board_appears(migrated: AsyncConnection) -> None:
     assert await cur.fetchone() == (AT,)
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Re-discovery")
 async def test_once_a_month(migrated: AsyncConnection) -> None:
     """Re-discovery: a site is queued once 30 days have passed since its last walk, and once."""
     await import_seed(migrated, [KNOWN])
