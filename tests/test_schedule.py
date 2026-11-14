@@ -7,7 +7,15 @@ from zoneinfo import ZoneInfo
 import pytest
 
 from bulletin.registry import Board, import_seed
-from bulletin.schedule import due_boards, interval, mark_polled
+from bulletin.schedule import (
+    Job,
+    Poll,
+    due_boards,
+    enqueue,
+    interval,
+    mark_polled,
+    next_request,
+)
 
 if TYPE_CHECKING:
     from psycopg import AsyncConnection
@@ -52,3 +60,56 @@ async def test_office_hours(migrated: AsyncConnection) -> None:
 
     assert await due_boards(migrated, WEDNESDAY + timedelta(minutes=4, seconds=59)) == []
     assert await due_boards(migrated, WEDNESDAY + timedelta(minutes=5)) == [(1045, 1391)]
+
+
+@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Queue order")
+async def test_backfill_yields(migrated: AsyncConnection) -> None:
+    """Queue order: a backfill page and a P3 poll due at 02:00 send the poll first."""
+    night = datetime(2026, 11, 18, 2, 0, tzinfo=TAIPEI)
+    await enqueue(migrated, "backfill", "1045-1391", night - timedelta(hours=1))
+    await import_seed(migrated, [Board(1045, 1391, "h", "u", "n", "announcement", "P3")])
+
+    assert await next_request(migrated, night) == Poll(1045, 1391)
+
+
+@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Queue order")
+async def test_daytime_backfill_waits_until_one(migrated: AsyncConnection) -> None:
+    """Queue order: a backfill queued at 14:00 waits until 01:00."""
+    afternoon = datetime(2026, 11, 18, 14, 0, tzinfo=TAIPEI)
+    job = await enqueue(migrated, "backfill", "1045-1391", afternoon)
+
+    assert await next_request(migrated, afternoon) is None
+    assert await next_request(migrated, afternoon.replace(hour=23, minute=59)) is None
+    night = afternoon.replace(day=19, hour=1)
+    assert await next_request(migrated, night) == Job(job, "backfill", "1045-1391")
+
+
+@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Queue order")
+async def test_polls_by_tier_then_jobs_by_kind(migrated: AsyncConnection) -> None:
+    """Queue order: polls from P1 to P4, then articles, attachments and re-discovery."""
+    at = WEDNESDAY
+    discovery = await enqueue(migrated, "discovery", "1000", at)
+    attachment = await enqueue(migrated, "attachment", "1", at)
+    article = await enqueue(migrated, "article", "1000-153625", at)
+    await import_seed(
+        migrated,
+        [
+            Board(1000, 4, "h", "u", "n", "announcement", "P4"),
+            Board(1000, 1, "h", "u", "n", "announcement", "P1"),
+        ],
+    )
+    order: list[Poll | Job] = []
+    while (request := await next_request(migrated, at)) is not None:
+        order.append(request)
+        if isinstance(request, Poll):
+            await mark_polled(migrated, request.site_id, request.rcg, at)
+        else:
+            await migrated.execute("DELETE FROM job WHERE id = %s", (request.id,))
+
+    assert order == [
+        Poll(1000, 1),
+        Poll(1000, 4),
+        Job(article, "article", "1000-153625"),
+        Job(attachment, "attachment", "1"),
+        Job(discovery, "discovery", "1000"),
+    ]

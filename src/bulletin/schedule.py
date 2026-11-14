@@ -1,7 +1,8 @@
 """When each board is polled: its tier's interval, and the queue of what is due."""
 
+from dataclasses import dataclass
 from datetime import timedelta
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 from zoneinfo import ZoneInfo
 
 if TYPE_CHECKING:
@@ -68,3 +69,39 @@ async def due_boards(conn: AsyncConnection, now: datetime) -> list[tuple[int, in
         (now,),
     )
     return await cur.fetchall()
+
+
+type JobKind = Literal["article", "recheck", "attachment", "discovery", "backfill"]
+
+
+@dataclass(frozen=True)
+class Poll:
+    """A board's page 1 to fetch."""
+
+    site_id: int
+    rcg: int
+
+
+@dataclass(frozen=True)
+class Job:
+    """Any other request: an article fetch or re-check, an attachment, re-discovery, backfill."""
+
+    id: int
+    kind: JobKind
+    ref: str
+
+
+async def enqueue(conn: AsyncConnection, kind: JobKind, ref: str, run_after: datetime) -> int:
+    """Queue a job to run once `run_after` has passed; return its id."""
+    cur = await conn.execute(
+        "INSERT INTO job (kind, ref, run_after) VALUES (%s, %s, %s) RETURNING id",
+        (kind, ref, run_after),
+    )
+    row = await cur.fetchone()
+    assert row is not None  # noqa: S101 - INSERT ... RETURNING returns its row
+    return row[0]
+
+
+async def next_request(conn: AsyncConnection, now: datetime) -> Poll | Job | None:
+    """Return the most urgent request due at `now`, or None."""
+    raise NotImplementedError
