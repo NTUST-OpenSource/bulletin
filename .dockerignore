@@ -1,0 +1,15 @@
+# Keep the build context to what the image needs.
+.git
+.github
+.claude
+.venv
+.coverage
+.pytest_cache
+.ruff_cache
+**/__pycache__
+docs
+openspec
+scripts
+tests
+# Secrets for compose.
+.env
