@@ -3,9 +3,21 @@
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from datetime import datetime
+    from datetime import datetime, timedelta
 
     from psycopg import AsyncConnection
+
+    from bulletin.registry import Tier
+
+
+def interval(tier: Tier, last_poll: datetime) -> timedelta | None:
+    """Return how long after `last_poll` a board of `tier` is due again; None for off."""
+    raise NotImplementedError
+
+
+async def mark_polled(conn: AsyncConnection, site_id: int, rcg: int, at: datetime) -> None:
+    """Record a successful poll of a board at `at` and schedule its next one."""
+    raise NotImplementedError
 
 
 async def due_boards(conn: AsyncConnection, now: datetime) -> list[tuple[int, int]]:
