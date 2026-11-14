@@ -29,6 +29,10 @@ class Pacer:
         self._lock = asyncio.Lock()
         self._ready_at = clock()
 
+    def pause(self, seconds: float) -> None:
+        """Hold every request back for `seconds` from now, as after a WAF block."""
+        raise NotImplementedError
+
     @asynccontextmanager
     async def slot(self) -> AsyncGenerator[None]:
         """Wait for the queue, then hold it while the caller sends one request."""

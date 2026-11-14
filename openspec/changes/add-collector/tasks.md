@@ -60,7 +60,7 @@ List parsing ports xincord's `ntust_announcements/pages.py` and `markup.py`; cer
 - [x] 5.10 Implement "Unchanged pages" and remove the marker; verify its scenarios pass and the gate is green
 - [x] 5.11 Commit the xfail test for "Paging on bursts" (polling); verify it fails for the expected reason and the gate stays green
 - [x] 5.12 Implement "Paging on bursts" and remove the marker; verify its scenarios pass and the gate is green
-- [ ] 5.13 Commit the xfail test for "Failure backoff" (polling); verify it fails for the expected reason and the gate stays green
+- [x] 5.13 Commit the xfail test for "Failure backoff" (polling); verify it fails for the expected reason and the gate stays green
 - [ ] 5.14 Implement "Failure backoff" and remove the marker; verify its scenarios pass and the gate is green
 - [ ] 5.15 Commit the xfail test for "Poll log" (polling); verify it fails for the expected reason and the gate stays green
 - [ ] 5.16 Implement "Poll log" and remove the marker; verify its scenarios pass and the gate is green

@@ -121,3 +121,8 @@ async def next_request(conn: AsyncConnection, now: datetime) -> Poll | Job | Non
     )
     row = await cur.fetchone()
     return None if row is None else Job(*row)
+
+
+async def mark_failed(conn: AsyncConnection, site_id: int, rcg: int, at: datetime) -> datetime:
+    """Record a failed poll at `at`, back the board's next poll off, and return when it is due."""
+    raise NotImplementedError

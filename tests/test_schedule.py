@@ -13,6 +13,7 @@ from bulletin.schedule import (
     due_boards,
     enqueue,
     interval,
+    mark_failed,
     mark_polled,
     next_request,
 )
@@ -110,3 +111,27 @@ async def test_polls_by_tier_then_jobs_by_kind(migrated: AsyncConnection) -> Non
         Job(attachment, "attachment", "1"),
         Job(discovery, "discovery", "1000"),
     ]
+
+
+@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Failure backoff")
+async def test_three_failures_in_a_row(migrated: AsyncConnection) -> None:
+    """Failure backoff: a P2 board failing thrice in office hours is due 120 min later."""
+    await import_seed(migrated, [Board(1053, 1435, "h", "u", "n", "announcement", "P2")])
+    await mark_failed(migrated, 1053, 1435, WEDNESDAY)
+    await mark_failed(migrated, 1053, 1435, WEDNESDAY + timedelta(minutes=30))
+    third = WEDNESDAY + timedelta(minutes=90)
+
+    due = await mark_failed(migrated, 1053, 1435, third)
+
+    assert due == third + timedelta(minutes=120)
+    await mark_polled(migrated, 1053, 1435, due)
+    assert await due_boards(migrated, due + timedelta(minutes=15)) == [(1053, 1435)]
+
+
+@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Failure backoff")
+async def test_backoff_stops_at_one_day(migrated: AsyncConnection) -> None:
+    """Failure backoff: doubling stops at one day."""
+    await import_seed(migrated, [Board(1053, 1435, "h", "u", "n", "announcement", "P3")])
+    dues = [await mark_failed(migrated, 1053, 1435, WEDNESDAY) for _ in range(6)]
+
+    assert dues[-2:] == [WEDNESDAY + timedelta(days=1)] * 2

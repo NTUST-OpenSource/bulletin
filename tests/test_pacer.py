@@ -38,3 +38,18 @@ async def test_two_polls_due_at_once() -> None:
 
     (_, first_end), (second_start, _) = spans
     assert second_start - first_end == pytest.approx(2.5)
+
+
+@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Failure backoff")
+async def test_waf_block_pauses_the_queue() -> None:
+    """Failure backoff: after HTTP 406 no request starts within 15 minutes."""
+    clock = FakeClock()
+    pacer = Pacer(clock=clock, sleep=clock.sleep, random=lambda: 0.0)
+    async with pacer.slot():
+        blocked_at = clock.now
+        pacer.pause(15 * 60)
+
+    async with pacer.slot():
+        started = clock.now
+
+    assert started - blocked_at >= 15 * 60
