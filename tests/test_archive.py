@@ -138,7 +138,6 @@ async def test_no_change(migrated: AsyncConnection) -> None:
     assert await read_after(migrated, 0) == events
 
 
-@pytest.mark.xfail(strict=True, reason="Withdrawal")
 @pytest.mark.parametrize("home", ["https://she.ntust.edu.tw/", "/", "https://she.ntust.edu.tw"])
 async def test_taken_down(migrated: AsyncConnection, home: str) -> None:
     """Withdrawal: a re-check answering 302 to the site's home page withdraws, keeping content."""
@@ -153,3 +152,26 @@ async def test_taken_down(migrated: AsyncConnection, home: str) -> None:
     assert await cur.fetchall() == [(True,)]
     assert (await read_after(migrated, 0))[-1].kind is Kind.WITHDRAWN
     assert len(await revisions(migrated, announcement)) == 1
+
+
+async def test_other_redirects_do_not_withdraw(migrated: AsyncConnection) -> None:
+    """Withdrawal: a redirect anywhere but the site's home page is not a withdrawal."""
+    announcement = await publish(migrated, SHE, notify=False, late=True)
+    login = FakeWeb(status=302, location="https://she.ntust.edu.tw/app/index.php?Action=login")
+
+    assert not await fetch_article(migrated, login, announcement)
+
+    cur = await migrated.execute("SELECT withdrawn_at FROM announcement")
+    assert await cur.fetchall() == [(None,)]
+
+
+async def test_pushed_to_page_two(migrated: AsyncConnection) -> None:
+    """Withdrawal: an announcement dropping off page 1 while newer ones arrive is not withdrawn."""
+    await import_seed(migrated, [Board(1068, 1, "h", "u", "n", "announcement", "P2")])
+    await detect(migrated, (1068, 1), [SHE], AT)
+    newer = [Listed(1068, "she.ntust.edu.tw", 152900 + n, None, f"t{n}") for n in range(10)]
+
+    await detect(migrated, (1068, 1), newer, AT + timedelta(hours=1))
+
+    cur = await migrated.execute("SELECT count(*) FROM announcement WHERE withdrawn_at IS NOT NULL")
+    assert await cur.fetchone() == (0,)

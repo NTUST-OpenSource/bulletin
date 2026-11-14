@@ -2,6 +2,7 @@
 
 from http import HTTPStatus
 from typing import TYPE_CHECKING
+from urllib.parse import urljoin, urlsplit
 
 from bulletin.events import Kind, record
 from bulletin.pages import parse_article
@@ -103,6 +104,17 @@ async def restore(conn: AsyncConnection, announcement_id: int) -> None:
             await record(conn, announcement_id, Kind.RESTORED)
 
 
+REDIRECTS = frozenset({301, 302, 303, 307, 308})
+
+
+def is_redirect_home(status: int, location: str, url: str) -> bool:
+    """Whether a response to `url` redirects to its site's home page, as a withdrawal does."""
+    if status not in REDIRECTS or not location:
+        return False
+    target, page = urlsplit(urljoin(url, location)), urlsplit(url)
+    return target.netloc == page.netloc and target.path in {"", "/", "/index.php"}
+
+
 def article_url(host: str, site_id: int, article_id: int) -> str:
     """The article page of an announcement, on the host and site of its own link."""
     return f"https://{host}/p/406-{site_id}-{article_id}.php"
@@ -111,7 +123,8 @@ def article_url(host: str, site_id: int, article_id: int) -> str:
 async def fetch_article(conn: AsyncConnection, fetch: Fetch, announcement_id: int) -> bool:
     """Fetch an announcement's article page and store it as a revision; return whether it did.
 
-    A link entry has no article page and is left as it is.
+    A redirect to the site's home page withdraws the announcement. A link entry has no article
+    page and is left as it is.
     """
     cur = await conn.execute(
         "SELECT host, site_id, article_id, publisher FROM announcement WHERE id = %s",
@@ -126,6 +139,9 @@ async def fetch_article(conn: AsyncConnection, fetch: Fetch, announcement_id: in
         return False
     url = article_url(host, site_id, article_id)
     response = await fetch(url)
+    if is_redirect_home(response.status, response.headers.get("Location", ""), url):
+        await withdraw(conn, announcement_id)
+        return False
     if response.status != HTTPStatus.OK:
         return False
     await revise(conn, announcement_id, parse_article(response.text(), url, publisher))
