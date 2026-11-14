@@ -1,8 +1,10 @@
 """Announcements as the school published them, with their revisions and withdrawals."""
 
+from http import HTTPStatus
 from typing import TYPE_CHECKING
 
 from bulletin.events import Kind, record
+from bulletin.pages import parse_article
 
 if TYPE_CHECKING:
     from psycopg import AsyncConnection
@@ -15,14 +17,16 @@ async def publish(conn: AsyncConnection, listed: Listed, *, notify: bool, late: 
     """Store a new announcement, record its published event and return its id."""
     async with conn.transaction():
         cur = await conn.execute(
-            "INSERT INTO announcement (site_id, host, article_id, link_url, title, listed_on, late)"
-            " VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id",
+            "INSERT INTO announcement"
+            " (site_id, host, article_id, link_url, title, publisher, listed_on, late)"
+            " VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id",
             (
                 listed.site_id,
                 listed.host,
                 listed.article_id,
                 listed.link_url,
                 listed.title,
+                listed.publisher,
                 listed.listed_on,
                 late,
             ),
@@ -66,8 +70,8 @@ async def revise(conn: AsyncConnection, announcement_id: int, content: Content) 
                 [(revision[0], a.name, a.url, a.origin) for a in content.attachments],
             )
         await conn.execute(
-            "UPDATE announcement SET current_revision = %s, publisher = %s, body_text = %s"
-            " WHERE id = %s",
+            "UPDATE announcement SET current_revision = %s,"
+            " publisher = COALESCE(%s, publisher), body_text = %s WHERE id = %s",
             (revision[0], content.publisher, content.body_text, announcement_id),
         )
         if latest is not None:
@@ -109,4 +113,20 @@ async def fetch_article(conn: AsyncConnection, fetch: Fetch, announcement_id: in
 
     A link entry has no article page and is left as it is.
     """
-    raise NotImplementedError
+    cur = await conn.execute(
+        "SELECT host, site_id, article_id, publisher FROM announcement WHERE id = %s",
+        (announcement_id,),
+    )
+    row = await cur.fetchone()
+    if row is None:
+        msg = f"no announcement {announcement_id}"
+        raise LookupError(msg)
+    host, site_id, article_id, publisher = row
+    if article_id is None:
+        return False
+    url = article_url(host, site_id, article_id)
+    response = await fetch(url)
+    if response.status != HTTPStatus.OK:
+        return False
+    await revise(conn, announcement_id, parse_article(response.text(), url, publisher))
+    return True

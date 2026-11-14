@@ -8,7 +8,7 @@ from importlib import resources
 from typing import TYPE_CHECKING
 
 from bulletin.archive import publish
-from bulletin.schedule import TAIPEI
+from bulletin.schedule import TAIPEI, enqueue
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -55,6 +55,8 @@ async def detect(
                         "UPDATE announcement SET cross_post_of = %s WHERE id = %s",
                         (original, announcement),
                     )
+                if item.article_id is not None:
+                    await enqueue(conn, "article", str(announcement), at)
                 new.append(announcement)
             await place(conn, board, announcement, item, position, at)
     return new

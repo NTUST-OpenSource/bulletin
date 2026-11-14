@@ -1,14 +1,15 @@
 """Requirements of the archive capability."""
 
 import json
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import pytest
-
 from bulletin.archive import fetch_article, publish
+from bulletin.detection import detect
 from bulletin.http import Response
 from bulletin.model import Listed
+from bulletin.registry import Board, import_seed
 
 if TYPE_CHECKING:
     from psycopg import AsyncConnection
@@ -16,6 +17,7 @@ if TYPE_CHECKING:
 FIXTURES = Path(__file__).parent / "fixtures" / "articles"
 PAGE = (FIXTURES / "1068-152869.html").read_bytes()
 EXPECTED = json.loads((FIXTURES / "1068-152869.json").read_text(encoding="utf-8"))
+AT = datetime(2026, 11, 18, 2, 0, tzinfo=UTC)
 SHE = Listed(1068, "she.ntust.edu.tw", 152869, None, "listed title", publisher="publisher")
 
 
@@ -40,7 +42,6 @@ async def revisions(conn: AsyncConnection, announcement: int) -> list[tuple[str,
     return await cur.fetchall()
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Article fetch")
 async def test_a_recorded_article(migrated: AsyncConnection) -> None:
     """Article fetch: the first revision holds the page's title, body and attachment links."""
     announcement = await publish(migrated, SHE, notify=False, late=True)
@@ -59,7 +60,6 @@ async def test_a_recorded_article(migrated: AsyncConnection) -> None:
     assert await cur.fetchall() == [("publisher",)]
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Article fetch")
 async def test_another_sites_article(migrated: AsyncConnection) -> None:
     """Article fetch: site 1000's article listed elsewhere is fetched from site 1000's host."""
     listed = Listed(1000, "www.ntust.edu.tw", 153625, None, "t")
@@ -71,7 +71,6 @@ async def test_another_sites_article(migrated: AsyncConnection) -> None:
     assert web.requested == ["https://www.ntust.edu.tw/p/406-1000-153625.php"]
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Article fetch")
 async def test_a_file_link_on_the_bulletin_board(migrated: AsyncConnection) -> None:
     """Article fetch: an item linking straight to a PDF is stored without a page request."""
     pdf = "https://bulletin.ntust.edu.tw/var/file/45/1045/img/1391/notice.pdf"
@@ -84,3 +83,14 @@ async def test_a_file_link_on_the_bulletin_board(migrated: AsyncConnection) -> N
     assert web.requested == []
     cur = await migrated.execute("SELECT link_url, title FROM announcement")
     assert await cur.fetchall() == [(pdf, "notice")]
+
+
+async def test_new_articles_are_queued_for_fetching(migrated: AsyncConnection) -> None:
+    """Article fetch: detection queues an article fetch for each new article, none for links."""
+    await import_seed(migrated, [Board(1045, 1391, "h", "u", "n", "announcement", "P1")])
+    pdf = Listed(1045, "bulletin.ntust.edu.tw", None, "https://example.com/a.pdf", "a file")
+
+    [new, _] = await detect(migrated, (1045, 1391), [SHE, pdf], AT)
+
+    cur = await migrated.execute("SELECT kind, ref, run_after FROM job")
+    assert await cur.fetchall() == [("article", str(new), AT)]
