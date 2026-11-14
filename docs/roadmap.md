@@ -28,7 +28,8 @@ API, and the Compose deployment of the database and the worker. See
      Markdown. Tables stay as pipe tables in the input; only the output avoids them.
   3. Replace each link and image with a placeholder (`L1`, `I1`, ...) and substitute the real
      URLs after the model answers, so the model never copies a URL. An unknown placeholder fails
-     the attempt.
+     the attempt, and so does a dropped image: the rewrite keeps each image where the source has
+     it.
   4. Attachments reach the frontend from stored data, not through the model.
   5. Ask for JSON constrained by a JSON schema (llama-server `response_format`).
   6. Reject a deadline whose date does not appear in the source text.
@@ -55,10 +56,18 @@ API, and the Compose deployment of the database and the worker. See
 
 ## 4. `add-web-frontend`
 
-Starts only after the owner approves the high-fidelity prototype (A5).
+The owner approved the third prototype on 2026-11-15 (A5), with the last round of changes below.
 
 - Svelte 5 + Vite static SPA over the public API (F5).
 - Decided while reviewing the prototype:
+  - A wider column than the prototype's 760 px.
+  - The search box closes when focus leaves it; a query stays applied until cleared.
+  - Every URL in an article is a link, also where the school's page shows it as plain text.
+  - 已刪除 sits at the item's bottom right, muted, left of the main source.
+  - Topic chips can be dragged into a new order on the home page as well as in the settings.
+  - Closing an article (Esc, the close button, back) keeps the stream's scroll position.
+  - Images stay where the school's page places them, in the rewrite too. When the attachments
+    hold exactly one image, it is shown at the end of the article.
   - One stream for every category, no tabs; day headings stay pinned while scrolling.
   - A first visit asks for the viewer's department, then other units; the six P1 units are
     preselected. The stream shows followed units only; search covers every unit.
@@ -74,6 +83,9 @@ Starts only after the owner approves the high-fidelity prototype (A5).
   as copied JSON, a JSON download, or a link carrying the settings after `#`, applied at once only
   when the viewer never saved settings, otherwise after asking to overwrite all of them.
 - Checked in a headless browser at desktop width and at 375 px.
+- Icons animate like lucide-animated, which the owner asked for. lucide-animated itself is React
+  and Motion only; its Svelte 5 port is `@jis3r/icons` (movingicons.dev, no dependencies). Open:
+  the port under F5, or React for the original.
 
 ## Later
 
