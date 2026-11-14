@@ -14,6 +14,9 @@ if TYPE_CHECKING:
 
     from bulletin.archive import Listed
 
+# A burst reads at most this many pages.
+LAST_BURST_PAGE = 5
+
 type Detect = Callable[[AsyncConnection, tuple[int, int], Sequence[Listed]], Awaitable[None]]
 
 
@@ -65,5 +68,44 @@ async def poll_board(
     at: datetime,
     detect: Detect,
 ) -> bool:
-    """Poll a board's page 1, and later pages on a burst; return whether page 1 changed."""
-    raise NotImplementedError
+    """Poll a board's page 1, and later pages on a burst; return whether page 1 changed.
+
+    When every item on page 1 is unknown and the board was polled before, pages 2 to 5 are read
+    until one holds a known item, and detection gets the items of every page read.
+    """
+    first = await read_page(1)
+    extra: list[Listed] = []
+    cur = await conn.execute(
+        "SELECT last_polled_at IS NOT NULL FROM board WHERE site_id = %s AND rcg = %s", board
+    )
+    row = await cur.fetchone()
+    if row is not None and row[0]:
+        page, items = 1, first
+        while page < LAST_BURST_PAGE and items and not await any_known(conn, items):
+            page += 1
+            items = await read_page(page)
+            extra += items
+
+    async def detect_all(
+        conn: AsyncConnection, board: tuple[int, int], page_one: Sequence[Listed]
+    ) -> None:
+        await detect(conn, board, [*page_one, *extra])
+
+    return await handle_page(conn, board, first, at, detect_all)
+
+
+async def any_known(conn: AsyncConnection, items: Sequence[Listed]) -> bool:
+    """Whether any of `items` is already stored, by article id or, for links, by URL."""
+    cur = await conn.execute(
+        "SELECT EXISTS (SELECT 1 FROM announcement a"
+        " JOIN unnest(%s::int[], %s::bigint[], %s::text[]) AS i(site_id, article_id, link_url)"
+        " ON a.site_id = i.site_id"
+        " AND (a.article_id = i.article_id OR a.link_url = i.link_url))",
+        (
+            [i.site_id for i in items],
+            [i.article_id for i in items],
+            [i.link_url for i in items],
+        ),
+    )
+    row = await cur.fetchone()
+    return bool(row and row[0])

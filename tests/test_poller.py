@@ -4,8 +4,6 @@ from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
 
-import pytest
-
 from bulletin.archive import Listed, publish
 from bulletin.poller import handle_page, poll_board
 from bulletin.registry import Board, import_seed
@@ -51,7 +49,6 @@ def item(article_id: int) -> Listed:
     return Listed(1000, "www.ntust.edu.tw", article_id, None, f"article {article_id}")
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Paging on bursts")
 async def test_six_new_announcements_on_a_five_item_page(migrated: AsyncConnection) -> None:
     """Paging on bursts: pages 1 and 2 are read, page 3 is not, and all six are detected."""
     await import_seed(migrated, [Board(1000, 168, "h", "u", "n", "announcement", "P1")])
@@ -77,7 +74,6 @@ async def test_six_new_announcements_on_a_five_item_page(migrated: AsyncConnecti
     assert {i.article_id for i in detected} >= {106, 105, 104, 103, 102, 101}
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Paging on bursts")
 async def test_bursts_stop_at_page_five(migrated: AsyncConnection) -> None:
     """Paging on bursts: a board whose first pages are all new is read up to page 5."""
     await import_seed(migrated, [Board(1000, 168, "h", "u", "n", "announcement", "P1")])
@@ -93,7 +89,6 @@ async def test_bursts_stop_at_page_five(migrated: AsyncConnection) -> None:
     assert requested == [1, 2, 3, 4, 5]
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Paging on bursts")
 async def test_a_first_poll_reads_page_one_only(migrated: AsyncConnection) -> None:
     """Paging on bursts: a board never polled before records page 1 and pages no further."""
     await import_seed(migrated, [Board(1000, 168, "h", "u", "n", "announcement", "P1")])
