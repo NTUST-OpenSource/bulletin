@@ -112,3 +112,8 @@ async def keep_files(
             "UPDATE attachment SET size = %s, sha256 = %s WHERE id = %s",
             (size, digest, attachment),
         )
+
+
+async def prune_files(conn: AsyncConnection, store: FileStore, now: datetime) -> int:
+    """Delete kept files no announcement of the last 365 days links to; return how many."""
+    raise NotImplementedError

@@ -2,12 +2,14 @@
 
 import hashlib
 import json
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import pytest
+
 from bulletin.archive import publish, revise
-from bulletin.files import FileStore, keep_files, read_size
+from bulletin.files import FileStore, keep_files, prune_files, read_size
 from bulletin.model import Attachment, Content, Listed
 from bulletin.pages import is_file, parse_article
 from web import Answer, FakeWeb
@@ -139,3 +141,45 @@ async def test_the_same_file_twice(migrated: AsyncConnection, tmp_path: Path) ->
     digest = hashlib.sha256(pdf).hexdigest()
     assert set((await recorded(migrated)).values()) == {(9, digest)}
     assert [p.name for p in tmp_path.rglob("*") if p.is_file()] == [digest]
+
+
+async def file_linked_from(
+    conn: AsyncConnection, store: FileStore, content: bytes, *ages: int
+) -> str:
+    digest = store.put(content)
+    for n, days in enumerate(ages):
+        announcement = await announcement_with(conn, 100 + n + len(content), VAR_FILE)
+        when = AT - timedelta(days=days)
+        await conn.execute(
+            "UPDATE announcement SET first_seen_at = %s, listed_on = %s WHERE id = %s",
+            (when, when.date(), announcement),
+        )
+        await conn.execute(
+            "UPDATE attachment SET size = %s, sha256 = %s WHERE revision_id ="
+            " (SELECT current_revision FROM announcement WHERE id = %s)",
+            (len(content), digest, announcement),
+        )
+    return digest
+
+
+@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="One-year file window")
+async def test_a_file_shared_across_a_year(migrated: AsyncConnection, tmp_path: Path) -> None:
+    """One-year file window: a file also linked from a 10-day-old announcement stays."""
+    store = FileStore(tmp_path)
+    digest = await file_linked_from(migrated, store, b"shared", 400, 10)
+
+    assert await prune_files(migrated, store, AT) == 0
+
+    assert store.path(digest).exists()
+
+
+@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="One-year file window")
+async def test_an_old_file(migrated: AsyncConnection, tmp_path: Path) -> None:
+    """One-year file window: a file linked only from a 400-day-old announcement is deleted."""
+    store = FileStore(tmp_path)
+    digest = await file_linked_from(migrated, store, b"old", 400)
+
+    assert await prune_files(migrated, store, AT) == 1
+
+    assert not store.path(digest).exists()
+    assert set((await recorded(migrated)).values()) == {(3, digest)}
