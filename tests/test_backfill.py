@@ -6,8 +6,6 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import pytest
-
 from bulletin.backfill import queue_walks, walk
 from bulletin.detection import detect
 from bulletin.events import read_after
@@ -59,7 +57,6 @@ async def backfill_state(conn: AsyncConnection) -> tuple[object, ...] | None:
     return await cur.fetchone()
 
 
-@pytest.mark.xfail(strict=True, reason="Ten-year walk")
 async def test_a_board_with_three_pages(migrated: AsyncConnection) -> None:
     """Ten-year walk: pages 2 and 3 are stored and the walk ends at the pager's last page."""
     await import_seed(migrated, [ACADEMIC])
@@ -142,7 +139,6 @@ async def test_backfill_finds_an_unseen_announcement(migrated: AsyncConnection) 
     assert await cur.fetchone() == (0,)
 
 
-@pytest.mark.xfail(strict=True, reason="Ten-year walk")
 async def test_a_page_past_the_last(migrated: AsyncConnection) -> None:
     """Ten-year walk: a list page past the last one redirects home, which ends the walk."""
     await import_seed(migrated, [ACADEMIC])

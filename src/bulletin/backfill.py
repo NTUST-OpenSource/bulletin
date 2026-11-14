@@ -4,9 +4,9 @@ from datetime import date
 from http import HTTPStatus
 from typing import TYPE_CHECKING
 
-from bulletin.archive import publish
+from bulletin.archive import is_redirect_home, publish
 from bulletin.detection import find
-from bulletin.pages import PageError, list_url, parse_list
+from bulletin.pages import PageError, list_url, page_count, parse_list
 from bulletin.schedule import TAIPEI, enqueue
 
 if TYPE_CHECKING:
@@ -34,8 +34,9 @@ def horizon(at: datetime) -> date:
 async def walk(conn: AsyncConnection, fetch: Fetch, board: tuple[int, int], at: datetime) -> None:
     """Read the board's next unread list page, store its items and queue what follows.
 
-    The walk ends at a page with no item from the last ten years, which is also how a page past
-    the last one reads. A board that is off or already backfilled is left alone.
+    The walk ends at the pager's last page, at a page with no item from the last ten years, or at
+    a page past the last one, which redirects home. A board that is off or already backfilled is
+    left alone.
     """
     cur = await conn.execute(
         "SELECT s.host, b.tier, b.backfill_page, b.backfilled_at FROM board b"
@@ -51,29 +52,36 @@ async def walk(conn: AsyncConnection, fetch: Fetch, board: tuple[int, int], at: 
         return
     number = next_page or FIRST_PAGE
     response = await fetch(list_url(host, *board, number))
-    if response.status != HTTPStatus.OK:
+    if is_redirect_home(response.status, response.headers.get("Location", ""), response.url):
+        # A page past the last one redirects home.
+        items, last = [], True
+    elif response.status != HTTPStatus.OK:
         raise PageError(response.status)
-    oldest = horizon(at)
-    items = [
-        item
-        for item in parse_list(response.text(), response.url, board[0])
-        if item.listed_on is None or item.listed_on >= oldest
-    ]
+    else:
+        oldest = horizon(at)
+        text = response.text()
+        items = [
+            item
+            for item in parse_list(text, response.url, board[0])
+            if item.listed_on is None or item.listed_on >= oldest
+        ]
+        count = page_count(text)
+        last = not items or (count is not None and number >= count)
     async with conn.transaction():
         for item in items:
             await store(conn, board, item, at)
-        if items:
-            await conn.execute(
-                "UPDATE board SET backfill_page = %s WHERE site_id = %s AND rcg = %s",
-                (number + 1, *board),
-            )
-            await enqueue(conn, "backfill", f"{board[0]}-{board[1]}", at)
-        else:
+        if last:
             await conn.execute(
                 "UPDATE board SET backfill_page = %s, backfilled_at = %s"
                 " WHERE site_id = %s AND rcg = %s",
                 (number, at, *board),
             )
+        else:
+            await conn.execute(
+                "UPDATE board SET backfill_page = %s WHERE site_id = %s AND rcg = %s",
+                (number + 1, *board),
+            )
+            await enqueue(conn, "backfill", f"{board[0]}-{board[1]}", at)
 
 
 async def store(conn: AsyncConnection, board: tuple[int, int], item: Listed, at: datetime) -> None:

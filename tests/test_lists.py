@@ -4,8 +4,6 @@ import json
 from datetime import date
 from pathlib import Path
 
-import pytest
-
 from bulletin.model import Listed
 from bulletin.pages import parse_list
 
@@ -68,7 +66,6 @@ def test_a_link_that_is_not_an_article() -> None:
     assert all(i.listed_on is not None for i in items)
 
 
-@pytest.mark.xfail(strict=True, reason="List page fetch")
 def test_the_publisher_column() -> None:
     """List page fetch: a board that lists a publisher gives each item its publisher."""
     expected = json.loads(read("bulletin-1045-1391.json"))
@@ -89,7 +86,6 @@ def test_the_publisher_column() -> None:
     ]
 
 
-@pytest.mark.xfail(strict=True, reason="List page fetch")
 def test_a_board_listing_another_sites_articles() -> None:
     """List page fetch: identity comes from the link, `404` news pages included."""
     url = "https://www.secretariat.ntust.edu.tw/p/403-1063-2211-1.php"
