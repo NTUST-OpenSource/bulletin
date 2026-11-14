@@ -1,0 +1,6 @@
+{
+  "_comment": "Patterns that guess a new board's category from its name, tried in this order; announcement otherwise.",
+  "excluded": "(?i)banner|相簿|影音|影片|icon|faq|常見問題|主管|成員|開館時間|粉專|關於我們|教師資訊|師資|課程地圖|未來展望|課表|簡介|研究領域|videos|座位",
+  "regulation": "法規|規定|辦法|表單|表件|下載|(?<!最新)資訊$",
+  "news": "新聞|媒體報導|花絮|活動紀錄|集錦|成果|榮譽|得獎"
+}

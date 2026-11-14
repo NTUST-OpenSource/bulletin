@@ -1,8 +1,10 @@
 """The sites and boards bulletin knows about, with each board's category and tier."""
 
 import json
+import re
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Literal
+from importlib import resources
+from typing import TYPE_CHECKING, Literal, cast
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -12,6 +14,15 @@ if TYPE_CHECKING:
 
 type Tier = Literal["P1", "P2", "P3", "P4", "off"]
 type Category = Literal["announcement", "news", "regulation", "course", "excluded"]
+
+# The name patterns of categories.json, in the order they are tried.
+GUESSES: list[tuple[Category, re.Pattern[str]]] = [
+    (cast("Category", category), re.compile(pattern))
+    for category, pattern in json.loads(
+        (resources.files("bulletin") / "categories.json").read_text(encoding="utf-8")
+    ).items()
+    if not category.startswith("_")
+]
 
 
 @dataclass(frozen=True)
@@ -80,4 +91,7 @@ async def set_tier(conn: AsyncConnection, site_id: int, rcg: int, tier: Tier) ->
 
 def guess_category(name: str) -> Category:
     """Guess a newly discovered board's category from its name."""
-    raise NotImplementedError
+    for category, pattern in GUESSES:
+        if pattern.search(name):
+            return category
+    return "announcement"
