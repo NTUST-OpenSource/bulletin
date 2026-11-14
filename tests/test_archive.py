@@ -175,3 +175,36 @@ async def test_pushed_to_page_two(migrated: AsyncConnection) -> None:
 
     cur = await migrated.execute("SELECT count(*) FROM announcement WHERE withdrawn_at IS NOT NULL")
     assert await cur.fetchone() == (0,)
+
+
+async def prompt_rechecks(conn: AsyncConnection, by: datetime) -> list[str]:
+    cur = await conn.execute(
+        "SELECT ref FROM job WHERE kind = 'recheck' AND run_after <= %s ORDER BY ref", (by,)
+    )
+    return [ref for (ref,) in await cur.fetchall()]
+
+
+@pytest.mark.xfail(strict=True, reason="Prompt withdrawal check")
+async def test_one_item_gone_nothing_new(migrated: AsyncConnection) -> None:
+    """Prompt withdrawal check: an item gone from page 1 with nothing new is re-checked soon."""
+    await import_seed(migrated, [Board(1068, 1, "h", "u", "n", "announcement", "P2")])
+    page = [Listed(1068, "she.ntust.edu.tw", 152900 + n, None, f"t{n}") for n in range(3)]
+    gone, *_ = await detect(migrated, (1068, 1), page, AT)
+    later = AT + timedelta(minutes=15)
+
+    await detect(migrated, (1068, 1), page[1:], later)
+
+    assert await prompt_rechecks(migrated, later + timedelta(hours=1)) == [str(gone)]
+
+
+async def test_one_item_gone_for_a_new_one(migrated: AsyncConnection) -> None:
+    """Prompt withdrawal check: an item pushed off by a new one is not re-checked early."""
+    await import_seed(migrated, [Board(1068, 1, "h", "u", "n", "announcement", "P2")])
+    page = [Listed(1068, "she.ntust.edu.tw", 152900 + n, None, f"t{n}") for n in range(3)]
+    await detect(migrated, (1068, 1), page, AT)
+    later = AT + timedelta(minutes=15)
+    newest = Listed(1068, "she.ntust.edu.tw", 152999, None, "newest")
+
+    await detect(migrated, (1068, 1), [newest, *page[:2]], later)
+
+    assert await prompt_rechecks(migrated, later + timedelta(hours=1)) == []
