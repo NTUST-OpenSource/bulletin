@@ -2,8 +2,6 @@
 
 from typing import TYPE_CHECKING
 
-import pytest
-
 from bulletin.registry import Board, get_board, import_seed, set_tier
 
 if TYPE_CHECKING:
@@ -30,7 +28,6 @@ async def tier_of(conn: AsyncConnection, site_id: int, rcg: int) -> Tier:
     return found.tier
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Board identity")
 async def test_one_board_number_on_two_sites(migrated: AsyncConnection) -> None:
     """Board identity: the same board number on two sites are two boards."""
     await import_seed(migrated, [board(1100, 1927), board(1101, 1927)])
