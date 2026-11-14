@@ -79,3 +79,27 @@ async def test_two_changes(migrated: AsyncConnection) -> None:
         ("P2", "P1", "owner-laptop"),
         ("P4", "P2", "cli"),
     ]
+
+
+@pytest.mark.xfail(strict=True, reason="Turning a board on")
+async def test_an_off_board_turned_on(migrated: AsyncConnection) -> None:
+    """Turning a board on: it counts as not backfilled and a backfill of it is queued."""
+    await board_at(migrated, "off")
+    await migrated.execute("UPDATE board SET backfilled_at = now(), backfill_page = 40")
+
+    await set_tier(migrated, 1053, 1435, "P3")
+
+    cur = await migrated.execute("SELECT backfilled_at, backfill_page FROM board")
+    assert await cur.fetchall() == [(None, None)]
+    cur = await migrated.execute("SELECT kind, ref FROM job")
+    assert await cur.fetchall() == [("backfill", "1053-1435")]
+
+
+async def test_a_change_between_tiers_queues_nothing(migrated: AsyncConnection) -> None:
+    """Turning a board on: only a change from off queues a backfill."""
+    await board_at(migrated, "P4")
+
+    await set_tier(migrated, 1053, 1435, "P1")
+
+    cur = await migrated.execute("SELECT count(*) FROM job")
+    assert await cur.fetchone() == (0,)
