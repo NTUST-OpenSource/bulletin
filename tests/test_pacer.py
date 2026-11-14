@@ -21,7 +21,6 @@ class FakeClock:
         await asyncio.sleep(0)
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Request budget")
 async def test_two_polls_due_at_once() -> None:
     """Request budget: the second request starts 2 s plus jitter after the first one finished."""
     clock = FakeClock()
