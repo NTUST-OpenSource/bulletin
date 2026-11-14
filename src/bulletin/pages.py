@@ -4,7 +4,7 @@ import posixpath
 from urllib.parse import urljoin, urlsplit
 
 from bulletin.markup import parse
-from bulletin.model import Attachment, Content
+from bulletin.model import Attachment, Content, Listed
 
 # A body link is a file when its path has one of these extensions or is under /var/file/.
 FILE_EXTENSIONS = frozenset(
@@ -65,3 +65,12 @@ def parse_article(page: str, url: str, publisher: str | None = None) -> Content:
         body_text=body.text() if body is not None else "",
         attachments=tuple(attachments),
     )
+
+
+def parse_list(page: str, url: str, site_id: int) -> list[Listed]:
+    """Read a list page at `url` of a board on site `site_id`: its items in page order.
+
+    An item linking to an article on a school host takes its site and id from the link; any
+    other link is an item of the board's own site, identified by its URL.
+    """
+    raise NotImplementedError
