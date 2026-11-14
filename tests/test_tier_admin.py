@@ -81,7 +81,6 @@ async def test_two_changes(migrated: AsyncConnection) -> None:
     ]
 
 
-@pytest.mark.xfail(strict=True, reason="Turning a board on")
 async def test_an_off_board_turned_on(migrated: AsyncConnection) -> None:
     """Turning a board on: it counts as not backfilled and a backfill of it is queued."""
     await board_at(migrated, "off")

@@ -87,8 +87,9 @@ async def set_tier(
 ) -> None:
     """Change a board's tier, due again one new interval after its last poll.
 
-    The change is recorded with `by`, who made it. An unknown tier raises ValueError and an
-    unknown board LookupError; neither changes anything.
+    The change is recorded with `by`, who made it. A board turned on from off counts as not
+    backfilled and gets a backfill queued. An unknown tier raises ValueError and an unknown board
+    LookupError; neither changes anything.
     """
     if tier not in TIERS:
         msg = f"unknown tier {tier}"
@@ -113,6 +114,16 @@ async def set_tier(
                 "INSERT INTO tier_change (site_id, rcg, old_tier, new_tier, changed_by)"
                 " VALUES (%s, %s, %s, %s, %s)",
                 (site_id, rcg, old, tier, by),
+            )
+        if old == "off" and tier != "off":
+            # Turned on: its detection falls back to the frontier rule until it is backfilled.
+            await conn.execute(
+                "UPDATE board SET backfilled_at = NULL, backfill_page = NULL"
+                " WHERE site_id = %s AND rcg = %s",
+                (site_id, rcg),
+            )
+            await conn.execute(
+                "INSERT INTO job (kind, ref) VALUES ('backfill', %s)", (f"{site_id}-{rcg}",)
             )
 
 
