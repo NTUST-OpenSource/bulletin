@@ -4,8 +4,11 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from importlib.metadata import version
 from typing import TYPE_CHECKING, Protocol
+from urllib.parse import urlsplit
 
 import aiohttp
+
+from bulletin.tls import context_for
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
@@ -66,5 +69,13 @@ class Client:
         headers: Mapping[str, str] | None = None,
         keep_body: KeepBody | None = None,
     ) -> Response:
-        """Send one GET."""
-        raise NotImplementedError
+        """Send one GET; close the connection unread when `keep_body` says no."""
+        host = urlsplit(url).hostname or ""
+        sent = {"User-Agent": USER_AGENT, **(headers or {})}
+        async with self._session.get(
+            url, headers=sent, allow_redirects=False, ssl=context_for(host), timeout=TIMEOUT
+        ) as response:
+            if keep_body is not None and not keep_body(response.status, response.headers):
+                response.close()
+                return Response(url, response.status, response.headers)
+            return Response(url, response.status, response.headers, await response.read())

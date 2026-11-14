@@ -49,7 +49,6 @@ async def client() -> AsyncGenerator[Client]:
         yield Client(session)
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="List page fetch")
 async def test_requests_name_the_bot(server: TestServer, client: Client) -> None:
     """List page fetch: every request carries the bot's User-Agent, and the caller's headers."""
     response = await client(str(server.make_url("/echo")), headers={"Range": "bytes=0-0"})
@@ -60,7 +59,6 @@ async def test_requests_name_the_bot(server: TestServer, client: Client) -> None
     assert response.headers["x-range"] == "bytes=0-0"
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Withdrawal check")
 async def test_redirects_are_not_followed(server: TestServer, client: Client) -> None:
     """Withdrawal check: the 302 to the home page reaches the caller."""
     url = str(server.make_url("/p/406-1000-1.php"))
@@ -71,7 +69,6 @@ async def test_redirects_are_not_followed(server: TestServer, client: Client) ->
     assert response.headers["Location"] == "/index.php"
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Attachment sizes")
 async def test_a_body_not_wanted_is_not_read(server: TestServer, client: Client) -> None:
     """Attachment sizes: when `keep_body` says no, the response comes back without its body."""
     seen: list[tuple[int, str]] = []
