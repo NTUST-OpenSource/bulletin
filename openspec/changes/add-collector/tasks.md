@@ -141,7 +141,7 @@ Article parsing ports the article half of xincord's `pages.py`.
 
 - [x] 11.1 Add the `Dockerfile` (uv, non-root user) and `/health` with its test; verify the image builds on the remote test host
 - [x] 11.2 Add `compose.yaml` and `.env.example` per design.md (no published ports, `bulletin-db` and `bulletin-admin` internal, `proxy-net` external, admin listener on its alias); verify on the remote test host that the app is healthy, the admin port does not answer on the `proxy-net` address and the database has no outbound route
-- [ ] 11.3 Document deployment and the CLI in `README.md`; verify every command in it runs against the test host
+- [x] 11.3 Document deployment and the CLI in `README.md`; verify every command in it runs against the test host
 
 ## 12. Integration
 
