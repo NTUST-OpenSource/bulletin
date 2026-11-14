@@ -37,7 +37,7 @@ Each requirement gets two tasks (AGENTS.md, xfail-first): commit its failing tes
 - [x] 4.5 Commit the xfail test for "Boards are kept" (board-registry); verify it fails for the expected reason and the gate stays green
 - [x] 4.6 Implement "Boards are kept" and remove the marker; verify its scenarios pass and the gate is green
 - [x] 4.7 Commit the xfail test for "Board categories" (board-registry); verify it fails for the expected reason and the gate stays green
-- [ ] 4.8 Implement "Board categories" and remove the marker; verify its scenarios pass and the gate is green
+- [x] 4.8 Implement "Board categories" and remove the marker; verify its scenarios pass and the gate is green
 - [ ] 4.9 Commit the xfail test for "Re-discovery" (board-registry); verify it fails for the expected reason and the gate stays green
 - [ ] 4.10 Implement "Re-discovery" and remove the marker; verify its scenarios pass and the gate is green
 - [ ] 4.11 Commit the xfail test for "Category guess" (board-registry); verify it fails for the expected reason and the gate stays green

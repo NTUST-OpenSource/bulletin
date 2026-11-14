@@ -105,7 +105,6 @@ async def test_boards_are_never_deleted(migrated: AsyncConnection) -> None:
     assert await tier_of(migrated, 1000, 9) == "off"
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Board categories")
 async def test_an_excluded_board_turned_on(migrated: AsyncConnection) -> None:
     """Board categories: the tier alone decides polling; an excluded P4 board is polled."""
     await import_seed(
