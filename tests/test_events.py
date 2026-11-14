@@ -107,7 +107,6 @@ async def test_a_revision_is_not_notify_worthy(migrated: AsyncConnection) -> Non
                 await record(migrated, announcement, kind, notify=True)
 
 
-@pytest.mark.xfail(strict=True, reason="Late discoveries are marked")
 async def test_backfill_is_marked_late(migrated: AsyncConnection) -> None:
     """Late discoveries are marked: a backfilled announcement is late and not notify-worthy."""
     backfilled = Listed(1000, "www.ntust.edu.tw", 90001, None, "t", date(2019, 3, 1))

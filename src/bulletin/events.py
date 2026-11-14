@@ -53,6 +53,9 @@ async def record(
     if notify and kind is not Kind.PUBLISHED:
         msg = f"a {kind} event is never notify-worthy"
         raise ValueError(msg)
+    if notify and late:
+        msg = "a late event is never notify-worthy"
+        raise ValueError(msg)
     if conn.info.transaction_status is TransactionStatus.IDLE:
         msg = "events are recorded inside a transaction"
         raise RuntimeError(msg)
