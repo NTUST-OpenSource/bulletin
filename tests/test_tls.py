@@ -12,7 +12,6 @@ from bulletin.tls import context_for
 TWCA = "'TWCA Secure SSL Certification Authority'"
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="School certificates")
 @pytest.mark.parametrize("host", ["www.academic.ntust.edu.tw", "student.ntust.edu.tw"])
 def test_school_host_without_the_intermediate(host: str) -> None:
     """School certificates: only the strict flag is cleared, and TWCA's intermediate is bundled.
@@ -28,7 +27,6 @@ def test_school_host_without_the_intermediate(host: str) -> None:
     assert any(TWCA in str(ca["subject"]) for ca in context.get_ca_certs())
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="School certificates")
 @pytest.mark.parametrize("host", ["example.com", "ntust.edu.tw.example.com", "docs.google.com"])
 def test_other_hosts_stay_strict(host: str) -> None:
     """School certificates: hosts outside the school keep the default strict verification."""
