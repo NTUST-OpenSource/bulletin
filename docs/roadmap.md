@@ -50,6 +50,8 @@ API, and the Compose deployment of the database and the worker. See
   with its raw text and rendition, events after a cursor, boards, tags.
 - `Cache-Control: max-age=60, stale-while-revalidate=600`; ETag from the latest event id; a
   Cloudflare cache rule for `/api/*` (F3).
+- Stored attachment files by SHA-256, same origin so the frontend can preview them: inline
+  `Content-Disposition` with the file's name, a sniffing-safe content type, immutable caching.
 - Rate limiting in the application per client IP, on uncacheable endpoints; internal clients on
   `proxy-net` exempt (F4).
 - tigerduck reads the events feed over `proxy-net` (H1, tigerduck-app/tigerduck-backend#248).
@@ -67,7 +69,14 @@ The owner approved the third prototype on 2026-11-15 (A5), with the last round o
   - Topic chips can be dragged into a new order on the home page as well as in the settings.
   - Closing an article (Esc, the close button, back) keeps the stream's scroll position.
   - Images stay where the school's page places them, in the rewrite too. When the attachments
-    hold exactly one image, it is shown at the end of the article.
+    hold exactly one image, it is shown at the end of the article; the other attachments are
+    listed as usual.
+  - Attachments preview in the page, as club-aio's `FilePreview` does: a left click opens images
+    (zoom, and arrows across the article's images), PDF in the browser's viewer and DOCX
+    converted to sanitized HTML; the preview has a download button. A file name is a real link,
+    so a right click offers the browser's save-link menu. Only stored files preview (the school
+    sends no CORS headers); the others open the school's link.
+  - The tab title is `bulletin. | 臺科大公布欄`.
   - One stream for every category, no tabs; day headings stay pinned while scrolling.
   - A first visit asks for the viewer's department, then other units; the six P1 units are
     preselected. The stream shows followed units only; search covers every unit.
@@ -83,9 +92,8 @@ The owner approved the third prototype on 2026-11-15 (A5), with the last round o
   as copied JSON, a JSON download, or a link carrying the settings after `#`, applied at once only
   when the viewer never saved settings, otherwise after asking to overwrite all of them.
 - Checked in a headless browser at desktop width and at 375 px.
-- Icons animate like lucide-animated, which the owner asked for. lucide-animated itself is React
-  and Motion only; its Svelte 5 port is `@jis3r/icons` (movingicons.dev, no dependencies). Open:
-  the port under F5, or React for the original.
+- Icons: `@jis3r/icons` (movingicons.dev), the Svelte 5 port of lucide-animated, which is React
+  only (F6).
 
 ## Later
 

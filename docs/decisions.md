@@ -128,6 +128,9 @@ Markers: **[rec]** the owner followed Claude's recommendation; **[owner]** the o
   link carrying the settings after `#`; opening such a link applies them at once when the viewer
   never changed theirs, and otherwise asks before overwriting all of them.
 
+- **F6 Animated icons** [owner]: icons animate like lucide-animated. That library is React and
+  Motion only, so the frontend uses its Svelte 5 port `@jis3r/icons` and keeps F5.
+
 ## G. Deployment
 
 - **G1 Host** [owner]: the owner's machine, Docker Compose project `bulletin`, following
