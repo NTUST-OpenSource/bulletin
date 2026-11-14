@@ -6,8 +6,6 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import pytest
-
 from bulletin.archive import publish, revise
 from bulletin.files import FileStore, keep_files, prune_files, read_size
 from bulletin.model import Attachment, Content, Listed
@@ -162,7 +160,6 @@ async def file_linked_from(
     return digest
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="One-year file window")
 async def test_a_file_shared_across_a_year(migrated: AsyncConnection, tmp_path: Path) -> None:
     """One-year file window: a file also linked from a 10-day-old announcement stays."""
     store = FileStore(tmp_path)
@@ -173,7 +170,6 @@ async def test_a_file_shared_across_a_year(migrated: AsyncConnection, tmp_path: 
     assert store.path(digest).exists()
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="One-year file window")
 async def test_an_old_file(migrated: AsyncConnection, tmp_path: Path) -> None:
     """One-year file window: a file linked only from a 400-day-old announcement is deleted."""
     store = FileStore(tmp_path)

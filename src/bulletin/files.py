@@ -84,6 +84,13 @@ class FileStore:
             partial.replace(path)
         return digest
 
+    def remove_all_but(self, kept: set[str]) -> int:
+        """Delete every kept file whose digest is not in `kept`; return how many."""
+        old = [p for p in self.root.glob("??/*") if p.is_file() and p.name not in kept]
+        for path in old:
+            path.unlink()
+        return len(old)
+
 
 async def keep_files(
     conn: AsyncConnection, fetch: Fetch, store: FileStore, announcement_id: int, now: datetime
@@ -115,5 +122,15 @@ async def keep_files(
 
 
 async def prune_files(conn: AsyncConnection, store: FileStore, now: datetime) -> int:
-    """Delete kept files no announcement of the last 365 days links to; return how many."""
-    raise NotImplementedError
+    """Delete kept files no announcement of the last 365 days links to; return how many.
+
+    The attachment records keep their name, URL, size and digest.
+    """
+    cur = await conn.execute(
+        "SELECT DISTINCT f.sha256 FROM attachment f JOIN revision r ON r.id = f.revision_id"
+        " JOIN announcement a ON a.id = r.announcement_id"
+        " WHERE f.sha256 IS NOT NULL AND (a.first_seen_at > %s OR a.listed_on > %s::date)",
+        (now - FILE_WINDOW, now - FILE_WINDOW),
+    )
+    linked = {row[0] for row in await cur.fetchall()}
+    return await asyncio.to_thread(store.remove_all_but, linked)
