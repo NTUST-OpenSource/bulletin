@@ -3,8 +3,6 @@
 from datetime import date
 from pathlib import Path
 
-import pytest
-
 from bulletin.model import Listed
 from bulletin.pages import parse_list
 
@@ -15,7 +13,6 @@ def read(name: str) -> str:
     return (LISTS / name).read_text("utf-8")
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="List page fetch")
 def test_a_table_board() -> None:
     """A table board: every item's article site and id, title and list date, in page order."""
     url = "https://www.academic.ntust.edu.tw/p/403-1048-1416-1.php"
@@ -35,7 +32,6 @@ def test_a_table_board() -> None:
     assert items[0].title.startswith("114-2")
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="List page fetch")
 def test_a_list_board_without_dates() -> None:
     """A board in the list layout, which shows no dates, reads its items without one."""
     url = "https://lc.ntust.edu.tw/p/403-1070-1626-1.php"
@@ -46,7 +42,6 @@ def test_a_list_board_without_dates() -> None:
     assert {(i.site_id, i.host, i.listed_on) for i in items} == {(1070, "lc.ntust.edu.tw", None)}
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="List page fetch")
 def test_a_link_that_is_not_an_article() -> None:
     """A link to a file: the item keeps its URL and title, and has no article id.
 
