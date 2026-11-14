@@ -19,7 +19,11 @@ from bulletin.search import search
 from bulletin.worker import run_job
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from psycopg import AsyncConnection
+
+    from bulletin.http import KeepBody
 
 FIXTURES = Path(__file__).parent / "fixtures" / "articles"
 PAGE = (FIXTURES / "1068-152869.html").read_bytes()
@@ -35,7 +39,15 @@ class FakeWeb:
         self.page, self.status, self.location = page, status, location
         self.requested: list[str] = []
 
-    async def __call__(self, url: str) -> Response:
+    async def __call__(
+        self,
+        url: str,
+        /,
+        *,
+        headers: Mapping[str, str] | None = None,
+        keep_body: KeepBody | None = None,
+    ) -> Response:
+        del headers, keep_body
         self.requested.append(url)
         headers = {"Location": self.location} if self.location else {}
         return Response(url, self.status, headers, self.page if self.status == 200 else b"")

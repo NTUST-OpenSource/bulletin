@@ -1,7 +1,7 @@
 """What the collector needs from HTTP: one GET at a time, redirects not followed."""
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable, Mapping
@@ -21,4 +21,23 @@ class Response:
         return self.body.decode("utf-8", errors="replace")
 
 
-type Fetch = Callable[[str], Awaitable[Response]]
+type KeepBody = Callable[[int, Mapping[str, str]], bool]
+
+
+class Fetch(Protocol):
+    """One GET, never HEAD, that does not follow redirects.
+
+    `keep_body` sees the status and headers and decides whether the body is read; when it says
+    no, the connection is closed before the body. By default the body is read.
+    """
+
+    def __call__(
+        self,
+        url: str,
+        /,
+        *,
+        headers: Mapping[str, str] | None = None,
+        keep_body: KeepBody | None = None,
+    ) -> Awaitable[Response]:
+        """Send the request."""
+        ...
