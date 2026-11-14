@@ -50,7 +50,7 @@ List parsing ports xincord's `ntust_announcements/pages.py` and `markup.py`; cer
 
 - [x] 5.1 Commit the xfail test for "Tier intervals" (polling); verify it fails for the expected reason and the gate stays green
 - [x] 5.2 Implement "Tier intervals" and remove the marker; verify its scenarios pass and the gate is green
-- [ ] 5.3 Commit the xfail test for "Request budget" (polling); verify it fails for the expected reason and the gate stays green
+- [x] 5.3 Commit the xfail test for "Request budget" (polling); verify it fails for the expected reason and the gate stays green
 - [ ] 5.4 Implement "Request budget" and remove the marker; verify its scenarios pass and the gate is green
 - [ ] 5.5 Commit the xfail test for "Queue order" (polling); verify it fails for the expected reason and the gate stays green
 - [ ] 5.6 Implement "Queue order" and remove the marker; verify its scenarios pass and the gate is green
