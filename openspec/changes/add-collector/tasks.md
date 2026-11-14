@@ -147,7 +147,7 @@ Article parsing ports the article half of xincord's `pages.py`.
 
 - [x] 12.1 Add an end-to-end test over fixtures and a fake transport: seed import, a first poll that announces nothing, a new article that is announced, a re-check that finds it withdrawn; verify the event log reads published (not notify-worthy), published (notify-worthy), withdrawn
 - [ ] 12.2 List the user-visible changes of design.md for the owner and wait for approval before pushing
-- [ ] 12.3 Run `scripts/gate.sh`; verify it passes
+- [x] 12.3 Run `scripts/gate.sh`; verify it passes
 
 ## Workflow follow-up
 
