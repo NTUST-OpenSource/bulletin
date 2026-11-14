@@ -155,6 +155,11 @@ Rate limiting (F4) and the Cloudflare cache rule (F3) belong to `add-public-api`
 - Admin API on the admin listener: `GET /admin/boards`, `PUT /admin/boards/{site}-{board}/tier`,
   `GET /admin/boards/{site}-{board}/tier-changes`, `POST /admin/boards/{site}-{board}/review`.
 - The User-Agent the school sees: `bulletin/<version> (+https://bulletin.ntust.org)`.
+- `bulletin serve`, the container's command: the public listener on `:8000`, the admin listener
+  on `bulletin-internal-admin:8001` and the worker in one process.
+- Settings: `POSTGRES_PASSWORD` and `BULLETIN_ADMIN_TOKENS` (comma-separated `name:token` pairs,
+  tokens of 32 or more characters) in `.env`; `BULLETIN_DATABASE_URL`, `BULLETIN_ADMIN_HOST`,
+  `BULLETIN_FILES` and `BULLETIN_SEED` with defaults from the image and `compose.yaml`.
 
 ## Risks / Trade-offs
 

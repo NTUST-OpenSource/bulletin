@@ -25,6 +25,10 @@ npx --yes @fission-ai/openspec@1.14.1 <command>   # OpenSpec CLI (set OPENSPEC_T
 If your global git config sets `core.hooksPath`, run `git config --local core.hooksPath
 .git/hooks` before `prek install`.
 
+Storage tests need PostgreSQL with PGroonga: set `BULLETIN_TEST_DATABASE_URL` (for example
+`postgresql://postgres:postgres@localhost:5432/postgres` against the `groonga/pgroonga` image
+that CI uses). Without it they skip; with `BULLETIN_REQUIRE_DB=1`, as in CI, a skip fails.
+
 ## Language
 
 - Everything in the repository is English: code, comments, docstrings, tests, docs, OpenSpec.
