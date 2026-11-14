@@ -4,12 +4,17 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
+from psycopg.pq import TransactionStatus
 from psycopg.rows import class_row
 
 if TYPE_CHECKING:
     from datetime import datetime
 
     from psycopg import AsyncConnection
+
+
+# The advisory lock key that orders event writers.
+EVENT_LOCK = 0x6275_6C6C_6574_696E
 
 
 class Kind(StrEnum):
@@ -41,7 +46,15 @@ async def record(
     notify: bool = False,
     late: bool = False,
 ) -> int:
-    """Record an event in the caller's transaction and return its id."""
+    """Record an event in the caller's transaction and return its id.
+
+    The transaction lock makes ids commit in the order they are taken, so a reader resuming after
+    the last id it saw never misses one.
+    """
+    if conn.info.transaction_status is TransactionStatus.IDLE:
+        msg = "events are recorded inside a transaction"
+        raise RuntimeError(msg)
+    await conn.execute("SELECT pg_advisory_xact_lock(%s)", (EVENT_LOCK,))
     cur = await conn.execute(
         "INSERT INTO event (announcement_id, kind, notify, late) VALUES (%s, %s, %s, %s)"
         " RETURNING id",

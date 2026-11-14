@@ -50,7 +50,6 @@ async def test_events_are_never_changed(migrated: AsyncConnection) -> None:
         await migrated.execute("DELETE FROM event")
 
 
-@pytest.mark.xfail(strict=True, reason="Gap-free order")
 async def test_concurrent_writers(schema: Schema, migrated: AsyncConnection) -> None:
     """Gap-free order: a reader resuming from its last id gets both writers' events once each."""
     announcement = await publish(migrated, LISTED, notify=True, late=False)
@@ -82,3 +81,9 @@ async def test_concurrent_writers(schema: Schema, migrated: AsyncConnection) -> 
     ids = [e.id for e in seen]
     assert len(ids) == 2
     assert len(set(ids)) == 2
+
+
+async def test_events_need_a_transaction(migrated: AsyncConnection) -> None:
+    """Gap-free order: outside a transaction the lock would be released before the insert."""
+    with pytest.raises(RuntimeError):
+        await record(migrated, 1, Kind.REVISED)
