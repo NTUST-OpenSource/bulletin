@@ -107,5 +107,18 @@ class Found:
 
 
 async def add_discovered(conn: AsyncConnection, found: Iterable[Found]) -> list[tuple[int, int]]:
-    """Add the boards the registry does not hold as off and pending review; return their keys."""
-    raise NotImplementedError
+    """Add the boards the registry does not hold as off and pending review; return their keys.
+
+    Boards the registry holds are left as they are, renamed or not.
+    """
+    added: list[tuple[int, int]] = []
+    async with conn.transaction(), conn.cursor() as cur:
+        for f in found:
+            await cur.execute(
+                "INSERT INTO board (site_id, rcg, name, category, tier, pending_review)"
+                " VALUES (%s, %s, %s, %s, 'off', true)"
+                " ON CONFLICT DO NOTHING RETURNING site_id, rcg",
+                (f.site_id, f.rcg, f.name, guess_category(f.name)),
+            )
+            added += await cur.fetchall()
+    return added
