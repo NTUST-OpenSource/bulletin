@@ -20,9 +20,21 @@ API, and the Compose deployment of the database and the worker. See
 - Renders every new announcement and those from the last year; older ones stay raw (E2).
 - A rendition is tied to a revision and a prompt version, so a new revision or prompt renders
   again.
-- Output: Markdown for Discord, a summary, a deadline date when the text states one, and tags
-  from the fixed taxonomy (E3). Tags are stored per announcement with their source (model or
-  manual).
+- Model input, measured on 59 cached pages (trafilatura kept 7 of 42 attachment names and lost
+  over 40% of the text on 10 pages; this pipeline kept 36 of 42 at a median of 786 characters
+  against 1,942 for the raw container):
+  1. Take `.mpgdetail` and the `mptattach` module by selector, not with a generic extractor.
+  2. Reduce the HTML to paragraphs, lists, tables, links, bold and images, then convert it to
+     Markdown. Tables stay as pipe tables in the input; only the output avoids them.
+  3. Replace each link and image with a placeholder (`L1`, `I1`, ...) and substitute the real
+     URLs after the model answers, so the model never copies a URL. An unknown placeholder fails
+     the attempt.
+  4. Attachments reach the frontend from stored data, not through the model.
+  5. Ask for JSON constrained by a JSON schema (llama-server `response_format`).
+  6. Reject a deadline whose date does not appear in the source text.
+- Output: a rewritten title without bracketed tags, Markdown for Discord, a summary, a deadline
+  date when the text states one, and tags from the fixed taxonomy (E3). Tags are stored per
+  announcement with their source (model or manual).
 - Validation pipeline (E4): wrap bare URLs as `<url>`, replace masked links whose text is a URL,
   then check with `@discord/markdown-wasm` in a Node subprocess; retry up to 3 times, then fall
   back to the title and the link.
@@ -46,10 +58,21 @@ API, and the Compose deployment of the database and the worker. See
 Starts only after the owner approves the high-fidelity prototype (A5).
 
 - Svelte 5 + Vite static SPA over the public API (F5).
-- Tabs for announcements and news; regulations and forms reachable through search (B8).
-- Browser settings: theme, rendition or raw, hidden boards; export as copied JSON, a JSON
-  download, or a link carrying the settings after `#`, applied at once only when the viewer never
-  changed their own settings, otherwise after asking to overwrite all of them.
+- Decided while reviewing the prototype:
+  - One stream for every category, no tabs; day headings stay pinned while scrolling.
+  - A first visit asks for the viewer's department, then other units; the six P1 units are
+    preselected. The stream shows followed units only; search covers every unit.
+  - Hiding a board or unfollowing a unit is a context-menu action (right click, long press, the
+    menu key), with undo.
+  - Rewritten titles and summaries by default; the raw version sits in the article's menu.
+    Images in the body are shown.
+  - No deadline display and no action filter; topic chips whose order the viewer can change.
+  - Infinite scroll with cursor pages; a poll every 5 minutes while the tab is visible, new items
+    animate in without moving what the viewer is reading.
+  - The settings end with: 內容轉寫自國立臺灣科技大學各單位網站，以原網頁內容為準
+- Browser settings: theme, rendition or raw, followed units, hidden boards, topic order; export
+  as copied JSON, a JSON download, or a link carrying the settings after `#`, applied at once only
+  when the viewer never saved settings, otherwise after asking to overwrite all of them.
 - Checked in a headless browser at desktop width and at 375 px.
 
 ## Later
