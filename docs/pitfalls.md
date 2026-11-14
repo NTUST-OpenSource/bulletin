@@ -8,9 +8,18 @@ Re-check a fact before relying on it for something new; the school changes its C
 - URL patterns:
   - `/p/403-{site}-{board}-{page}.php`: a board's list, page by page.
   - `/p/406-{site}-{article}.php`, optionally `/p/406-{site}-{article},r{board}.php`: an article.
+  - `/p/404-{site}-{article}.php`: the same article; `404-1000-153631` and `406-1000-153631`
+    served the same page on 2026-11-15. The secretariat's board lists news this way.
+  - `/p/450-{site}-{article},c0.php`: a pointer to another site's article. The school-wide bulletin
+    board lists cross-posts this way; `450-1045-152885,c0` answers 302 to
+    `https://she.ntust.edu.tw/p/406-1068-152869,r1497.php`.
   - `/p/412-{site}-{n}.php`: a free-form page; `/p/17-{site}.php`: the site map.
   - `POST /app/index.php?Action=mobilercglist` with `Rcg`, `Op=getpartlist` and `Page`: the list as
     AJAX. It needs `X-Requested-With` and `Referer`.
+- A list page past the last one answers 302 to `/`, like a withdrawn article
+  (`403-1070-1626-50`, 2026-11-15). The pager states the page count: `共<span>385</span>頁`.
+- The site map links free-form pages (`412`) and menus, not lists: student affairs' site map
+  (`17-1053`) had 147 `412` links and no `403` link, and named one board only in a menu script.
 - Menus are loaded by AJAX, so a site's home page does not link every board. Boards also show up
   as `name:'Rcg',value:` and `Type=mobile_rcg_mstr&Nbr=` in scripts, and as `,r{board}` in
   article links.
@@ -23,9 +32,10 @@ Re-check a fact before relying on it for something new; the school changes its C
   2026). An id belongs to exactly one site. A cross-post on another site gets a new id.
 - Board numbers are not unique: board 1927 exists on 8 sites. A board is (site, board number).
 - A withdrawn article answers 302 to the site's home page. So does an article id requested under
-  the wrong site: `406-1063-153625` redirects home although `406-1000-153625` exists. No real
-  withdrawal has been observed in samples yet; the three "withdrawn" articles of the survey's
-  sample were all this wrong-site case.
+  the wrong site: `406-1063-153625` redirects home although `406-1000-153625` exists. The three
+  "withdrawn" articles of the survey's sample were all this wrong-site case. The first real
+  withdrawals seen were 152457 (listed by board 1059-763) and 146159 (board 1017-1), which
+  redirected home under their own site and under 1000 on 2026-11-15.
 - A board can list another site's articles. The secretariat's board 1063-2211 links to
   `https://www.ntust.edu.tw/p/406-1000-153625,r167.php`. Take the article's host, site and board
   from the list item's href, never from the board being polled.
@@ -40,6 +50,7 @@ Re-check a fact before relying on it for something new; the school changes its C
   not new (the owner's xincord plugin once notified for such an item).
 - On the school-wide bulletin board (site 1045, board 1391), about 12% of items link straight to a
   file or another site instead of an article.
+- The school-wide bulletin board's table has a publisher column, `data-th="發佈單位"`.
 - The list's date is the date an office chose, not the publication time. Article ids appear to be
   assigned when a draft is created, so a draft published weeks later carries an old id and a fresh
   date.
