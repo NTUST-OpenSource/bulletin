@@ -6,14 +6,18 @@ from dataclasses import dataclass
 from importlib import resources
 from typing import TYPE_CHECKING, Literal, cast
 
+from bulletin.schedule import interval
+
 if TYPE_CHECKING:
     from collections.abc import Iterable
+    from datetime import datetime
     from pathlib import Path
 
     from psycopg import AsyncConnection
 
 type Tier = Literal["P1", "P2", "P3", "P4", "off"]
 type Category = Literal["announcement", "news", "regulation", "course", "excluded"]
+TIERS: tuple[Tier, ...] = ("P1", "P2", "P3", "P4", "off")
 
 # The name patterns of categories.json, in the order they are tried.
 GUESSES: list[tuple[Category, re.Pattern[str]]] = [
@@ -79,14 +83,28 @@ async def get_board(conn: AsyncConnection, site_id: int, rcg: int) -> Board | No
 
 
 async def set_tier(conn: AsyncConnection, site_id: int, rcg: int, tier: Tier) -> None:
-    """Change a board's tier; an unknown board raises LookupError."""
-    cur = await conn.execute(
-        "UPDATE board SET tier = %s WHERE site_id = %s AND rcg = %s RETURNING rcg",
-        (tier, site_id, rcg),
-    )
-    if await cur.fetchone() is None:
-        msg = f"no board {site_id}-{rcg}"
-        raise LookupError(msg)
+    """Change a board's tier, due again one new interval after its last poll.
+
+    An unknown tier raises ValueError and an unknown board LookupError; neither changes anything.
+    """
+    if tier not in TIERS:
+        msg = f"unknown tier {tier}"
+        raise ValueError(msg)
+    async with conn.transaction():
+        cur = await conn.execute(
+            "SELECT last_polled_at FROM board WHERE site_id = %s AND rcg = %s FOR UPDATE",
+            (site_id, rcg),
+        )
+        row = await cur.fetchone()
+        if row is None:
+            msg = f"no board {site_id}-{rcg}"
+            raise LookupError(msg)
+        last: datetime | None = row[0]
+        step = None if last is None else interval(tier, last)
+        await conn.execute(
+            "UPDATE board SET tier = %s, next_poll_at = %s WHERE site_id = %s AND rcg = %s",
+            (tier, None if last is None or step is None else last + step, site_id, rcg),
+        )
 
 
 def guess_category(name: str) -> Category:

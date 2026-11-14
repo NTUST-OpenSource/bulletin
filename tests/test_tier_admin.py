@@ -23,7 +23,6 @@ async def board_at(conn: AsyncConnection, tier: Tier, polled: datetime | None = 
         await mark_polled(conn, 1053, 1435, polled)
 
 
-@pytest.mark.xfail(strict=True, reason="Change a tier")
 async def test_raising_a_board(migrated: AsyncConnection) -> None:
     """Change a tier: P4 polled at 09:58 and set to P1 at 10:00 is due by 10:03."""
     await board_at(migrated, "P4", WEDNESDAY - timedelta(minutes=2))
@@ -34,7 +33,6 @@ async def test_raising_a_board(migrated: AsyncConnection) -> None:
     assert await due_boards(migrated, WEDNESDAY + timedelta(minutes=3)) == [(1053, 1435)]
 
 
-@pytest.mark.xfail(strict=True, reason="Change a tier")
 async def test_turning_a_board_off(migrated: AsyncConnection) -> None:
     """Change a tier: an off board has no further poll scheduled."""
     await board_at(migrated, "P2", WEDNESDAY)
@@ -57,7 +55,6 @@ async def test_an_unknown_board(migrated: AsyncConnection) -> None:
     )
 
 
-@pytest.mark.xfail(strict=True, reason="Change a tier")
 async def test_an_unknown_tier(migrated: AsyncConnection) -> None:
     """Change a tier: an unknown tier is refused, and the board keeps its tier."""
     await board_at(migrated, "P2")
