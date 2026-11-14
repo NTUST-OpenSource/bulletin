@@ -39,6 +39,10 @@ class FakeWeb:
         keep_body: KeepBody | None = None,
     ) -> Response:
         answer = self.answers[url]
+        if headers and "Range" in headers and answer.status == 200 and "/var/file/" in url:
+            # /var/file/ honours a range for its first byte, as the school's servers do.
+            total = len(answer.body)
+            answer = Answer(206, {"Content-Range": f"bytes 0-0/{total}"}, answer.body[:1])
         read = keep_body is None or keep_body(answer.status, answer.headers)
         self.requests.append(Request(url, dict(headers or {}), read))
         return Response(url, answer.status, answer.headers, answer.body if read else b"")

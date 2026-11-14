@@ -7,6 +7,10 @@ from urllib.parse import urlsplit
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
+    from datetime import datetime
+    from pathlib import Path
+
+    from psycopg import AsyncConnection
 
     from bulletin.http import Fetch
 
@@ -48,3 +52,22 @@ async def read_size(
         return None, None
     size = _length(response.headers)
     return size, response.body if keep_body(response.status, response.headers) else None
+
+
+class FileStore:
+    """Files kept by SHA-256 digest under `root/<first two hex digits>/<digest>`."""
+
+    def __init__(self, root: Path) -> None:
+        """Keep files under `root`."""
+        self.root = root
+
+    def path(self, digest: str) -> Path:
+        """Where the file with `digest` is kept."""
+        return self.root / digest[:2] / digest
+
+
+async def keep_files(
+    conn: AsyncConnection, fetch: Fetch, store: FileStore, announcement_id: int, now: datetime
+) -> None:
+    """Read the sizes of an announcement's attachments and keep copies of small school files."""
+    raise NotImplementedError

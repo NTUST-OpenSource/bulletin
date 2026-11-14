@@ -37,7 +37,8 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "scripts/**" = ["D", "INP001", "T201"]
-"tests/**" = ["D", "INP001", "PLR2004", "S101"]
+# Tests may block on small files inside async tests.
+"tests/**" = ["ASYNC240", "D", "INP001", "PLR2004", "S101"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
