@@ -34,7 +34,7 @@ Each requirement gets two tasks (AGENTS.md, xfail-first): commit its failing tes
 - [x] 4.2 Implement "Board identity" and remove the marker; verify its scenarios pass and the gate is green
 - [x] 4.3 Commit the xfail test for "Seed import" (board-registry); verify it fails for the expected reason and the gate stays green
 - [x] 4.4 Implement "Seed import" and remove the marker; verify its scenarios pass and the gate is green
-- [ ] 4.5 Commit the xfail test for "Boards are kept" (board-registry); verify it fails for the expected reason and the gate stays green
+- [x] 4.5 Commit the xfail test for "Boards are kept" (board-registry); verify it fails for the expected reason and the gate stays green
 - [ ] 4.6 Implement "Boards are kept" and remove the marker; verify its scenarios pass and the gate is green
 - [ ] 4.7 Commit the xfail test for "Board categories" (board-registry); verify it fails for the expected reason and the gate stays green
 - [ ] 4.8 Implement "Board categories" and remove the marker; verify its scenarios pass and the gate is green

@@ -5,6 +5,9 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import psycopg
+import pytest
+
 from bulletin.registry import Board, get_board, import_seed, load_seed, set_tier
 from bulletin.startup import start
 
@@ -88,3 +91,14 @@ def test_the_repository_seed_loads() -> None:
     assert len(boards) == 445
     assert len({(b.site_id, b.rcg) for b in boards}) == len(boards)
     assert {b.tier for b in boards} == {"P1", "P2", "P3", "P4", "off"}
+
+
+@pytest.mark.xfail(strict=True, reason="Boards are kept")
+async def test_boards_are_never_deleted(migrated: AsyncConnection) -> None:
+    """Boards are kept: an off, excluded board cannot be deleted, so it can be turned on later."""
+    await import_seed(migrated, [board(1000, 9, "off", "excluded")])
+
+    with pytest.raises(psycopg.errors.RaiseException):
+        await migrated.execute("DELETE FROM board")
+
+    assert await tier_of(migrated, 1000, 9) == "off"
