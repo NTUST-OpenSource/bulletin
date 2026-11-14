@@ -3,8 +3,6 @@
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
 
-import pytest
-
 from bulletin.polllog import Entry, log_request, prune
 
 if TYPE_CHECKING:
@@ -13,7 +11,6 @@ if TYPE_CHECKING:
 NOW = datetime(2026, 11, 18, 3, 0, tzinfo=UTC)
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Poll log")
 async def test_log_retention(migrated: AsyncConnection) -> None:
     """Poll log: the nightly cleanup deletes the 31-day-old entry and keeps the 29-day-old one."""
     kept = Entry(
