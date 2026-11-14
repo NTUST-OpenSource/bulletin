@@ -2,6 +2,7 @@
 
 import json
 from dataclasses import asdict
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -9,6 +10,7 @@ import psycopg
 import pytest
 
 from bulletin.registry import Board, get_board, import_seed, load_seed, set_tier
+from bulletin.schedule import due_boards
 from bulletin.startup import start
 
 if TYPE_CHECKING:
@@ -101,3 +103,21 @@ async def test_boards_are_never_deleted(migrated: AsyncConnection) -> None:
         await migrated.execute("DELETE FROM board")
 
     assert await tier_of(migrated, 1000, 9) == "off"
+
+
+@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Board categories")
+async def test_an_excluded_board_turned_on(migrated: AsyncConnection) -> None:
+    """Board categories: the tier alone decides polling; an excluded P4 board is polled."""
+    await import_seed(
+        migrated,
+        [
+            board(1000, 1, "off", "excluded"),
+            board(1000, 2, "off", "announcement"),
+            board(1000, 3, "P4", "announcement"),
+        ],
+    )
+    await set_tier(migrated, 1000, 1, "P4")
+
+    due = await due_boards(migrated, datetime.now(UTC))
+
+    assert sorted(due) == [(1000, 1), (1000, 3)]
