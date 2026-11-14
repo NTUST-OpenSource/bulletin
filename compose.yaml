@@ -1,0 +1,70 @@
+# bulletin: the collector, its admin API and its database.
+#
+# Networks:
+#   * bulletin-db    internal bridge for PostgreSQL and the app; no outbound NAT, so the database
+#                    cannot reach the internet.
+#   * proxy-net      external, shared with nginx-proxy-manager, which reaches the public listener
+#                    at bulletin-internal:8000. Also the app's way out to the school's sites.
+#   * bulletin-admin internal bridge. The admin listener binds to the app's alias on it,
+#                    bulletin-internal-admin:8001, so nothing on proxy-net reaches the admin API.
+#
+# No ports are published. The CLI runs as `docker compose exec app bulletin <command>`.
+
+name: bulletin
+
+services:
+  db:
+    image: groonga/pgroonga:4.1.0-alpine-18@sha256:fa244ecc61ce0251233823373cebe4d126f58d4bb9f5edca67b30b97161a5c79
+    container_name: bulletin-db
+    restart: unless-stopped
+    networks: [bulletin-db]
+    environment:
+      POSTGRES_USER: bulletin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: bulletin
+    # PostgreSQL 18 images keep their data under /var/lib/postgresql/18/docker.
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bulletin -d bulletin"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  app:
+    build: .
+    # The name nginx-proxy-manager targets over proxy-net.
+    container_name: bulletin-internal
+    restart: unless-stopped
+    networks:
+      bulletin-db:
+      proxy-net:
+      bulletin-admin:
+        aliases: [bulletin-internal-admin]
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      BULLETIN_DATABASE_URL: postgresql://bulletin:${POSTGRES_PASSWORD}@db:5432/bulletin
+      BULLETIN_ADMIN_HOST: bulletin-internal-admin
+      # nginx-proxy-manager on proxy-net, inside Docker's default address pools; it appends the
+      # client from Cloudflare's CF-Connecting-IP.
+      FORWARDED_ALLOW_IPS: 172.16.0.0/12,192.168.0.0/16
+    volumes:
+      - files:/data/files
+    # The model server for add-rendering runs natively on the host.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+networks:
+  bulletin-db:
+    internal: true
+  bulletin-admin:
+    internal: true
+  proxy-net:
+    external: true
+
+volumes:
+  pgdata:
+  files:
