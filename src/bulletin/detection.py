@@ -66,3 +66,13 @@ async def place(  # noqa: PLR0913, PLR0917 - a placement's key and what the list
         " listed_on = GREATEST(placement.listed_on, EXCLUDED.listed_on)",
         (*board, announcement, item.listed_on, at, at, position),
     )
+
+
+async def record_frontier(conn: AsyncConnection, at: datetime) -> int | None:
+    """Record the highest article id stored on any site, at `at`; return it."""
+    raise NotImplementedError
+
+
+async def prune_frontier(conn: AsyncConnection, now: datetime) -> int:
+    """Delete frontier records older than 7 days; return how many."""
+    raise NotImplementedError

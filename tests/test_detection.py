@@ -3,8 +3,10 @@
 from datetime import UTC, date, datetime, timedelta
 from typing import TYPE_CHECKING
 
+import pytest
+
 from bulletin.archive import Listed
-from bulletin.detection import detect
+from bulletin.detection import detect, prune_frontier, record_frontier
 from bulletin.events import read_after
 from bulletin.registry import Board, import_seed
 
@@ -123,3 +125,28 @@ async def test_a_redated_article(migrated: AsyncConnection) -> None:
     assert await read_after(migrated, 0) == events
     cur = await migrated.execute("SELECT listed_on FROM placement")
     assert await cur.fetchall() == [(date(2026, 11, 12),)]
+
+
+@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Frontier record")
+async def test_hourly_record(migrated: AsyncConnection) -> None:
+    """Frontier record: the highest stored article id is recorded with the time."""
+    await seed(migrated)
+    await detect(migrated, BULLETIN, [article(153700), article(153650, site_id=1000)], AT)
+    ten = AT.replace(hour=10)
+
+    assert await record_frontier(migrated, ten) == 153700
+    cur = await migrated.execute("SELECT at, max_article_id FROM frontier")
+    assert await cur.fetchall() == [(ten, 153700)]
+
+
+@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Frontier record")
+async def test_records_are_kept_for_seven_days(migrated: AsyncConnection) -> None:
+    """Frontier record: records younger than 7 days stay."""
+    await seed(migrated)
+    await detect(migrated, BULLETIN, [article(10)], AT)
+    for days in (8, 6):
+        await record_frontier(migrated, AT - timedelta(days=days))
+
+    assert await prune_frontier(migrated, AT) == 1
+    cur = await migrated.execute("SELECT at FROM frontier")
+    assert await cur.fetchall() == [(AT - timedelta(days=6),)]
