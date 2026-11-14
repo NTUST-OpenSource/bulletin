@@ -252,7 +252,6 @@ async def test_the_edge_of_ten_years(migrated: AsyncConnection) -> None:
     assert await cur.fetchone() == (len(EXPECTED["attachments"]),)
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Search indexes")
 async def test_a_two_character_term(migrated: AsyncConnection) -> None:
     """Search indexes: a two-character term in the body finds the announcement, by index."""
     announcement = await publish(migrated, SHE, notify=False, late=True)
