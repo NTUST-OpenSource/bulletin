@@ -80,4 +80,5 @@ Specs under `openspec/specs/web-frontend/`, the change under
 
 - Sites that do not run RPage (issue #1).
 - A web page for the tier admin; the CLI and API come first (B5).
-- The xincord `ntust_announcements` plugin reads the events feed instead of scraping (H2).
+- ~~The xincord `ntust_announcements` plugin reads the events feed instead of scraping (H2).~~
+  Done in xincord on 2026-11-15 (`18b2f21`).
