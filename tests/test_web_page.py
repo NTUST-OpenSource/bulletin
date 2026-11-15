@@ -115,3 +115,26 @@ async def test_an_unknown_api_path(tmp_path: Path, path: str) -> None:
 
     assert response.status_code == 404
     assert response.headers["Content-Type"] == "application/json"
+
+
+ICONS = {
+    "favicon.svg": "image/svg+xml",
+    "favicon.ico": "image/vnd.microsoft.icon",
+    "apple-touch-icon.png": "image/png",
+}
+DAY = "public, max-age=86400"
+
+
+@pytest.mark.xfail(strict=True, reason="The site's icon")
+@pytest.mark.parametrize(("name", "kind"), ICONS.items())
+async def test_the_icons(tmp_path: Path, name: str, kind: str) -> None:
+    """The site's icon: each icon is served from the site's root and cached for a day."""
+    web = built(tmp_path)
+    (web / name).write_bytes(b"icon")
+    async with client(web, tmp_path) as http:
+        response = await http.get(f"/{name}")
+
+    assert response.status_code == 200
+    assert response.content == b"icon"
+    assert response.headers["Content-Type"] == kind
+    assert response.headers["Cache-Control"] == DAY

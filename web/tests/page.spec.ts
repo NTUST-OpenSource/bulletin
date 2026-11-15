@@ -13,6 +13,16 @@ test("the tab title", async ({ page }) => {
   await expect(page).toHaveTitle("bulletin. | 臺科公布欄");
 });
 
+test("The site's icon: the page links its icons, and each is served", async ({ page, request }) => {
+  test.fail(true, "The site's icon");
+  await page.goto("/");
+  const links = page.locator('link[rel="icon"], link[rel="apple-touch-icon"]');
+  const hrefs = await links.evaluateAll((all) => all.map((link) => link.getAttribute("href") ?? ""));
+
+  expect(hrefs.toSorted()).toEqual(["/apple-touch-icon.png", "/favicon.ico", "/favicon.svg"]);
+  for (const href of hrefs) expect((await request.get(href)).ok(), href).toBe(true);
+});
+
 test.describe("a stored PDF under the page's policy", () => {
   test("the PDF shows without a policy violation", async ({ page }, info) => {
     test.skip(info.project.name !== "desktop", "phones open PDFs in a new tab");
