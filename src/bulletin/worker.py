@@ -210,5 +210,6 @@ class Worker:
         if local.hour >= CLEANUP_HOUR and local.date() != self.cleaned:
             await polllog.prune(conn, now)
             await archive.prune(conn, now)
+            await archive.redate(conn)
             await prune_files(conn, self.store, now)
             self.cleaned = local.date()

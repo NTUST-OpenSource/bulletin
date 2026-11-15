@@ -47,6 +47,7 @@ async def test_migrations_apply_to_an_empty_schema(db: AsyncConnection) -> None:
         "0003_pointer.sql",
         "0004_rendering.sql",
         "0005_dated_articles.sql",
+        "0006_stream_day.sql",
     ]
     assert await tables(db) == TABLES
 
@@ -115,7 +116,7 @@ async def test_renditions_of_undated_articles_go(db: AsyncConnection, tmp_path: 
     undated = await stored(db, 2, None)
     await db.execute("INSERT INTO tag VALUES (%s, 'topic', 'fees', 'manual')", (undated,))
 
-    assert await migrate(db) == ["0005_dated_articles.sql"]
+    assert (await migrate(db))[0] == "0005_dated_articles.sql"
 
     cur = await db.execute("SELECT id, current_rendition IS NOT NULL FROM announcement")
     assert set(await cur.fetchall()) == {(dated, True), (undated, False)}

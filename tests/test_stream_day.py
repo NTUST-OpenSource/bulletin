@@ -3,18 +3,11 @@
 from datetime import date, datetime
 from typing import TYPE_CHECKING
 
-import pytest
-from psycopg.errors import UndefinedColumn
-
 from bulletin.archive import publish, redate
 from bulletin.model import Listed
 
 if TYPE_CHECKING:
     from psycopg import AsyncConnection
-
-pytestmark = pytest.mark.xfail(
-    strict=True, raises=(UndefinedColumn, NotImplementedError), reason="Stream day"
-)
 
 HOST = "www.ntust.edu.tw"
 LAST_WEEK = date(2026, 11, 8)

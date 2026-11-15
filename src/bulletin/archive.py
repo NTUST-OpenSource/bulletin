@@ -200,5 +200,14 @@ async def prune(conn: AsyncConnection, now: datetime) -> int:
 
 
 async def redate(conn: AsyncConnection) -> int:
-    """Estimate again the stream day of announcements without a list date; return how many moved."""
-    raise NotImplementedError
+    """Estimate again the stream day of announcements without a list date; return how many moved.
+
+    A dated article stored after an undated one can be its nearer neighbour.
+    """
+    cur = await conn.execute(
+        "UPDATE announcement SET dated = day FROM ("
+        " SELECT id, stream_day(article_id, listed_on, first_seen_at) AS day FROM announcement"
+        " WHERE listed_on IS NULL) estimate"
+        " WHERE announcement.id = estimate.id AND announcement.dated <> estimate.day"
+    )
+    return cur.rowcount
