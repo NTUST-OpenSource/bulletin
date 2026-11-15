@@ -1,6 +1,8 @@
 """Checks of the model's answer, in order; any that fails fails the attempt."""
 
 import re
+from dataclasses import dataclass
+from datetime import date
 from urllib.parse import quote
 
 # A placeholder of the model input (`L1`, `I1`), not part of a longer ASCII word or number.
@@ -11,6 +13,22 @@ URL_SAFE = "!#$%&'*+,/:;=?@[]~"
 
 class AnswerError(ValueError):
     """The answer fails a check."""
+
+
+@dataclass(frozen=True)
+class Answer:
+    """The fields of an answer that matches the schema; its Markdown still holds placeholders."""
+
+    title: str
+    markdown: str
+    summary: str
+    deadline: date | None
+    tags: frozenset[tuple[str, str]]
+
+
+def parse_answer(text: str) -> Answer:
+    """Read the model's answer as JSON that matches the answer schema."""
+    raise NotImplementedError
 
 
 def restore(text: str, targets: dict[str, str]) -> str:
