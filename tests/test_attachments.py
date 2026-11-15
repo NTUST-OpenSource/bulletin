@@ -6,6 +6,8 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import pytest
+
 from bulletin.archive import publish, revise
 from bulletin.files import FileStore, keep_files, prune_files, read_size
 from bulletin.model import Attachment, Content, Listed
@@ -179,3 +181,19 @@ async def test_an_old_file(migrated: AsyncConnection, tmp_path: Path) -> None:
 
     assert not store.path(digest).exists()
     assert set((await recorded(migrated)).values()) == {(3, digest)}
+
+
+@pytest.mark.xfail(strict=True, raises=ValueError, reason="Attachment records")
+def test_a_malformed_link() -> None:
+    """Attachment records: a link whose URL cannot be parsed is skipped, not an error."""
+    page = (
+        '<h2 class="hdline">t</h2><div class="mpgdetail"><p><a href="http://[bad">a</a>'
+        ' <a href="/var/file/68/1068/img/1.pdf">b</a></p></div>'
+        '<ul class="mptattach"><li><a href="http://[bad/c.pdf">c</a></li></ul>'
+    )
+
+    content = parse_article(page, EXPECTED["url"])
+
+    assert content.attachments == (
+        Attachment("b", "https://she.ntust.edu.tw/var/file/68/1068/img/1.pdf", "body"),
+    )
