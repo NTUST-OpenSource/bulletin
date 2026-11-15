@@ -2,11 +2,12 @@
 import { expect, test } from "@playwright/test";
 import { DEFAULT_SITES } from "../src/lib/settings.ts";
 import { articles, stream } from "./fixtures/recorded.ts";
-import { answer, saved } from "./support/api.ts";
+import { answer, RECORDED, saved } from "./support/api.ts";
 
 const announcements = (sent: string[]) => sent.filter((path) => path.startsWith("/announcements?") || path === "/announcements");
 
 test("the followed units' announcements, newest day first, under pinned day headings", async ({ page }) => {
+  await page.clock.setFixedTime(RECORDED);
   const sent = await answer(page);
   await saved(page);
   await page.goto("/");

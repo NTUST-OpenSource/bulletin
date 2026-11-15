@@ -8,6 +8,9 @@ import { articles, sites, stream, tags } from "../fixtures/recorded.ts";
 
 export const PDF = readFileSync(new URL("../fixtures/one-page.pdf", import.meta.url));
 
+/** When the fixtures were recorded: day headings and dates read relative to it. */
+export const RECORDED = new Date("2026-11-15T12:00:00+08:00");
+
 /** What a test changes: a status for a path, or the stream's pages. */
 export type Answers = {
   fail?: Partial<Record<"sites" | "tags" | "announcements" | "article", number>>;

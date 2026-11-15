@@ -40,7 +40,8 @@ test("A new announcement while reading: it appears in its place and the read ite
   await answering(page, () => ({ items: [arriving, ...stream.first.items.slice(0, 29)], next: stream.first.next }));
   await saved(page);
   await page.goto("/");
-  const id = await page.locator("main .items > li").nth(15).getAttribute("data-id");
+  // Far from the page's end: loading the next page would put the check off to the next interval.
+  const id = await page.locator("main .items > li").nth(5).getAttribute("data-id");
   const read = page.locator(`main .items > li[data-id="${id}"]`);
   await read.scrollIntoViewIfNeeded();
   await page.evaluate(() => scrollBy(0, 200));
