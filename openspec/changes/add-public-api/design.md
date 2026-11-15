@@ -186,8 +186,8 @@ Tags:
 
 ### Caching and ETags
 
-Every ETag starts with the release (the package version and, in the image, the git commit), so a
-deploy that changes shapes never answers 304 for an old body.
+Every ETag starts with the release, a token the service draws when it starts, so a deploy that
+changes shapes never answers 304 for an old body; a restart costs each client one full answer.
 
 - Stream and events: `W/"<release>.<max event id>.<max revision id>"`. A dependency reads both
   maxima (two index-only lookups) before the route runs and answers 304 at once on a match.

@@ -7,7 +7,7 @@ tests call the app in process with httpx's ASGI transport against the PGroonga t
 ## 1. Foundations
 
 - [x] 1.1 Scaffolding: write `src/bulletin/units.json` from the survey's unit lists (kind, college, order by site id) with a test that every site with a polled board in `seeds/boards.json` appears exactly once; verify the test passes and list the units by kind and college for the owner
-- [ ] 1.2 Scaffolding: mount the `/api/v1` sub-application on the public app with its own pool, keep `/health`, and wire `serve` to pass the pool, the file store and the release; verify with the service test that `/health` still answers and `/api/v1/openapi.json` exists (add-web-frontend task 2.2 builds on this)
+- [x] 1.2 Scaffolding: mount the `/api/v1` sub-application on the public app with its own pool, keep `/health`, and wire `serve` to pass the pool, the file store and the release; verify with the service test that `/health` still answers and `/api/v1/openapi.json` exists (add-web-frontend task 2.2 builds on this)
 
 ## 2. Stream day
 

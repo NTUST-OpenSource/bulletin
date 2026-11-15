@@ -106,6 +106,7 @@ async def test_the_service_serves_and_stops(schema: Schema, tmp_path: Path) -> N
         public = f"http://127.0.0.1:{settings.public_port}"
         admin = f"http://127.0.0.1:{settings.admin_port}/admin/boards"
         assert await get(session, running, f"{public}/health") == 200
+        assert await get(session, running, f"{public}/api/v1/openapi.json") == 200
         assert await get(session, running, f"{public}/admin/boards") == 404
         assert await get(session, running, admin) == 401
         assert await get(session, running, admin, Authorization=f"Bearer {TOKEN}") == 200

@@ -4,6 +4,7 @@ import asyncio
 import contextlib
 import logging
 import random
+import secrets
 import time
 from collections.abc import Generator, Mapping
 from dataclasses import dataclass, field
@@ -36,6 +37,8 @@ ADMIN_TOKENS = "BULLETIN_ADMIN_TOKENS"
 MIN_TOKEN = 32
 # Seconds between looks at a queue with nothing due.
 IDLE = 10.0
+# Starts the API's ETags; drawn per process, so a deploy never answers 304 for an old body.
+RELEASE = secrets.token_hex(4)
 
 
 @dataclass(frozen=True)
@@ -152,17 +155,24 @@ def renderer_for(settings: ModelConfig, session: aiohttp.ClientSession, check: P
     )
 
 
-async def serve(settings: Settings, stop: asyncio.Event) -> None:
-    """Prepare the database, then serve and work until `stop` is set."""
-    pool = AsyncConnectionPool(
-        settings.database_url,
+def connection_pool(url: str, size: int) -> AsyncConnectionPool[AsyncConnection]:
+    """An unopened pool of autocommit connections, at most `size` of them."""
+    return AsyncConnectionPool(
+        url,
         connection_class=AsyncConnection,
         kwargs={"autocommit": True},
         min_size=1,
-        max_size=4,
+        max_size=size,
         open=False,
     )
-    async with pool:
+
+
+async def serve(settings: Settings, stop: asyncio.Event) -> None:
+    """Prepare the database, then serve and work until `stop` is set."""
+    pool = connection_pool(settings.database_url, 4)
+    # Readers get their own connections, so a burst of them never waits on the worker's.
+    readers = connection_pool(settings.database_url, 8)
+    async with pool, readers:
         async with pool.connection() as conn:
             await start(conn, settings.seed)
         async with aiohttp.ClientSession() as session:
@@ -173,7 +183,11 @@ async def serve(settings: Settings, stop: asyncio.Event) -> None:
                 lambda: datetime.now(UTC),
             )
             public = Listener(
-                uvicorn.Config(public_app(), settings.public_host, settings.public_port)
+                uvicorn.Config(
+                    public_app(readers.connection, FileStore(settings.files), RELEASE),
+                    settings.public_host,
+                    settings.public_port,
+                )
             )
             admin = Listener(
                 uvicorn.Config(

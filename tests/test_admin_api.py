@@ -6,12 +6,15 @@ from typing import TYPE_CHECKING
 import httpx
 import pytest
 
+from bulletin.files import FileStore
 from bulletin.registry import Board, get_board, import_seed
 from bulletin.web.admin import admin_app
 from bulletin.web.public import public_app
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
+    from contextlib import AbstractAsyncContextManager
+    from pathlib import Path
 
     from fastapi import FastAPI
     from psycopg import AsyncConnection
@@ -50,9 +53,13 @@ async def test_missing_token(migrated: AsyncConnection, headers: dict[str, str])
     assert await tier_of(migrated) == "P2"
 
 
-async def test_the_public_port() -> None:
+async def test_the_public_port(tmp_path: Path) -> None:
     """Admin API access: an admin path on the public port gets 404."""
-    async with client(public_app()) as http:
+
+    def no_database() -> AbstractAsyncContextManager[AsyncConnection]:
+        raise AssertionError
+
+    async with client(public_app(no_database, FileStore(tmp_path), "test")) as http:
         response = await http.put(TIER, json={"tier": "P1"})
 
     assert response.status_code == 404

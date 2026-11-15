@@ -1,12 +1,10 @@
 """The admin API: tier changes and board review, behind bearer tokens, on the admin listener."""
 
 import hmac
-from collections.abc import AsyncGenerator, Callable, Mapping
-from contextlib import AbstractAsyncContextManager
+from collections.abc import Mapping
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Request, status
-from psycopg import AsyncConnection
 from pydantic import BaseModel
 
 from bulletin.registry import (
@@ -21,8 +19,7 @@ from bulletin.registry import (
     set_tier,
     tier_history,
 )
-
-type Connect = Callable[[], AbstractAsyncContextManager[AsyncConnection]]
+from bulletin.web.db import Conn, Connect
 
 router = APIRouter(prefix="/admin")
 
@@ -42,13 +39,6 @@ def operator(request: Request, authorization: Annotated[str, Header()] = "") -> 
     )
 
 
-async def connection(request: Request) -> AsyncGenerator[AsyncConnection]:
-    """A database connection for one request."""
-    connect: Connect = request.app.state.connect
-    async with connect() as conn:
-        yield conn
-
-
 def board_key(board: str) -> tuple[int, int]:
     """Read `<site>-<board>`; anything else is a board that does not exist."""
     site, _, rcg = board.partition("-")
@@ -58,7 +48,6 @@ def board_key(board: str) -> tuple[int, int]:
 
 
 Operator = Annotated[str, Depends(operator)]
-Conn = Annotated[AsyncConnection, Depends(connection)]
 
 
 class TierChangeRequest(BaseModel):
