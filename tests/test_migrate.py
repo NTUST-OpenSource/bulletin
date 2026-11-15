@@ -1,11 +1,15 @@
 """Scaffolding: numbered SQL migrations, each applied once in its own transaction."""
 
+from datetime import date
 from typing import TYPE_CHECKING
 
 import psycopg
 import pytest
 
-from bulletin.migrate import migrate
+from bulletin.archive import publish, revise
+from bulletin.migrate import MIGRATIONS, migrate
+from bulletin.model import Content, Listed
+from bulletin.renditions import Rendition, store
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -83,3 +87,42 @@ async def test_title_search_finds_two_character_terms(db: AsyncConnection) -> No
     cur = await db.execute("SELECT article_id FROM announcement WHERE title &@~ %s", (title[1:3],))
 
     assert await cur.fetchall() == [(1,)]
+
+
+async def stored(db: AsyncConnection, article_id: int, listed_on: date | None) -> int:
+    """An article with a rendition and a model tag, as rendering stored it before 0005."""
+    listed = Listed(1000, "www.ntust.edu.tw", article_id, None, "t", listed_on)
+    announcement = await publish(db, listed, notify=False, late=True)
+    await revise(db, announcement, Content("t", "p", "<p>b</p>", "b"))
+    cur = await db.execute(
+        "SELECT current_revision FROM announcement WHERE id = %s", (announcement,)
+    )
+    revision = await cur.fetchone()
+    assert revision is not None
+    tags = frozenset({("topic", "courses")})
+    await store(db, announcement, revision[0], Rendition(1, "m", "t", "m", tags=tags))
+    return announcement
+
+
+@pytest.mark.xfail(strict=True, raises=AssertionError, reason="Renditions of undated articles")
+async def test_renditions_of_undated_articles_go(db: AsyncConnection, tmp_path: Path) -> None:
+    """Migration 0005: articles without a list date lose their renditions and model tags, which
+    were read against the day of the backfill; dated articles keep theirs, manual tags stay."""
+    for source in MIGRATIONS.iterdir():
+        if source.name < "0005":
+            (tmp_path / source.name).write_text(source.read_text(encoding="utf-8"), "utf-8")
+    await migrate(db, tmp_path)
+    dated = await stored(db, 1, date(2026, 11, 1))
+    undated = await stored(db, 2, None)
+    await db.execute("INSERT INTO tag VALUES (%s, 'topic', 'fees', 'manual')", (undated,))
+
+    assert await migrate(db) == ["0005_dated_articles.sql"]
+
+    cur = await db.execute("SELECT id, current_rendition IS NOT NULL FROM announcement")
+    assert set(await cur.fetchall()) == {(dated, True), (undated, False)}
+    cur = await db.execute(
+        "SELECT r.announcement_id FROM rendition n JOIN revision r ON r.id = n.revision_id"
+    )
+    assert set(await cur.fetchall()) == {(dated,)}
+    cur = await db.execute("SELECT announcement_id, set_by FROM tag")
+    assert set(await cur.fetchall()) == {(dated, "model"), (undated, "manual")}
