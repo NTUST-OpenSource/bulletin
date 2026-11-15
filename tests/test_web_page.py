@@ -137,3 +137,13 @@ async def test_the_icons(tmp_path: Path, name: str, kind: str) -> None:
     assert response.content == b"icon"
     assert response.headers["Content-Type"] == kind
     assert response.headers["Cache-Control"] == DAY
+
+
+@pytest.mark.xfail(strict=True, reason="The page")
+@pytest.mark.parametrize("path", ["/", "/notices"])
+async def test_the_page_is_not_rewritten(tmp_path: Path, path: str) -> None:
+    """The page: proxies may not rewrite the page, so Cloudflare injects no script into it."""
+    async with client(built(tmp_path), tmp_path) as http:
+        response = await http.get(path)
+
+    assert "no-transform" in response.headers["Cache-Control"].split(", ")
