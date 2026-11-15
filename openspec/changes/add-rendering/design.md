@@ -84,11 +84,12 @@ format gets a `json_schema` `response_format` with the same schema and `reasonin
 shapes were recorded from `gemini-4-hydrogen` (`tests/fixtures/model/`).
 
 Keys come from `KeyRing`, ported: a sliding window per key, keys in turn, a wait when all are full.
-A 429 rests that key until `Retry-After` or the end of its window. Error texts pass through the
-port of xincord's `hide`, which removes keys and cuts URLs to their origin, before they are logged.
-A 429, a 5xx, a timeout or a broken connection is an API error: the announcement rests for 10
-minutes and no attempt is counted. Any other answer that fails a check counts as an attempt; the
-three attempts run back to back, each on the next key with room.
+A 429, 401 or 403 rests that key until its window ends; Google documents no `Retry-After`. Error
+texts pass through `hide`, which cuts URLs to their origin and removes keys, before they are
+logged. Any status but 200, a timeout or a broken connection is an API error: the announcement
+rests for 10 minutes and no attempt is counted, since none of them is the answer's fault. Any
+answer that fails a check counts as an attempt; the three attempts run back to back, each on the
+next key with room.
 
 ### Answer checks, in order
 
