@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
+from psycopg.errors import ForeignKeyViolation
 
 from bulletin.archive import fetch_article, prune, publish, withdraw
 from bulletin.detection import detect
@@ -14,6 +15,7 @@ from bulletin.events import Kind, read_after
 from bulletin.http import Response
 from bulletin.model import Listed
 from bulletin.registry import Board, import_seed
+from bulletin.renditions import Rendition, store
 from bulletin.schedule import Job
 from bulletin.search import search
 from bulletin.worker import run_job
@@ -262,6 +264,30 @@ async def test_the_edge_of_ten_years(migrated: AsyncConnection) -> None:
         assert await cur.fetchall() == [(stays,)]
     cur = await migrated.execute("SELECT count(*) FROM attachment")
     assert await cur.fetchone() == (len(EXPECTED["attachments"]),)
+
+
+@pytest.mark.xfail(strict=True, raises=ForeignKeyViolation, reason="Ten-year retention")
+async def test_renditions_go_with_their_announcements(migrated: AsyncConnection) -> None:
+    """Ten-year retention: the deleted announcement's renditions and tags go too."""
+    await import_seed(migrated, [Board(1068, 1, "h", "u", "n", "announcement", "P2")])
+    old = replace(SHE, listed_on=date(2016, 11, 17))
+    kept = replace(SHE, article_id=152870, listed_on=date(2017, 11, 18))
+    announcements = await detect(migrated, (1068, 1), [old, kept], AT)
+    for announcement in announcements:
+        await fetch_article(migrated, FakeWeb(), announcement)
+        cur = await migrated.execute(
+            "SELECT current_revision FROM announcement WHERE id = %s", (announcement,)
+        )
+        (revision,) = await cur.fetchone() or (None,)
+        assert revision is not None
+        tags = frozenset({("topic", "housing")})
+        await store(migrated, announcement, revision, Rendition(1, "m", "t", "m", tags=tags))
+
+    assert await prune(migrated, AT) == 1
+
+    for table in ("rendition r JOIN revision v ON v.id = r.revision_id", "tag"):
+        cur = await migrated.execute(f"SELECT DISTINCT announcement_id FROM {table}")  # noqa: S608
+        assert await cur.fetchall() == [(announcements[1],)]
 
 
 async def test_a_two_character_term(migrated: AsyncConnection) -> None:

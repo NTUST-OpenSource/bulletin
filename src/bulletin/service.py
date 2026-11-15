@@ -17,6 +17,7 @@ from psycopg_pool import AsyncConnectionPool
 
 from bulletin.files import FileStore
 from bulletin.http import Client
+from bulletin.model_api import ModelConfig
 from bulletin.pacer import Pacer
 from bulletin.startup import start
 from bulletin.web.admin import admin_app
@@ -46,6 +47,8 @@ class Settings:
     admin_port: int = 8001
     files: Path = Path("/data/files")
     seed: Path = Path("seeds/boards.json")
+    model: ModelConfig = field(default_factory=ModelConfig)
+    discord_check: Path = Path("tools/discord-markdown/check.mjs")
 
     @classmethod
     def from_env(cls, env: Mapping[str, str]) -> Settings:
