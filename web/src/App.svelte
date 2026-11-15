@@ -2,6 +2,7 @@
   import SlidersHorizontal from "@jis3r/icons/icons/sliders-horizontal";
   import Onboarding from "./components/settings/Onboarding.svelte";
   import Article from "./components/article/Article.svelte";
+  import Brand from "./components/header/Brand.svelte";
   import SearchBox from "./components/header/SearchBox.svelte";
   import Settings from "./components/settings/Settings.svelte";
   import Stream from "./components/stream/Stream.svelte";
@@ -10,7 +11,7 @@
   import IconButton from "./components/ui/IconButton.svelte";
   import Menu from "./components/ui/Menu.svelte";
   import Toast from "./components/ui/Toast.svelte";
-  import { brand, header } from "./lang/zh-TW";
+  import { header } from "./lang/zh-TW";
   import { addressQuery, readAddress } from "./lib/address";
   import { applyTheme, readImport } from "./lib/settings";
   import { follow } from "./article.svelte";
@@ -67,7 +68,7 @@
 
 <header class="top" class:searching={ui.searching} bind:this={top}>
   <div class="wrap">
-    <a class="brand" href="/" aria-label={brand.home}>bulletin<i>.</i></a>
+    <Brand />
     <SearchBox />
     <IconButton label={header.settings} icon={SlidersHorizontal} onclick={() => (ui.sheet = "main")} />
   </div>
@@ -99,7 +100,7 @@
     gap: 4px;
     min-height: 64px;
   }
-  .brand {
+  .top :global(.brand) {
     margin-right: auto;
   }
   .stream {
@@ -109,7 +110,7 @@
     .top .wrap {
       min-height: 56px;
     }
-    .top.searching .brand {
+    .top.searching :global(.brand) {
       display: none;
     }
   }

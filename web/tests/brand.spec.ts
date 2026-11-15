@@ -36,7 +36,6 @@ function frame(link: Locator, at: number | "end" | "now"): Promise<Frame> {
 }
 
 test("The intro: the brand starts as its b holding the ball, and ends with the ball as its period", async ({ page }) => {
-  test.fail(true, "The brand's intro");
   await answer(page);
   await saved(page);
   await page.goto("/");
@@ -57,7 +56,6 @@ test("The intro: the brand starts as its b holding the ball, and ends with the b
 });
 
 test("Reduced motion: the brand shows at rest, without the intro", async ({ page }) => {
-  test.fail(true, "The brand's intro");
   await page.emulateMedia({ reducedMotion: "reduce" });
   await answer(page);
   await saved(page);
