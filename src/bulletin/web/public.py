@@ -18,7 +18,11 @@ if TYPE_CHECKING:
     from starlette.responses import Response
 
 # The page revalidates on every load and is never framed; Vite's hashed files never change.
-PAGE_HEADERS = {"Cache-Control": "no-cache", "Content-Security-Policy": "frame-ancestors 'none'"}
+# no-transform keeps Cloudflare from injecting its analytics script, which the page's policy blocks.
+PAGE_HEADERS = {
+    "Cache-Control": "no-cache, no-transform",
+    "Content-Security-Policy": "frame-ancestors 'none'",
+}
 IMMUTABLE = {"Cache-Control": "public, max-age=31536000, immutable"}
 ASSET = re.compile(r"[\w.-]+", re.ASCII)  # Vite writes assets/ flat
 # The site's icons, at the root where browsers ask for them; not hashed, so cached for a day.

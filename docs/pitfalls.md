@@ -67,6 +67,9 @@ Re-check a fact before relying on it for something new; the school changes its C
 - `www.academic.ntust.edu.tw` leaves TWCA's intermediate out of its chain (`unable to get local
   issuer certificate`). xincord ships it as `twca-secure-ssl-ca.pem` (valid until 2030-10-16);
   tigerduck fetches it through the leaf's AIA URL instead.
+- Cloudflare's Web Analytics, on by default for proxied sites, injects
+  `static.cloudflareinsights.com/beacon.min.js` into HTML answers, which a strict CSP then blocks
+  (seen on bulletin.ntust.org, 2026-11-16). `Cache-Control: no-transform` stops the injection.
 
 ## Attachments
 

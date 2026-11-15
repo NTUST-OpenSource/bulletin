@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 PAGE = "<!doctype html><title>bulletin.</title><script src=/assets/index-1a2b3c.js></script>"
 SCRIPT = "export {};"
-REVALIDATE = "no-cache"
+REVALIDATE = "no-cache, no-transform"
 IMMUTABLE = "public, max-age=31536000, immutable"
 NO_FRAMES = "frame-ancestors 'none'"
 
@@ -139,7 +139,6 @@ async def test_the_icons(tmp_path: Path, name: str, kind: str) -> None:
     assert response.headers["Cache-Control"] == DAY
 
 
-@pytest.mark.xfail(strict=True, reason="The page")
 @pytest.mark.parametrize("path", ["/", "/notices"])
 async def test_the_page_is_not_rewritten(tmp_path: Path, path: str) -> None:
     """The page: proxies may not rewrite the page, so Cloudflare injects no script into it."""
