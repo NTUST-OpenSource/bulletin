@@ -53,7 +53,7 @@ never reach the network: the model's answers are fixtures, and the Discord check
 
 ## 6. Image and measurement
 
-- [ ] 6.1 Add the Node build stage and binary to the Dockerfile; verify on the remote test host that the image builds and the Discord check answers inside the container
+- [x] 6.1 Add the Node build stage and binary to the Dockerfile; verify on the remote test host that the image builds and the Discord check answers inside the container
 - [ ] 6.2 Draft tags and deadlines for 50 corpus announcements and have the owner correct them; verify the labelled set is saved outside the repository with the corpus
 - [ ] 6.3 Add `scripts/measure_rendering.py` and run it with thinking `low` and with the model's default; verify the report (pass rate, tag agreement, deadline accuracy, requests and tokens per article) is given to the owner
 
