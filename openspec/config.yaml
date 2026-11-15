@@ -12,7 +12,7 @@ rules:
   proposal:
     - State what is out of scope.
   specs:
-    - Every scenario must map to at least one pytest test whose name or docstring names the requirement.
+    - Every scenario must map to at least one test whose name or docstring names the requirement, pytest for the service and Vitest or Playwright for the frontend.
   design:
     - List user-visible changes (copy, commands, API fields, interaction flow) for the owner to review.
     - Cite decision IDs from docs/decisions.md instead of re-arguing them.

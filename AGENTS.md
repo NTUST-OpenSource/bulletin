@@ -69,8 +69,8 @@ that CI uses). Without it they skip; with `BULLETIN_REQUIRE_DB=1`, as in CI, a s
 ## OpenSpec
 
 - One active change at a time, under `openspec/changes/<name>/`: proposal, spec deltas, design,
-  tasks.
-- Every scenario maps to at least one test.
+  tasks. Changes without a required order may run side by side (`docs/decisions.md`, A3).
+- Every scenario maps to at least one test: pytest, or Vitest or Playwright for the frontend.
 - Keep each requirement's description under 500 characters; `validate --strict` fails otherwise.
 - Archive right after the change is implemented and verified (`openspec archive <name> --yes`),
   then run `openspec validate --all --strict`.

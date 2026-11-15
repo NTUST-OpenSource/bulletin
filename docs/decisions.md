@@ -13,7 +13,9 @@ Markers: **[rec]** the owner followed Claude's recommendation; **[owner]** the o
 - **A2 Language** [owner]: English in the repository; the owner reads replies in Traditional
   Chinese. Discussion happens in Chinese, the record in English.
 - **A3 OpenSpec** [rec]: one active change at a time, in the order of `docs/roadmap.md`:
-  collector, rendering, public API, web frontend.
+  collector, rendering, public API, web frontend. Changes without a required order may run side by
+  side [owner, 2026-11-15]: `add-public-api` and `add-web-frontend` are active together, and the
+  frontend codes against the public API's spec.
 - **A4 Quality gates** [rec]: adapted from xincord. ruff `select = ["ALL"]` with documented
   ignores, pyright strict, branch coverage of at least 85%, prek hooks (ruff, pyright, no CJK in
   `*.py`, ASCII Conventional Commits, the gate on pre-push), one `scripts/gate.sh`.
