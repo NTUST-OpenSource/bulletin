@@ -239,8 +239,8 @@ whole seconds.
 - Exempt (F4): a request that carries no `X-Forwarded-For` and whose peer address is private.
   Everything that passes nginx-proxy-manager carries the header, so the exemption covers only
   clients on `proxy-net` talking to `bulletin-internal:8000` directly.
-- Windows that emptied are dropped on each request, and the map holds at most 10,000 keys,
-  dropping the oldest, so a flood of addresses cannot grow memory without bound.
+- The map holds at most 10,000 clients, dropping the least recently seen, so a flood of
+  addresses cannot grow memory without bound.
 
 The frontend debounces typing and waits for input methods to finish composing, so one search is
 a few requests; 30 a minute leaves room for a person and stops a scraper.

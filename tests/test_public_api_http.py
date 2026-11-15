@@ -18,7 +18,6 @@ if TYPE_CHECKING:
 DAY = date(2026, 11, 13)
 STREAM = "/api/v1/announcements"
 CACHED = "public, max-age=60, stale-while-revalidate=600"
-PENDING = (AssertionError, KeyError, NotImplementedError)
 PROXY = "172.20.0.2"  # nginx-proxy-manager on proxy-net
 SCHOOL = "https://student.ntust.edu.tw/var/file/53/1053/attach"
 
@@ -30,7 +29,6 @@ async def world(migrated: AsyncConnection, tmp_path: Path) -> World:
     return created
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="HTTP caching")
 async def test_nothing_changed(world: World) -> None:
     """HTTP caching: repeating a stream request with its ETag gets a 304 without a body."""
     await world.add(DAY)
@@ -42,7 +40,6 @@ async def test_nothing_changed(world: World) -> None:
     assert (again.status_code, again.content) == (304, b"")
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="HTTP caching")
 async def test_a_new_event(world: World) -> None:
     """HTTP caching: after a new event the answer is 200 with a new ETag."""
     await world.add(DAY)
@@ -55,7 +52,6 @@ async def test_a_new_event(world: World) -> None:
     assert again.headers["ETag"] != first.headers["ETag"]
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="HTTP caching")
 @pytest.mark.parametrize("path", ["/api/v1/sites", "/api/v1/tags", "/api/v1/announcements/{id}"])
 async def test_unchanged_content(world: World, path: str) -> None:
     """HTTP caching: sites, tags and an announcement answer 304 while their content stays."""
@@ -70,7 +66,6 @@ async def test_unchanged_content(world: World, path: str) -> None:
     assert again.status_code == 304
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="HTTP caching")
 @pytest.mark.parametrize("path", [f"{STREAM}?limit=0", f"{STREAM}/999999", "/api/v1/files/x/y"])
 async def test_errors_are_not_cached(world: World, path: str) -> None:
     """HTTP caching: error answers are never cacheable."""
@@ -81,7 +76,6 @@ async def test_errors_are_not_cached(world: World, path: str) -> None:
     assert response.headers["Cache-Control"] == "no-store"
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="CORS")
 async def test_another_sites_page(world: World) -> None:
     """CORS: a GET from another origin is allowed from any origin."""
     async with world.client() as http:
@@ -90,7 +84,6 @@ async def test_another_sites_page(world: World) -> None:
     assert response.headers["Access-Control-Allow-Origin"] == "*"
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="CORS")
 async def test_a_preflight(world: World) -> None:
     """CORS: a preflight for a GET with If-None-Match is allowed."""
     headers = {
@@ -118,7 +111,6 @@ async def stored(world: World, name: str, content: bytes = b"%PDF-1.7") -> str:
     return f"/api/v1/files/{digest}/{quote(name, safe='')}"
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="Stored files")
 async def test_a_pdf(world: World) -> None:
     """Stored files: a PDF comes inline as application/pdf, named, cached as immutable."""
     path = await stored(world, "schedule.pdf")
@@ -134,7 +126,6 @@ async def test_a_pdf(world: World) -> None:
     assert response.headers["Cache-Control"] == "public, max-age=31536000, immutable"
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="Stored files")
 async def test_an_unexpected_type(world: World) -> None:
     """Stored files: a name outside the allow-list comes as an octet-stream attachment."""
     path = await stored(world, "page.html", b"<script>alert(1)</script>")
@@ -156,7 +147,6 @@ async def test_a_pruned_file(world: World) -> None:
     assert response.status_code == 404
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="Stored files")
 async def test_a_name_with_a_slash(world: World) -> None:
     """Stored files: a recorded name with `/`, percent-encoded in the path, is found."""
     path = await stored(world, "113/1 schedule.pdf")
@@ -185,7 +175,6 @@ async def searches(world: World, count: int, peer: str, **headers: str) -> list[
         ]
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="Search rate limit")
 async def test_too_many_searches(world: World) -> None:
     """Search rate limit: the 31st search within a minute through the proxy is a 429."""
     statuses = await searches(world, 30, PROXY, **{"X-Forwarded-For": "203.0.113.9"})
@@ -199,7 +188,6 @@ async def test_too_many_searches(world: World) -> None:
     assert int(refused.headers["Retry-After"]) >= 1
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="Search rate limit")
 async def test_a_forged_private_address(world: World) -> None:
     """Search rate limit: an address written on the left of the proxy chain is not taken."""
     forged = {"X-Forwarded-For": "10.0.0.5, 203.0.113.9"}
@@ -208,7 +196,6 @@ async def test_a_forged_private_address(world: World) -> None:
     assert statuses[-1] == 429
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="Search rate limit")
 async def test_an_ipv6_network(world: World) -> None:
     """Search rate limit: addresses of one IPv6 /64 share a limit."""
     await searches(world, 30, PROXY, **{"X-Forwarded-For": "2001:db8:1:2::1"})
@@ -236,7 +223,6 @@ async def test_browsing(world: World) -> None:
     assert browsing.status_code == 200
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="API description")
 async def test_the_description(world: World) -> None:
     """API description: openapi.json lists every endpoint with its parameters."""
     async with world.client() as http:

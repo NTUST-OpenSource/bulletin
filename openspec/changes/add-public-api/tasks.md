@@ -42,15 +42,15 @@ tests call the app in process with httpx's ASGI transport against the PGroonga t
 ## 5. HTTP behaviour
 
 - [x] 5.1 Commit the xfail test for "HTTP caching" (public-api); verify it fails for the expected reason and the gate stays green
-- [ ] 5.2 Implement "HTTP caching" (the release and event-id ETag dependency, content ETags, 304, `no-store` on errors) and remove the marker; verify its scenarios pass and the gate is green
+- [x] 5.2 Implement "HTTP caching" (the release and event-id ETag dependency, content ETags, 304, `no-store` on errors) and remove the marker; verify its scenarios pass and the gate is green
 - [x] 5.3 Commit the xfail test for "CORS" (public-api); verify it fails for the expected reason and the gate stays green
-- [ ] 5.4 Implement "CORS" and remove the marker; verify its scenarios pass and the gate is green
+- [x] 5.4 Implement "CORS" and remove the marker; verify its scenarios pass and the gate is green
 - [x] 5.5 Commit the xfail test for "Stored files" (public-api); verify it fails for the expected reason and the gate stays green
-- [ ] 5.6 Implement "Stored files" (the store check, names with `/`, the allow-list, immutable caching) and remove the marker; verify its scenarios pass and the gate is green
+- [x] 5.6 Implement "Stored files" (the store check, names with `/`, the allow-list, immutable caching) and remove the marker; verify its scenarios pass and the gate is green
 - [x] 5.7 Commit the xfail test for "Search rate limit" (public-api), with the app wrapped in uvicorn's proxy-header middleware as `serve` runs it; verify it fails for the expected reason and the gate stays green
-- [ ] 5.8 Implement "Search rate limit" (IPv6 by /64, the exemption without `X-Forwarded-For`, the bounded map) and remove the marker; verify its scenarios pass and the gate is green
+- [x] 5.8 Implement "Search rate limit" (IPv6 by /64, the exemption without `X-Forwarded-For`, the bounded map) and remove the marker; verify its scenarios pass and the gate is green
 - [x] 5.9 Commit the xfail test for "API description" (public-api); verify it fails for the expected reason and the gate stays green
-- [ ] 5.10 Implement "API description" and remove the marker; verify its scenarios pass and the gate is green
+- [x] 5.10 Implement "API description" and remove the marker; verify its scenarios pass and the gate is green
 
 ## 6. Verification
 
