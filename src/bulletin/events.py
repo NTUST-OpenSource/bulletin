@@ -22,6 +22,7 @@ class Kind(StrEnum):
     REVISED = "revised"
     WITHDRAWN = "withdrawn"
     RESTORED = "restored"
+    RENDERED = "rendered"
 
 
 @dataclass(frozen=True)

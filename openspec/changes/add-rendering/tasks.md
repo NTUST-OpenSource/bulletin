@@ -13,9 +13,9 @@ never reach the network: the model's answers are fixtures, and the Discord check
 ## 2. Event log
 
 - [x] 2.1 Commit the xfail test for "Events" (event-log, the rendered event); verify it fails for the expected reason and the gate stays green
-- [ ] 2.2 Implement "Events" and remove the marker; verify its scenarios pass and the gate is green
+- [x] 2.2 Implement "Events" and remove the marker; verify its scenarios pass and the gate is green
 - [x] 2.3 Commit the xfail test for "Notify flag" (event-log, the rendered event); verify it fails for the expected reason and the gate stays green
-- [ ] 2.4 Implement "Notify flag" and remove the marker; verify its scenarios pass and the gate is green
+- [x] 2.4 Implement "Notify flag" and remove the marker; verify its scenarios pass and the gate is green
 
 ## 3. Tags
 

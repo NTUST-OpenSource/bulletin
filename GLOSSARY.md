@@ -88,8 +88,8 @@ back.
 _Avoid_: crawl, import, history sync
 
 **Event**:
-A recorded change to an announcement that clients can follow: published, revised, withdrawn or
-restored.
+A recorded change to an announcement that clients can follow: published, revised, withdrawn,
+restored or rendered.
 _Avoid_: notification, update, message
 
 **Notify-worthy**:
