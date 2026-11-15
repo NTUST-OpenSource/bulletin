@@ -3,10 +3,10 @@
 import re
 from http import HTTPStatus
 from typing import TYPE_CHECKING
-from urllib.parse import urljoin, urlsplit
+from urllib.parse import urlsplit
 
 from bulletin.markup import parse
-from bulletin.pages import PageError, list_url
+from bulletin.pages import PageError, join, list_url
 from bulletin.registry import Found, add_discovered
 from bulletin.tls import is_school
 
@@ -43,7 +43,8 @@ def board_hints(page: str, url: str, site_id: int) -> list[Found]:
     """
     hints: list[Found] = []
     for anchor in parse(page).select("a"):
-        link = urlsplit(urljoin(url, anchor.attr("href").strip()))
+        joined = join(url, anchor.attr("href"))
+        link = urlsplit(joined or "")
         if not is_school(link.hostname or ""):
             continue
         if board := BOARD_PATH.fullmatch(link.path):

@@ -3,10 +3,9 @@
 from dataclasses import replace
 from http import HTTPStatus
 from typing import TYPE_CHECKING
-from urllib.parse import urljoin
 
 from bulletin.archive import REDIRECTS
-from bulletin.pages import article_key, is_pointer
+from bulletin.pages import article_key, is_pointer, join
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -48,7 +47,7 @@ async def _target(conn: AsyncConnection, fetch: Fetch, url: str, at: datetime) -
         return row[0]
     response = await fetch(url)
     location = response.headers.get("Location", "")
-    target = urljoin(url, location) if response.status in REDIRECTS and location else None
+    target = join(url, location) if response.status in REDIRECTS else None
     # A server error says nothing about the pointer; it is asked again at the next poll.
     if response.status < HTTPStatus.INTERNAL_SERVER_ERROR:
         await conn.execute(

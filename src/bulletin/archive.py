@@ -2,10 +2,10 @@
 
 from http import HTTPStatus
 from typing import TYPE_CHECKING
-from urllib.parse import urljoin, urlsplit
+from urllib.parse import urlsplit
 
 from bulletin.events import Kind, record
-from bulletin.pages import parse_article
+from bulletin.pages import join, parse_article
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -111,9 +111,10 @@ REDIRECTS = frozenset({301, 302, 303, 307, 308})
 
 def is_redirect_home(status: int, location: str, url: str) -> bool:
     """Whether a response to `url` redirects to its site's home page, as a withdrawal does."""
-    if status not in REDIRECTS or not location:
+    joined = join(url, location) if status in REDIRECTS else None
+    if joined is None:
         return False
-    target, page = urlsplit(urljoin(url, location)), urlsplit(url)
+    target, page = urlsplit(joined), urlsplit(url)
     return target.netloc == page.netloc and target.path in {"", "/", "/index.php"}
 
 

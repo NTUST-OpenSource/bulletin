@@ -64,6 +64,14 @@ def is_file(url: str) -> bool:
     )
 
 
+def join(url: str, href: str) -> str | None:
+    """`href` resolved against `url`; None when it is empty or cannot be parsed."""
+    try:
+        return urljoin(url, href) if href.strip() else None
+    except ValueError:
+        return None
+
+
 def parse_article(page: str, url: str, publisher: str | None = None) -> Content:
     """Read an article page at `url`: title, body as HTML and text, and attachments.
 
@@ -73,13 +81,15 @@ def parse_article(page: str, url: str, publisher: str | None = None) -> Content:
     heading = document.select_first("h2.hdline")
     body = document.select_first("div.mpgdetail")
     attachments = [
-        Attachment(a.text(), urljoin(url, a.attr("href")), "module")
+        Attachment(a.text(), link, "module")
         for a in document.select("ul.mptattach a")
-        if a.attr("href")
+        if (link := join(url, a.attr("href")))
     ]
     if body is not None:
-        links = ((a, urljoin(url, a.attr("href"))) for a in body.select("a") if a.attr("href"))
-        attachments += [Attachment(a.text(), link, "body") for a, link in links if is_file(link)]
+        links = ((a, join(url, a.attr("href"))) for a in body.select("a"))
+        attachments += [
+            Attachment(a.text(), link, "body") for a, link in links if link and is_file(link)
+        ]
     return Content(
         title=heading.text() if heading is not None else "",
         publisher=publisher,
@@ -112,7 +122,7 @@ def parse_list(page: str, url: str, site_id: int) -> list[Listed]:
 
 def _item(row: Element, url: str, site_id: int) -> Listed | None:
     anchor = row.select_first("div.mtitle a")
-    if anchor is None or not anchor.attr("href").strip():
+    if anchor is None or (link := join(url, anchor.attr("href"))) is None:
         return None
     title = anchor.text().strip()
     listed = LIST_DATE.search(row.text().replace(title, ""))
@@ -121,7 +131,6 @@ def _item(row: Element, url: str, site_id: int) -> Listed | None:
         (td.text().strip() or None for td in row.select("td") if td.attr("data-th") in PUBLISHER),
         None,
     )
-    link = urljoin(url, anchor.attr("href").strip())
     if (article := article_key(link)) is not None:
         return Listed(article[1], article[0], article[2], None, title, listed_on, publisher)
     host = urlsplit(url).hostname or ""
