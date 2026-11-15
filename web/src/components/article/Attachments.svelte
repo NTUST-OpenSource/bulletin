@@ -11,7 +11,9 @@
     const previewed = kind(file);
     if (!previewed || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
-    if (previewed === "pdf" && !navigator.pdfViewerEnabled) window.open(file.file!, "_blank", "noopener");
+    // iOS reports a PDF viewer but draws a framed PDF as a still picture of its first page.
+    const inline = navigator.pdfViewerEnabled && !matchMedia("(pointer: coarse)").matches;
+    if (previewed === "pdf" && !inline) window.open(file.file!, "_blank", "noopener");
     else onpreview(file);
   }
 </script>

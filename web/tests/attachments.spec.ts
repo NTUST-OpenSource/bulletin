@@ -37,7 +37,6 @@ test("A stored PDF: it opens in an in-page preview with a download button", asyn
 });
 
 test("A stored PDF on a touch screen: it opens in a new tab", async ({ page }, info) => {
-  test.fail(true, "Attachments: touch screens open stored PDFs in a new tab");
   test.skip(info.project.name !== "phone", "a touch screen");
   await answer(page);
   await saved(page);
