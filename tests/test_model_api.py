@@ -52,7 +52,6 @@ async def ask(config: ModelConfig) -> str:
         return await ModelClient(session, config)(KEY, "the prompt")
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Model configuration")
 async def test_gemini(api: tuple[Api, TestServer]) -> None:
     """Model configuration: Gemini's generateContent with the schema and the thinking level."""
     fake, server = api
@@ -74,7 +73,6 @@ async def test_gemini(api: tuple[Api, TestServer]) -> None:
     }
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Model configuration")
 async def test_an_openai_compatible_endpoint(api: tuple[Api, TestServer]) -> None:
     """Model configuration: chat completions at the endpoint, the key as a bearer token."""
     fake, server = api
@@ -99,7 +97,6 @@ async def test_an_openai_compatible_endpoint(api: tuple[Api, TestServer]) -> Non
     }
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Model configuration")
 async def test_an_api_error(api: tuple[Api, TestServer]) -> None:
     """Model configuration: an answer other than HTTP 200 is an API error with its status."""
     fake, server = api
@@ -111,7 +108,6 @@ async def test_an_api_error(api: tuple[Api, TestServer]) -> None:
     assert raised.value.status == 429
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Model configuration")
 async def test_an_unreachable_api() -> None:
     """Model configuration: a request that reaches no API is an API error without a status."""
     with pytest.raises(ApiError) as raised:
@@ -120,7 +116,6 @@ async def test_an_unreachable_api() -> None:
     assert raised.value.status is None
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Model configuration")
 def test_the_settings() -> None:
     """Model configuration: endpoint, format, model, keys and thinking level, with defaults."""
     assert ModelConfig.from_env({}) == ModelConfig()
@@ -136,7 +131,6 @@ def test_the_settings() -> None:
     ) == ModelConfig(("a", "b"), ApiFormat.OPENAI, "http://llama:8080/v1", "gemma", 30, "")
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Model configuration")
 @pytest.mark.parametrize(
     ("name", "value"),
     [("BULLETIN_MODEL_FORMAT", "claude"), ("BULLETIN_MODEL_RATE", "0")],
