@@ -7,7 +7,7 @@ never reach the network: the model's answers are fixtures, and the Discord check
 ## 1. Foundations
 
 - [x] 1.1 Add migration 0004 per design.md: `rendition`, `tag`, `announcement.current_rendition`, and `rendered` in the event kind check; verify the migration test applies it to an empty schema
-- [ ] 1.2 Add `tools/discord-markdown/` (`package.json`, lock file pinning `@discord/markdown-wasm`, the line-per-input check script) and a Node setup step in CI; verify `npm ci` and one check run locally and in CI
+- [x] 1.2 Add `tools/discord-markdown/` (`package.json`, lock file pinning `@discord/markdown-wasm`, the line-per-input check script) and a Node setup step in CI; verify `npm ci` and one check run locally and in CI
 - [x] 1.3 Check in Google's documentation which schema field and thinking setting `gemini-4-hydrogen` takes, and record one Gemini answer and one OpenAI-format answer as fixtures from the documented shapes; verify each fixture names its source
 
 ## 2. Event log
@@ -54,7 +54,7 @@ never reach the network: the model's answers are fixtures, and the Discord check
 ## 6. Image and measurement
 
 - [x] 6.1 Add the Node build stage and binary to the Dockerfile; verify on the remote test host that the image builds and the Discord check answers inside the container
-- [ ] 6.2 Draft tags and deadlines for 50 corpus announcements and have the owner correct them; verify the labelled set is saved outside the repository with the corpus
+- [x] 6.2 Draft tags and deadlines for 50 corpus announcements and have the owner correct them; verify the labelled set is saved outside the repository with the corpus
 - [ ] 6.3 Add `scripts/measure_rendering.py` and run it with thinking `low` and with the model's default; verify the report (pass rate, tag agreement, deadline accuracy, requests and tokens per article) is given to the owner
 
 ## 7. Verification
