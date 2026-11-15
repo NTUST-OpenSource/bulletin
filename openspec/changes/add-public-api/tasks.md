@@ -18,15 +18,15 @@ tests call the app in process with httpx's ASGI transport against the PGroonga t
 ## 3. Stream and search
 
 - [x] 3.1 Commit the xfail test for "Read-only JSON under /api/v1" (public-api); verify it fails for the expected reason and the gate stays green
-- [ ] 3.2 Implement "Read-only JSON under /api/v1" (JSON errors, 405, no admin routes) and remove the marker; verify its scenarios pass and the gate is green
+- [x] 3.2 Implement "Read-only JSON under /api/v1" (JSON errors, 405, no admin routes) and remove the marker; verify its scenarios pass and the gate is green
 - [x] 3.3 Commit the xfail test for "Announcement stream" (public-api); verify it fails for the expected reason and the gate stays green
-- [ ] 3.4 Implement "Announcement stream" (the query driven by boards, the cursor, cross-posts folded) and remove the marker; verify its scenarios pass and the gate is green
+- [x] 3.4 Implement "Announcement stream" (the query driven by boards, the cursor, cross-posts folded) and remove the marker; verify its scenarios pass and the gate is green
 - [x] 3.5 Commit the xfail test for "Stream items" (public-api); verify it fails for the expected reason and the gate stays green
-- [ ] 3.6 Implement "Stream items" (tags, boards and renditions read per page) and remove the marker; verify its scenarios pass and the gate is green
+- [x] 3.6 Implement "Stream items" (tags, boards and renditions read per page) and remove the marker; verify its scenarios pass and the gate is green
 - [x] 3.7 Commit the xfail test for "Stream filters" (public-api); verify it fails for the expected reason and the gate stays green
-- [ ] 3.8 Implement "Stream filters" and remove the marker; verify its scenarios pass and the gate is green
+- [x] 3.8 Implement "Stream filters" and remove the marker; verify its scenarios pass and the gate is green
 - [x] 3.9 Commit the xfail test for "Search" (public-api); verify it fails for the expected reason and the gate stays green
-- [ ] 3.10 Implement "Search" (plain words with `&@`, the materialized matches) and remove the marker; verify its scenarios pass and the gate is green
+- [x] 3.10 Implement "Search" (plain words with `&@`, the materialized matches) and remove the marker; verify its scenarios pass and the gate is green
 
 ## 4. Single announcements, events, sites and tags
 

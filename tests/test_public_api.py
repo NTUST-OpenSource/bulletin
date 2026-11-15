@@ -16,8 +16,6 @@ if TYPE_CHECKING:
     from psycopg import AsyncConnection
 
 DAY = date(2026, 11, 13)
-# Until the API exists, requests fail on a stub or on a missing route.
-PENDING = (AssertionError, NotImplementedError)
 STREAM = "/api/v1/announcements"
 
 
@@ -60,7 +58,6 @@ async def test_the_admin_path(world: World) -> None:
     assert response.status_code == 404
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="Announcement stream")
 async def test_two_pages(world: World) -> None:
     """Announcement stream: 45 announcements come once each, in order, over two pages."""
     added = [await world.add(DAY - timedelta(days=n % 9)) for n in range(45)]
@@ -74,7 +71,6 @@ async def test_two_pages(world: World) -> None:
     assert [i["id"] for i in first["items"] + second["items"]] == wanted
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="Announcement stream")
 async def test_a_new_announcement_between_pages(world: World) -> None:
     """Announcement stream: an announcement stored between pages neither repeats nor skips one."""
     added = [await world.add(DAY) for _ in range(4)]
@@ -86,7 +82,6 @@ async def test_a_new_announcement_between_pages(world: World) -> None:
     assert [i["id"] for i in first["items"] + second["items"]] == added[::-1]
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="Announcement stream")
 async def test_a_cross_post(world: World) -> None:
     """Announcement stream: a cross-post is folded into the announcement it copies."""
     office = await world.add(DAY)
@@ -95,7 +90,6 @@ async def test_a_cross_post(world: World) -> None:
     assert await stream(world) == [office]
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="Announcement stream")
 @pytest.mark.parametrize("params", [{"cursor": "xyz"}, {"limit": 500}, {"limit": 0}])
 async def test_bad_paging_values(world: World, params: dict[str, object]) -> None:
     """Announcement stream: a malformed cursor or a limit outside 1 to 100 is a 400."""
@@ -111,7 +105,6 @@ async def item(world: World, announcement: int) -> dict[str, object]:
     return next(i for i in page["items"] if i["id"] == announcement)
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="Stream items")
 async def test_a_rendered_announcement(world: World) -> None:
     """Stream items: a rendered announcement carries its rendition and tags by dimension."""
     tags = {("topic", "scholarships"), ("nature", "information"), ("source", "on-campus")}
@@ -147,7 +140,6 @@ async def test_a_rendered_announcement(world: World) -> None:
     }
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="Stream items")
 async def test_a_raw_announcement(world: World) -> None:
     """Stream items: without a rendition or tags, the school's title and empty tag lists."""
     raw = await world.add(DAY, title="school title")
@@ -157,7 +149,6 @@ async def test_a_raw_announcement(world: World) -> None:
     assert got["tags"] == {"topic": [], "audience": [], "nature": [], "source": []}
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="Stream items")
 async def test_a_fallback(world: World) -> None:
     """Stream items: a fallback after a new revision is null and leaves the stored tags."""
     fallen = await world.add(
@@ -176,7 +167,6 @@ async def test_a_fallback(world: World) -> None:
     }
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="Stream items")
 async def test_a_link_item(world: World) -> None:
     """Stream items: a link item says so, with the link as its URL."""
     link = "https://student.ntust.edu.tw/var/file/53/1053/attach/12/pta_1_0.pdf"
@@ -186,7 +176,6 @@ async def test_a_link_item(world: World) -> None:
     assert (got["link_item"], got["url"]) == (True, link)
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="Stream filters")
 async def test_followed_sites_and_a_board(world: World) -> None:
     """Stream filters: `site` and `board` together select a set of boards."""
     student = await world.add(DAY, boards=("1053-1436",))
@@ -196,7 +185,6 @@ async def test_followed_sites_and_a_board(world: World) -> None:
     assert set(await stream(world, site=1053, board="1045-1391")) == {student, board}
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="Stream filters")
 async def test_placed_through_a_cross_post(world: World) -> None:
     """Stream filters: an announcement matches a board its cross-post is placed on."""
     office = await world.add(DAY, boards=("1017-631",))
@@ -205,7 +193,6 @@ async def test_placed_through_a_cross_post(world: World) -> None:
     assert await stream(world, board="1045-1391") == [office]
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="Stream filters")
 async def test_two_tags(world: World) -> None:
     """Stream filters: every `tag` given has to match."""
     both = await world.add(DAY, tags=[("topic", "scholarships"), ("audience", "graduate-students")])
@@ -215,7 +202,6 @@ async def test_two_tags(world: World) -> None:
     assert got == [both]
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="Stream filters")
 async def test_a_range_of_days(world: World) -> None:
     """Stream filters: `from` and `to` bound the stream day, inclusive."""
     inside = [await world.add(date(2026, 11, d)) for d in (1, 7)]
@@ -225,7 +211,6 @@ async def test_a_range_of_days(world: World) -> None:
     assert await stream(world, **{"from": "2026-11-01", "to": "2026-11-07"}) == inside[::-1]
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="Stream filters")
 @pytest.mark.parametrize("value", ["topic:weather", "weather", "colour:fees"])
 async def test_an_unknown_tag(world: World, value: str) -> None:
     """Stream filters: an unknown tag is a 400 naming it."""
@@ -236,7 +221,6 @@ async def test_an_unknown_tag(world: World, value: str) -> None:
     assert value in response.json()["detail"]
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="Search")
 async def test_a_word_in_the_body(world: World) -> None:
     """Search: a two-character term found only in a six-year-old body is found."""
     term = chr(0x734E) + chr(0x5B78)
@@ -247,7 +231,6 @@ async def test_a_word_in_the_body(world: World) -> None:
     assert await stream(world, q=term, **{"in": "title"}) == []
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="Search")
 @pytest.mark.parametrize("query", ["113-1", "(OR"])
 async def test_characters_with_meaning_elsewhere(world: World, query: str) -> None:
     """Search: words are plain text, so syntax characters find themselves."""
@@ -257,7 +240,6 @@ async def test_characters_with_meaning_elsewhere(world: World, query: str) -> No
     assert await stream(world, q=query) == [found]
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="Search")
 async def test_a_long_query(world: World) -> None:
     """Search: eleven words are a 400."""
     async with world.client() as http:
