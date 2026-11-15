@@ -50,8 +50,8 @@ link and image SHALL be replaced by a placeholder (`L1`, `I1`, ...), so the inpu
 
 ### Requirement: Placeholders put back
 After the model answers, each placeholder SHALL be replaced by the URL it stands for. An answer
-that holds a placeholder the input did not have, or leaves out an image placeholder of the input,
-SHALL fail the attempt, so every image keeps its place in the rendition.
+that holds a placeholder the input did not have SHALL fail the attempt. An answer MAY leave out
+images: icons and decorations are left out (owner), images with content are kept.
 
 #### Scenario: Links restored
 - **WHEN** the answer uses `L1` and `I1`
@@ -61,9 +61,9 @@ SHALL fail the attempt, so every image keeps its place in the rendition.
 - **WHEN** the answer holds `L9` and the input had only `L1`
 - **THEN** the attempt fails
 
-#### Scenario: A dropped image
+#### Scenario: An image left out
 - **WHEN** the input had `I1` and the answer does not
-- **THEN** the attempt fails
+- **THEN** the rendition is stored without it
 
 ### Requirement: Structured answer
 The model SHALL be asked for JSON constrained by a schema: a title without bracketed tags, the
@@ -79,7 +79,7 @@ A deadline SHALL be kept only when its date appears in the source text, in any o
 date forms: Gregorian or ROC years, numeric, Chinese or with English month names, with or without
 the year. A deadline that does not appear SHALL be dropped; the rendition is stored without one.
 Dates without a year SHALL be read against the day the announcement appeared, its list date or else
-the day it was first seen, which the prompt SHALL give.
+the day it was first seen. The prompt SHALL give that day and today's date.
 
 #### Scenario: An ROC date
 - **WHEN** the text says the deadline is 115年12月10日 and the answer gives 2026-12-10
@@ -88,6 +88,10 @@ the day it was first seen, which the prompt SHALL give.
 #### Scenario: An invented date
 - **WHEN** the answer gives a deadline whose date the text does not hold
 - **THEN** the rendition has no deadline
+
+#### Scenario: Both days in the prompt
+- **WHEN** an announcement listed on 2026-11-03 is rendered on 2026-11-15
+- **THEN** its prompt gives both days
 
 #### Scenario: An announcement without a list date
 - **WHEN** an announcement without a list date is rendered

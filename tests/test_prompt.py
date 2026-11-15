@@ -5,6 +5,8 @@ from datetime import date
 from importlib import resources
 from typing import cast
 
+import pytest
+
 from bulletin.model_input import ModelInput
 from bulletin.prompt import PROMPT_VERSION, answer_schema, prompt
 from bulletin.taxonomy import taxonomy
@@ -54,3 +56,12 @@ def test_the_prompt_holds_the_input() -> None:
     assert "2026-11-03" in text
     assert all(tag.label in text for tags in taxonomy().values() for tag in tags)
     assert "{{" not in text
+
+
+@pytest.mark.xfail(strict=True, raises=AssertionError, reason="Deadlines from the text")
+def test_the_prompt_gives_both_days() -> None:
+    """Deadlines from the text: the prompt gives the day the announcement appeared and today."""
+    text = prompt(ModelInput("Title: T", {}), date(2026, 11, 3), date(2026, 11, 15))
+
+    assert "2026-11-03" in text
+    assert "2026-11-15" in text

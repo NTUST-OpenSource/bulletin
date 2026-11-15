@@ -30,7 +30,7 @@ def _taxonomy() -> str:
     )
 
 
-def prompt(given: ModelInput, dated: date) -> str:
+def prompt(given: ModelInput, dated: date, today: date | None = None) -> str:  # noqa: ARG001 - scaffolding
     """The prompt for one article: the rules, the taxonomy, the day it appeared and its input."""
     values = {
         "taxonomy": _taxonomy(),
