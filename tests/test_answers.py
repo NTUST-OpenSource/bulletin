@@ -11,7 +11,6 @@ TARGETS = {
 }
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Placeholders put back")
 def test_links_restored() -> None:
     """Placeholders put back: the Markdown holds the URLs of L1 and I1 and no placeholder."""
     restored = restore("Apply [here](L1).\n\n![poster](I1)", TARGETS)
@@ -19,7 +18,6 @@ def test_links_restored() -> None:
     assert restored == f"Apply [here]({TARGETS['L1']}).\n\n![poster]({TARGETS['I1']})"
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Placeholders put back")
 def test_urls_fit_markdown() -> None:
     """Placeholders put back: spaces and parentheses in a URL are escaped for the link."""
     restored = restore("![poster](I1) [form](L2)", TARGETS)
@@ -29,14 +27,12 @@ def test_urls_fit_markdown() -> None:
     )
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Placeholders put back")
 def test_an_invented_placeholder() -> None:
     """Placeholders put back: an answer holding L9 when the input had L1 fails."""
     with pytest.raises(AnswerError, match="L9"):
         restore("[here](L9) ![poster](I1)", TARGETS)
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Placeholders put back")
 def test_a_dropped_image() -> None:
     """Placeholders put back: an answer without the input's I1 fails."""
     with pytest.raises(AnswerError, match="I1"):
