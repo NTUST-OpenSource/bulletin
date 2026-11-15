@@ -3,6 +3,11 @@ export const brand = {
   home: "bulletin 首頁",
 } as const;
 
+export const notFound = {
+  title: "找不到這個頁面",
+  home: "回到公布欄",
+} as const;
+
 export const header = {
   search: "搜尋",
   settings: "設定",

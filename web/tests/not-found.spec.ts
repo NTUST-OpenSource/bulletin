@@ -3,7 +3,6 @@ import { expect, test } from "@playwright/test";
 import { answer, saved } from "./support/api.ts";
 
 test("An unknown path: the page says it is not found and links back to the stream", async ({ page }) => {
-  test.fail(true, "Unknown paths");
   const sent = await answer(page);
   await saved(page);
   await page.goto("/notices");

@@ -4,7 +4,7 @@ import type { Prefer } from "./lib/settings";
 import { app, ui } from "./state.svelte";
 import { checkNow } from "./stream.svelte";
 
-const PATH = /^\/a\/(\d+)$/;
+export const PATH = /^\/a\/(\d+)$/;
 
 export type Picture = { src: string; alt: string; file: Attachment | null };
 export type Shown =

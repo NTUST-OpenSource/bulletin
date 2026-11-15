@@ -3,8 +3,10 @@
 import re
 from typing import TYPE_CHECKING
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, status
+from fastapi.exception_handlers import http_exception_handler
 from fastapi.responses import FileResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from bulletin.files import FileStore
 from bulletin.web.api import api_app
@@ -12,6 +14,8 @@ from bulletin.web.db import Connect
 
 if TYPE_CHECKING:
     from pathlib import Path
+
+    from starlette.responses import Response
 
 # The page revalidates on every load and is never framed; Vite's hashed files never change.
 PAGE_HEADERS = {"Cache-Control": "no-cache", "Content-Security-Policy": "frame-ancestors 'none'"}
@@ -36,7 +40,11 @@ def public_app(
 
 
 def _serve_page(app: FastAPI, web: Path) -> None:
-    """Serve the page at / and /a/{id}, and its built files under /assets; nothing else."""
+    """Serve the page at / and /a/{id}, and its built files under /assets; nothing else.
+
+    Other paths answer 404 with the page, which shows its not-found view; the API mounted under
+    /api/v1 keeps its own answers.
+    """
 
     async def page() -> FileResponse:
         return FileResponse(web / "index.html", headers=PAGE_HEADERS)
@@ -47,6 +55,14 @@ def _serve_page(app: FastAPI, web: Path) -> None:
             raise HTTPException(404)
         return FileResponse(path, headers=IMMUTABLE)
 
+    async def missing(request: Request, error: Exception) -> Response:
+        assert isinstance(error, StarletteHTTPException)  # noqa: S101 - registered for this type only
+        built_file = request.url.path.startswith("/assets/")
+        if error.status_code != status.HTTP_404_NOT_FOUND or built_file:
+            return await http_exception_handler(request, error)
+        return FileResponse(web / "index.html", status.HTTP_404_NOT_FOUND, PAGE_HEADERS)
+
     app.get("/")(page)
     app.get("/a/{announcement:int}")(page)
     app.get("/assets/{name}")(asset)
+    app.add_exception_handler(StarletteHTTPException, missing)

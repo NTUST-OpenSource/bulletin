@@ -55,7 +55,6 @@ test("the stream, its menus and a long search do not scroll sideways", async ({ 
 });
 
 test("the not-found view does not scroll sideways", async ({ page }) => {
-  test.fail(true, "Unknown paths");
   await page.setViewportSize({ width: 320, height: 640 });
   await answer(page);
   await page.goto("/notices");

@@ -95,7 +95,6 @@ async def test_api_answers_keep_their_headers(tmp_path: Path) -> None:
     assert "Content-Security-Policy" not in response.headers
 
 
-@pytest.mark.xfail(strict=True, reason="Unknown paths")
 @pytest.mark.parametrize("path", ["/notices", "/a/x", "/index.html"])
 async def test_an_unknown_path(tmp_path: Path, path: str) -> None:
     """Unknown paths: an unknown path answers 404 with the page, revalidated and never framed."""
