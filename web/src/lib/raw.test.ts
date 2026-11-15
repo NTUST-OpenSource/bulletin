@@ -9,7 +9,7 @@ const html = (source: string) => {
   return box;
 };
 
-test.fails("The school's version: no styles, scripts, forms, classes or ids", () => {
+test("The school's version: no styles, scripts, forms, classes or ids", () => {
   const box = html(
     '<style>p{color:red}</style><link rel=stylesheet href=x.css><script>alert(1)</script>' +
       '<form action=/x><input></form><p class="c" id="i" style="color:red" onclick="x()">text</p>',
@@ -18,14 +18,14 @@ test.fails("The school's version: no styles, scripts, forms, classes or ids", ()
   expect(box.innerHTML).toBe("<p>text</p>");
 });
 
-test.fails("images take data-src and resolve against the article's URL, loading lazily", () => {
+test("images take data-src and resolve against the article's URL, loading lazily", () => {
   const image = html('<img data-src="/var/file/53/1053/img/a.jpg" alt="海報">').querySelector("img")!;
 
   expect(image.getAttribute("src")).toBe("https://student.ntust.edu.tw/var/file/53/1053/img/a.jpg");
   expect(image.getAttribute("loading")).toBe("lazy");
 });
 
-test.fails("links resolve, open in a new tab, and keep only http, https and mailto", () => {
+test("links resolve, open in a new tab, and keep only http, https and mailto", () => {
   const box = html('<a href="a.pdf">a</a><a href="mailto:x@ntust.edu.tw">m</a><a href="javascript:alert(1)">j</a>');
   const links = [...box.querySelectorAll("a")];
 
@@ -38,11 +38,11 @@ test.fails("links resolve, open in a new tab, and keep only http, https and mail
   expect(links[0]!.getAttribute("rel")).toBe("noopener noreferrer");
 });
 
-test.fails("tables scroll inside the article", () => {
+test("tables scroll inside the article", () => {
   expect(html("<table><tr><td>1</td></tr></table>").firstElementChild!.className).toBe("table-wrap");
 });
 
-test.fails("A plain-text URL becomes a link, but not inside a link", () => {
+test("A plain-text URL becomes a link, but not inside a link", () => {
   const box = html('<p>詳見 https://a.tw/x。 <a href="https://b.tw">https://b.tw</a></p>');
 
   expect([...box.querySelectorAll("a")].map((a) => a.getAttribute("href"))).toEqual(["https://a.tw/x", "https://b.tw"]);

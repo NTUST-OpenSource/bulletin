@@ -54,6 +54,17 @@ export async function more(): Promise<void> {
   }
 }
 
+type Insert = (apply: () => void) => Promise<void>;
+let place: Insert = async (apply) => apply();
+
+/** How the stream inserts a check's items while keeping the reader's place; the stream sets it. */
+export function setPlace(insert: Insert): void {
+  place = insert;
+}
+
+/** Check now, as on opening an article. */
+export const checkNow = (): Promise<void> => check(place);
+
 /**
  * Check for new and changed announcements, bypassing cached answers. The check follows the
  * cursor until it reaches the shown items, so nothing is skipped; `insert` applies the result.

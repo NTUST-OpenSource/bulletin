@@ -2,6 +2,7 @@
   import Search from "@jis3r/icons/icons/search";
   import SlidersHorizontal from "@jis3r/icons/icons/sliders-horizontal";
   import Onboarding from "./components/settings/Onboarding.svelte";
+  import Article from "./components/article/Article.svelte";
   import Settings from "./components/settings/Settings.svelte";
   import Stream from "./components/stream/Stream.svelte";
   import TopicChips from "./components/stream/TopicChips.svelte";
@@ -11,6 +12,7 @@
   import Toast from "./components/ui/Toast.svelte";
   import { brand, header } from "./lang/zh-TW";
   import { applyTheme, readImport } from "./lib/settings";
+  import { follow } from "./article.svelte";
   import { app, loadLists, offerSettings, ui } from "./state.svelte";
 
   $effect(() => applyTheme(document.documentElement, app.settings.theme));
@@ -41,9 +43,10 @@
   });
   // A first visit starts with the unit picker; one through an article link shows the article first.
   if (!app.saved && !location.pathname.startsWith("/a/")) ui.onboarding = true;
+  follow();
 </script>
 
-<svelte:window onhashchange={readLink} />
+<svelte:window onhashchange={readLink} onpopstate={follow} />
 
 <header class="top" bind:this={top}>
   <div class="wrap">
@@ -58,6 +61,7 @@
   <Stream />
 </main>
 
+<Article />
 <Settings />
 <Onboarding />
 <Confirm />

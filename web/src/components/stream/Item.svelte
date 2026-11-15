@@ -4,6 +4,7 @@
   import { source } from "../../lib/stream";
   import { app } from "../../state.svelte";
   import { feed } from "../../stream.svelte";
+  import { openItem } from "../../article.svelte";
   import { itemMenu } from "./itemMenu";
 
   const HOLD = 500; // milliseconds a finger holds before the menu opens
@@ -55,16 +56,22 @@
   }
 
   function click(event: MouseEvent): void {
-    if (!held) return;
-    event.preventDefault();
-    held = false;
+    if (held) {
+      event.preventDefault();
+      held = false;
+    } else if (!item.link_item && event.button === 0 && !(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)) {
+      event.preventDefault(); // the article opens over the stream; other clicks keep the browser's tabs
+      openItem(item.id);
+    }
   }
 </script>
 
 <li data-id={item.id} class:arrive={feed.arrived.has(item.id)}>
   <a
     class="item"
-    href="/a/{item.id}"
+    href={item.link_item ? item.url : `/a/${item.id}`}
+    target={item.link_item ? "_blank" : null}
+    rel={item.link_item ? "noopener noreferrer" : null}
     oncontextmenu={context}
     onkeydown={keys}
     onpointerdown={down}

@@ -1,13 +1,13 @@
 // Requirement: Article view (web-frontend), and First visit's "A new reader opens an article link".
 import { expect, type Page, test } from "@playwright/test";
 import { articles, sites, stream } from "./fixtures/recorded.ts";
-import { answer, saved } from "./support/api.ts";
+import { answer, RECORDED, saved } from "./support/api.ts";
 
 const dialog = (page: Page) => page.getByRole("dialog");
 const item = (page: Page, id: number) => page.locator(`main .items > li[data-id="${id}"] a`);
 
 test("opening an item shows the rewrite over the stream under its own path", async ({ page }) => {
-  test.fail(true, "Article view");
+  await page.clock.setFixedTime(RECORDED);
   await answer(page);
   await saved(page);
   await page.goto("/");
@@ -16,17 +16,18 @@ test("opening an item shows the rewrite over the stream under its own path", asy
 
   await expect(dialog(page).getByRole("heading", { level: 1 })).toHaveText(articles[1].rendition!.title);
   await expect(dialog(page).locator(".lede")).toHaveText(articles[1].rendition!.summary!);
-  await expect(dialog(page).locator(".body h3").first()).toHaveText("招生說明會資訊");
+  await expect(dialog(page).locator(".body").getByRole("heading", { name: "招生說明會資訊" })).toBeVisible();
   await expect(dialog(page).locator(".when")).toContainText("11月15日 週日");
   expect(new URL(page.url()).pathname).toBe("/a/1");
 });
 
 test("Back to the stream: the article closes and the stream is where it was", async ({ page }) => {
-  test.fail(true, "Article view");
   await answer(page);
   await saved(page);
   await page.goto("/");
   await item(page, 16).scrollIntoViewIfNeeded();
+  await expect(page.locator("main .items > li")).toHaveCount(stream.first.items.length + stream.second.items.length);
+  await item(page, 16).scrollIntoViewIfNeeded(); // the second page made room below it
   const y = await page.evaluate(() => scrollY);
 
   await item(page, 16).click();
@@ -39,7 +40,6 @@ test("Back to the stream: the article closes and the stream is where it was", as
 });
 
 test("Esc and the close button close the article", async ({ page }) => {
-  test.fail(true, "Article view");
   await answer(page);
   await saved(page);
   await page.goto("/");
@@ -56,7 +56,6 @@ test("Esc and the close button close the article", async ({ page }) => {
 });
 
 test("Closing after a direct link: the stream shows and the reader stays on bulletin", async ({ page }) => {
-  test.fail(true, "Article view");
   await answer(page);
   await saved(page);
   await page.goto("/a/1");
@@ -68,7 +67,6 @@ test("Closing after a direct link: the stream shows and the reader stays on bull
 });
 
 test("The school's version: the school's text and images, sanitized, from the article's menu", async ({ page }) => {
-  test.fail(true, "Article view");
   const school = {
     ...articles[6],
     body_html:
@@ -92,7 +90,6 @@ test("The school's version: the school's text and images, sanitized, from the ar
 });
 
 test("a reader who prefers the school's version gets it first", async ({ page }) => {
-  test.fail(true, "Article view");
   await answer(page, { articles: { 6: { ...articles[6], body_html: "<p>學校原文</p>" } } });
   await saved(page, { prefer: "raw" });
   await page.goto("/a/6");
@@ -101,8 +98,16 @@ test("a reader who prefers the school's version gets it first", async ({ page })
   await expect(dialog(page).getByRole("heading", { level: 1 })).toHaveText(articles[6].title);
 });
 
+test("a withdrawn article says so after its day and unit", async ({ page }) => {
+  await page.clock.setFixedTime(RECORDED);
+  await answer(page);
+  await saved(page);
+  await page.goto("/a/615");
+
+  await expect(dialog(page).locator(".when")).toHaveText(/^2月10日 週二 · \S+ · 已刪除$/);
+});
+
 test("A plain-text URL: the article shows it as a link", async ({ page }) => {
-  test.fail(true, "Article view");
   await answer(page, { articles: { 6: { ...articles[6], body_html: "<p>詳見 https://www.ntust.edu.tw/x</p>" } } });
   await saved(page, { prefer: "raw" });
   await page.goto("/a/6");
@@ -114,7 +119,6 @@ test("A plain-text URL: the article shows it as a link", async ({ page }) => {
 });
 
 test("A cross-post's link: the announcement it copies opens under its own path", async ({ page }) => {
-  test.fail(true, "Article view");
   await answer(page);
   await saved(page);
   await page.goto("/a/794");
@@ -124,7 +128,6 @@ test("A cross-post's link: the announcement it copies opens under its own path",
 });
 
 test("A link item: its link opens and no empty article is shown", async ({ page }) => {
-  test.fail(true, "Article view");
   const link = articles[2533];
   await answer(page, { pages: () => ({ items: [{ ...stream.first.items[0]!, ...link }], next: null }) });
   await page.route(link.url, (route) => route.fulfill({ contentType: "text/html", body: "<title>school</title>" }));
@@ -139,7 +142,6 @@ test("A link item: its link opens and no empty article is shown", async ({ page 
 });
 
 test("a topic chip closes the article and filters the stream", async ({ page }) => {
-  test.fail(true, "Article view");
   const sent = await answer(page, {});
   await saved(page);
   await page.goto("/a/1");
@@ -152,7 +154,6 @@ test("a topic chip closes the article and filters the stream", async ({ page }) 
 });
 
 test("A new reader opens an article link: the article shows first and the unit picker follows", async ({ page }) => {
-  test.fail(true, "Article view");
   await answer(page);
   await page.goto("/a/1");
 

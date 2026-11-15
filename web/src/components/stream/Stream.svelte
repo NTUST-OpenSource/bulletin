@@ -5,7 +5,7 @@
   import { tick } from "svelte";
   import { keepPlace } from "../../lib/anchor";
   import { app, filters, ui } from "../../state.svelte";
-  import { CHECK_MS, check, feed, more, open } from "../../stream.svelte";
+  import { CHECK_MS, checkNow, feed, more, open, setPlace } from "../../stream.svelte";
   import DaySection from "./DaySection.svelte";
 
   const topics = $derived(app.tags.find((dimension) => dimension.id === "topic")?.tags.map((tag) => tag.id) ?? []);
@@ -39,13 +39,12 @@
   });
 
   const header = () => document.querySelector("header")?.getBoundingClientRect().bottom ?? 0;
-  const checkNow = () =>
-    check((apply) =>
-      keepPlace(list, header(), async () => {
-        apply();
-        await tick();
-      }),
-    );
+  setPlace((apply) =>
+    keepPlace(list, header(), async () => {
+      apply();
+      await tick();
+    }),
+  );
 
   // Every 5 minutes while the tab is visible, and when it shows again after longer.
   $effect(() => {

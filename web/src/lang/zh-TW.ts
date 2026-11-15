@@ -21,6 +21,14 @@ export const stream = {
   loading: "載入中",
 } as const;
 
+export const article = {
+  close: "關閉",
+  more: "更多",
+  showRewrite: "顯示改寫",
+  showSchool: "顯示原文",
+  withdrawn: "已刪除",
+} as const;
+
 const WEEKDAYS = "日一二三四五六";
 
 export const days = {
@@ -28,6 +36,7 @@ export const days = {
   yesterday: "昨天",
   weekday: (day: number) => `週${WEEKDAYS[day]}`,
   month: (month: number, year: number | null) => (year ? `${year}年${month}月` : `${month}月`),
+  date: (month: number, date: number, year: number | null) => `${year ? `${year}年` : ""}${month}月${date}日`,
 } as const;
 
 export const settings = {

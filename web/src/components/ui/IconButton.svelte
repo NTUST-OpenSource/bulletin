@@ -6,7 +6,7 @@
     label: string;
     icon: Component<IconProps>;
     size?: number;
-    onclick?: () => void;
+    onclick?: (event: MouseEvent) => void;
   };
   let { label, icon: Icon, size = 20, onclick }: Props = $props();
   let active = $state(false); // the icon animates while the button is hovered or focused
