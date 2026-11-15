@@ -12,6 +12,7 @@ export const PDF = readFileSync(new URL("../fixtures/one-page.pdf", import.meta.
 export type Answers = {
   fail?: Partial<Record<"sites" | "tags" | "announcements" | "article", number>>;
   pages?: (query: URLSearchParams) => Page;
+  articles?: Record<number, unknown>; // answered before the recorded ones
 };
 
 /** The requests the page sent, as paths with their query strings. */
@@ -36,7 +37,7 @@ export async function answer(page: Browser, answers: Answers = {}): Promise<Sent
       return json(route, found);
     }
     if (article) {
-      const found = (articles as Record<string, unknown>)[article[1]!];
+      const found = answers.articles?.[Number(article[1])] ?? (articles as Record<string, unknown>)[article[1]!];
       if (fail.article || !found) return json(route, { detail: "Not Found" }, fail.article ?? 404);
       return json(route, found);
     }

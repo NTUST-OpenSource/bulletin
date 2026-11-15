@@ -39,7 +39,7 @@ shapes of the `public-api` spec.
 
 ## 5. Articles and search
 
-- [ ] 5.1 Commit the xfail test for "Article view" (web-frontend); verify it fails for the expected reason and the gate stays green
+- [x] 5.1 Commit the xfail test for "Article view" (web-frontend); verify it fails for the expected reason and the gate stays green
 - [ ] 5.2 Implement "Article view" (`lib/markdown.ts`, `lib/raw.ts`, paths, cross-posts and link items, history and scroll position) and remove the marker; verify its scenarios pass and the gate is green
 - [ ] 5.3 Commit the xfail test for "Attachments" (web-frontend); verify it fails for the expected reason and the gate stays green
 - [ ] 5.4 Implement "Attachments" (school links, image, PDF and DOCX previews, the new-tab PDF fallback) and remove the marker; verify its scenarios pass and the gate is green
