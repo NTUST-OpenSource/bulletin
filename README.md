@@ -6,10 +6,44 @@ it), and serves them at `bulletin.ntust.org` through a public API and a web fron
 
 It is an unofficial service, not run by the university.
 
-Status: the collector runs and rendering is built (specs under `openspec/specs/`); the public API
-and the frontend follow, in the order of `docs/roadmap.md`.
+Status: the collector, rendering and the public API are built (specs under `openspec/specs/`);
+the web frontend follows (`docs/roadmap.md`).
 
 Contributors start with `AGENTS.md`.
+
+## Public API
+
+Read-only JSON under `https://bulletin.ntust.org/api/v1/`, without authentication, open to any
+origin. The OpenAPI document is `/api/v1/openapi.json`.
+
+| Request | Answer |
+| --- | --- |
+| `GET /api/v1/announcements` | a page of the stream: `{"items": [...], "next": cursor or null}` |
+| `GET /api/v1/announcements/{id}` | one announcement with its raw body, rendition, attachments and revisions |
+| `GET /api/v1/events?after={id}` | events after an id, each with its announcement: `{"events": [...], "last": id}` |
+| `GET /api/v1/sites` | the sites in the school's order, their unit's kind and college, and their boards |
+| `GET /api/v1/tags` | the tag taxonomy with its labels |
+| `GET /api/v1/files/{sha256}/{name}` | a stored copy of an attachment, while it is kept (one year) |
+
+The stream lists announcements newest day first; copies of an announcement on other sites are
+folded into it. It takes these parameters, repeatable where marked:
+
+| Parameter | Meaning |
+| --- | --- |
+| `site` (repeatable) | placed on a board of this site |
+| `board` (repeatable) | placed on this board, `<site>-<board>` such as `1045-1391` |
+| `tag` (repeatable) | carries this tag, `<dimension>:<id>` such as `topic:scholarships`; all must match |
+| `from`, `to` | the stream day lies in this range, inclusive, `YYYY-MM-DD` |
+| `q` | every word, matched as plain text, in the title or the text (at most 10 words) |
+| `in=title` | search titles only |
+| `cursor` | the `next` of the previous page |
+| `limit` | items per page, 1 to 100, default 30 |
+
+`site` and `board` together select one set of boards. Answers carry `Cache-Control: public,
+max-age=60, stale-while-revalidate=600` and an ETag; send it back in `If-None-Match` for a 304.
+Searches are limited to 30 a minute per client (429 with `Retry-After`); browsing is not limited.
+Clients that follow the archive, such as a mirror, read `/api/v1/events` from the last id they
+saw.
 
 ## Deployment
 
@@ -25,6 +59,14 @@ the public listener over the external network `proxy-net`.
 3. `docker compose up -d --build`. The first start applies the migrations and adds the boards of
    `seeds/boards.json`; later starts add only boards the registry does not hold.
 4. `docker compose ps` shows `bulletin-internal` as healthy once `/health` answers.
+
+In front of the public listener:
+
+- Cloudflare proxies `bulletin.ntust.org` and has a cache rule for `/api/*` that respects the
+  origin's cache headers.
+- nginx-proxy-manager forwards `bulletin.ntust.org` to `http://bulletin-internal:8000` and puts
+  Cloudflare's `CF-Connecting-IP` last in `X-Forwarded-For`, which the search limit counts by.
+  Never forward to `:8001`.
 
 To update, pull and run `docker compose up -d --build` again. `docker compose down` stops the
 stack; the `pgdata` and `files` volumes keep the archive and the stored attachments.

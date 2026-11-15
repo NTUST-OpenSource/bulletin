@@ -107,6 +107,11 @@ read in four queries over the page's ids, never one per item.
   scan per row.
 - A cross-post's own text is searched only through its original; a copy rarely differs from it.
 
+Measured on a copy of production (2,567 announcements, 2026-11-15) with `EXPLAIN ANALYZE`:
+the default units' first page 1.8 ms, one small department 1.4 ms, a rare topic chip 1.2 ms, the
+common word for "announcement" 35 ms, a rare word 1.4 ms. Through the SSH tunnel to the test
+host, a stream page answered in 150 ms and a 304 in 26 ms.
+
 The cursor is the last item's day and id, `YYYY-MM-DD.<id>` in URL-safe base64, opaque to
 clients.
 
