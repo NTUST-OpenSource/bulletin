@@ -30,7 +30,8 @@ Answer with JSON that matches the schema. Write every text in the announcement's
 - `deadline`: the last day for the reader to act (apply, register, submit, pay, reply) as
   `YYYY-MM-DD`, only when the text states it; else `null`. An ROC year adds 1911 (115年 is 2026).
   A date without a year belongs to the year the announcement appeared, or the next year if that
-  is more than two months before the day it appeared. The day of an event the reader only attends is not a deadline.
+  is more than two months before the day it appeared. The day of an event the reader only
+  attends is not a deadline, nor the end of a trial or of another period the reader may only use.
 - `tags`: `topic` and `audience` hold every tag that fits, `nature` and `source` exactly one.
   {{taxonomy}}
   - `library`: the library's collections, databases, e-resource trials, borrowing, opening hours
