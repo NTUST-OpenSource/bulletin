@@ -46,7 +46,7 @@ shapes of the `public-api` spec.
 - [x] 5.5 Commit the xfail test for "Search" (web-frontend); verify it fails for the expected reason and the gate stays green
 - [x] 5.6 Implement "Search" (the debounce, input methods, filters kept) and remove the marker; verify its scenarios pass and the gate is green
 - [x] 5.7 Commit the xfail test for "Failures" (web-frontend); verify it fails for the expected reason and the gate stays green
-- [ ] 5.8 Implement "Failures" and remove the marker; verify its scenarios pass and the gate is green
+- [x] 5.8 Implement "Failures" and remove the marker; verify its scenarios pass and the gate is green
 
 ## 6. Verification
 

@@ -4,8 +4,8 @@
   import { byDay, today } from "../../lib/stream";
   import { tick } from "svelte";
   import { keepPlace } from "../../lib/anchor";
-  import { app, filters, ui } from "../../state.svelte";
-  import { CHECK_MS, checkNow, feed, more, open, setPlace } from "../../stream.svelte";
+  import { app, filters, loadLists, ui } from "../../state.svelte";
+  import { CHECK_MS, checkNow, feed, more, open, retry, setPlace } from "../../stream.svelte";
   import DaySection from "./DaySection.svelte";
 
   const topics = $derived(app.tags.find((dimension) => dimension.id === "topic")?.tags.map((tag) => tag.id) ?? []);
@@ -89,7 +89,12 @@
   {/each}
 </div>
 <div class="more" bind:this={sentinel}>
-  {#if feed.loading}<span class="spinner" role="status" aria-label={copy.loading}></span>{/if}
+  {#if feed.loading}
+    <span class="spinner" role="status" aria-label={copy.loading}></span>
+  {:else if app.listsFailed || feed.failed}
+    <p class="failed">{feed.limited ? copy.tooMany : copy.failed}</p>
+    <button type="button" class="btn" onclick={() => (app.listsFailed ? loadLists() : retry())}>{copy.retry}</button>
+  {/if}
 </div>
 
 <style>
@@ -116,7 +121,15 @@
   }
   .more {
     display: grid;
-    place-items: center;
-    height: 72px;
+    place-content: center;
+    justify-items: center;
+    gap: 12px;
+    min-height: 72px;
+    padding-block: 12px;
+    box-sizing: border-box;
+  }
+  .failed {
+    margin: 0;
+    color: var(--ink-2);
   }
 </style>

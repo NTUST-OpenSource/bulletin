@@ -21,6 +21,9 @@ export const stream = {
   nothingFound: "沒有符合的公告",
   clearFilters: "清除篩選",
   loading: "載入中",
+  failed: "無法載入公告",
+  retry: "重試",
+  tooMany: "搜尋太頻繁，請稍後再試",
   noResults: "找不到相關公告",
   searchText: "改搜內文",
 } as const;
@@ -31,6 +34,7 @@ export const article = {
   showRewrite: "顯示改寫",
   showSchool: "顯示原文",
   withdrawn: "已刪除",
+  missing: "找不到這則公告",
 } as const;
 
 export const preview = {

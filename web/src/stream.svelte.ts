@@ -1,5 +1,5 @@
 // The stream: the pages of the current query, paged by cursor and checked for news.
-import { get, type Item, type Page } from "./lib/api";
+import { ApiError, get, type Item, type Page } from "./lib/api";
 import { appended, merged } from "./lib/stream";
 
 export const CHECK_MS = 5 * 60 * 1000;
@@ -11,6 +11,7 @@ export const feed = $state({
   next: null as string | null,
   loading: false,
   failed: false,
+  limited: false, // the failure was the API's search rate limit
   arrived: new Set<number>(), // inserted by a check, shown with an animation
   checked: 0, // when the first page was last read, by Date.now()
 });
@@ -20,7 +21,7 @@ const path = (query: string, cursor: string | null) =>
 
 /** Show the first page of `query`; an answer for an older query is dropped. */
 export async function open(query: string | null): Promise<void> {
-  Object.assign(feed, { query, items: [], next: null, failed: false, arrived: new Set() });
+  Object.assign(feed, { query, items: [], next: null, failed: false, limited: false, arrived: new Set() });
   if (query === null) return;
   feed.loading = true;
   feed.checked = Date.now();
@@ -29,11 +30,21 @@ export async function open(query: string | null): Promise<void> {
     if (feed.query !== query) return;
     feed.items = page.items;
     feed.next = page.next;
-  } catch {
-    if (feed.query === query) feed.failed = true;
+  } catch (error) {
+    if (feed.query === query) fail(error);
   } finally {
     if (feed.query === query) feed.loading = false;
   }
+}
+
+function fail(error: unknown): void {
+  feed.failed = true;
+  feed.limited = error instanceof ApiError && error.status === 429;
+}
+
+/** Load again what failed: the first page, or the page after the shown items. */
+export function retry(): Promise<void> {
+  return feed.items.length ? more() : open(feed.query);
 }
 
 /** Load the page after the shown items, skipping ids already shown. */
@@ -47,8 +58,8 @@ export async function more(): Promise<void> {
     if (feed.query !== query) return;
     feed.items = appended(feed.items, page.items);
     feed.next = page.next;
-  } catch {
-    if (feed.query === query) feed.failed = true;
+  } catch (error) {
+    if (feed.query === query) fail(error);
   } finally {
     if (feed.query === query) feed.loading = false;
   }

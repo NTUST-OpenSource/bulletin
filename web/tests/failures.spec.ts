@@ -9,7 +9,6 @@ const down = (page: Page, pattern: string) =>
   page.route(pattern, (route) => route.fulfill({ status: 503, contentType: "application/json", body: "{}" }));
 
 test("The API is down: the loaded items stay and a retry button appears below them", async ({ page }) => {
-  test.fail(true, "Failures");
   await answer(page);
   await down(page, "**/api/v1/announcements?*cursor=*");
   await saved(page);
@@ -29,7 +28,6 @@ test("The API is down: the loaded items stay and a retry button appears below th
 });
 
 test("the first page or the lists failing say so, and a retry loads them", async ({ page }) => {
-  test.fail(true, "Failures");
   await answer(page);
   await down(page, "**/api/v1/sites");
   await saved(page);
@@ -38,7 +36,9 @@ test("the first page or the lists failing say so, and a retry loads them", async
   await expect(page.getByText("無法載入公告")).toBeVisible();
   await page.unroute("**/api/v1/sites");
   await down(page, "**/api/v1/announcements?*");
+  const refused = page.waitForResponse((answer) => answer.url().includes("/api/v1/announcements?") && answer.status() === 503);
   await retry(page).click();
+  await refused;
   await expect(page.getByText("無法載入公告")).toBeVisible();
   await page.unroute("**/api/v1/announcements?*");
   await retry(page).click();
@@ -47,7 +47,6 @@ test("the first page or the lists failing say so, and a retry loads them", async
 });
 
 test("Too many searches: the page says to try again shortly and keeps the query", async ({ page }) => {
-  test.fail(true, "Failures");
   await answer(page);
   await page.route("**/api/v1/announcements?*q=*", (route) =>
     route.fulfill({ status: 429, contentType: "application/json", body: '{"detail":"too many searches"}' }),
@@ -65,7 +64,6 @@ test("Too many searches: the page says to try again shortly and keeps the query"
 });
 
 test("An unknown article: the page says it was not found, over the stream", async ({ page }) => {
-  test.fail(true, "Failures");
   await answer(page);
   await saved(page);
   await page.goto("/a/999999");
@@ -75,7 +73,6 @@ test("An unknown article: the page says it was not found, over the stream", asyn
 });
 
 test("an article that cannot be loaded says so, and a retry loads it", async ({ page }) => {
-  test.fail(true, "Failures");
   await answer(page);
   await down(page, "**/api/v1/announcements/1");
   await saved(page);

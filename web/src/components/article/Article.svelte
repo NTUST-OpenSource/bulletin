@@ -1,7 +1,7 @@
 <script lang="ts">
   import X from "@jis3r/icons/icons/x";
-  import { closeArticle, type Picture, reader, viewer } from "../../article.svelte";
-  import { article as copy, days, menu as menuCopy } from "../../lang/zh-TW";
+  import { closeArticle, type Picture, reader, show, viewer } from "../../article.svelte";
+  import { article as copy, days, menu as menuCopy, stream as streamCopy } from "../../lang/zh-TW";
   import type { Attachment } from "../../lib/api";
   import { kind, single } from "../../lib/files";
   import { markdown } from "../../lib/markdown";
@@ -102,7 +102,7 @@
   class="article"
   tabindex="-1"
   bind:this={dialog}
-  aria-labelledby="a-title"
+  aria-labelledby={a ? "a-title" : "a-note"}
   oncancel={(event) => {
     event.preventDefault();
     if (ui.menu) ui.menu = null;
@@ -115,6 +115,14 @@
     <IconButton label={copy.close} icon={X} onclick={closeArticle} />
     {#if a}<IconButton label={copy.more} icon={More} onclick={more} />{/if}
   </div>
+  {#if reader.missing}
+    <p class="a-note" id="a-note">{copy.missing}</p>
+  {:else if reader.failed}
+    <div class="a-note">
+      <p id="a-note">{streamCopy.failed}</p>
+      <button type="button" class="btn" onclick={() => reader.id !== null && show(reader.id)}>{streamCopy.retry}</button>
+    </div>
+  {/if}
   {#if a}
     <article class="doc">
       <span class="sec">{source(a, app.sites, app.settings)}</span>
@@ -309,6 +317,18 @@
   }
   .body :global(img) {
     cursor: zoom-in;
+  }
+  .a-note {
+    display: grid;
+    justify-items: center;
+    gap: 12px;
+    margin: 0;
+    padding: 96px 24px;
+    text-align: center;
+    color: var(--ink-2);
+  }
+  .a-note p {
+    margin: 0;
   }
   .tags {
     display: flex;
