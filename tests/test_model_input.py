@@ -58,3 +58,26 @@ def test_the_kept_elements() -> None:
         "plain no link [again](L1)"
     )
     assert given.targets == {"L1": "https://www.ntust.edu.tw/apply"}
+
+
+def test_urls_in_the_text() -> None:
+    """Model input: URLs written as text or as a link's text become placeholders too."""
+    body = (
+        "<p>Apply at https://forms.gle/abc. Or"
+        ' <a href="https://example.com/a">https://example.com/a</a>, www.ntust.edu.tw/p (see)'
+        ' <a href="http://[bad">broken</a>'
+        ' <a href="https://example.com/f"><img src="/i.png" alt="poster"></a></p>'
+    )
+
+    given = model_input("T", body, (), "https://www.ntust.edu.tw/p/406-1000-1.php")
+
+    assert given.text == (
+        "Title: T\n\nBody:\nApply at <L1>. Or <L2>, <L3> (see) broken ![poster](I1)<L4>"
+    )
+    assert given.targets == {
+        "L1": "https://forms.gle/abc",
+        "L2": "https://example.com/a",
+        "L3": "https://www.ntust.edu.tw/p",
+        "I1": "https://www.ntust.edu.tw/i.png",
+        "L4": "https://example.com/f",
+    }
