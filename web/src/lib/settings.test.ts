@@ -2,7 +2,7 @@
 import { describe, expect, test } from "vitest";
 import { sites } from "../../tests/fixtures/recorded.ts";
 import { NO_FILTERS, streamQuery } from "./api";
-import { applyTheme, DEFAULTS, DEFAULT_TOPICS, STORE_KEY, loadSettings, parseSettings, saveSettings, topicOrder } from "./settings";
+import { applyTheme, DEFAULTS, DEFAULT_TOPICS, STORE_KEY, loadSettings, moveTopic, parseSettings, saveSettings, topicOrder } from "./settings";
 
 const STUDENT_AFFAIRS = sites.find((site) => site.id === 1053)!;
 
@@ -79,4 +79,16 @@ test("a saved light or dark theme overrides the system's", () => {
   expect(root.dataset["theme"]).toBe("dark");
   applyTheme(root, "system");
   expect(root.hasAttribute("data-theme")).toBe(false);
+});
+
+describe("Topic chips and unit filter", () => {
+  const order = ["a", "b", "c", "d"];
+
+  test.fails("a topic moves to a position, within bounds", () => {
+    expect(moveTopic(order, "d", 0)).toEqual(["d", "a", "b", "c"]);
+    expect(moveTopic(order, "a", 2)).toEqual(["b", "c", "a", "d"]);
+    expect(moveTopic(order, "b", -1)).toEqual(["b", "a", "c", "d"]);
+    expect(moveTopic(order, "b", 9)).toEqual(["a", "c", "d", "b"]);
+    expect(moveTopic(order, "x", 0)).toEqual(order);
+  });
 });

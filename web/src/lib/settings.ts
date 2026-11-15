@@ -147,3 +147,8 @@ export function readImport(text: string): Settings {
   }
   throw new UnreadableSettings();
 }
+
+/** `order` with `topic` moved to position `to`, within the list's bounds. */
+export function moveTopic(_order: string[], _topic: string, _to: number): string[] {
+  throw new Error("not implemented");
+}
