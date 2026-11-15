@@ -74,6 +74,19 @@ export const onboarding = {
   done: "開始使用",
 } as const;
 
+export const menu = {
+  hide: (board: string) => `隱藏「${board}」`,
+  unfollow: (unit: string) => `不再關注「${unit}」`,
+  follow: (unit: string) => `關注「${unit}」`,
+  copyLink: "複製連結",
+  openSchool: "開啟原網頁",
+  hidden: (board: string) => `已隱藏「${board}」`,
+  unfollowed: (unit: string) => `已取消關注「${unit}」`,
+  followed: (unit: string) => `已關注「${unit}」`,
+  copied: "已複製連結",
+  undo: "復原",
+} as const;
+
 export const transfer = {
   copiedJson: "已複製設定",
   copiedLink: "已複製分享連結",

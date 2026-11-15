@@ -10,7 +10,7 @@ const keys = (result: ReturnType<typeof actions>) => ({
   follow: result.follow?.id ?? null,
 });
 
-test.fails("An item on two followed boards: either board can be hidden and either unit unfollowed", () => {
+test("An item on two followed boards: either board can be hidden and either unit unfollowed", () => {
   expect(keys(actions(articles[16], sites, DEFAULT))).toEqual({
     hide: ["1045-1391", "1049-1"],
     unfollow: [1045, 1049],
@@ -18,7 +18,7 @@ test.fails("An item on two followed boards: either board can be hidden and eithe
   });
 });
 
-test.fails("hidden, unfollowed and unknown boards are not offered", () => {
+test("hidden, unfollowed and unknown boards are not offered", () => {
   const item = { ...articles[16], boards: [...articles[16].boards, "1053-1435", "9999-1"] };
 
   expect(keys(actions(item, sites, { sites: [1045, 1053], hiddenBoards: ["1053-1435"] }))).toEqual({
@@ -28,7 +28,7 @@ test.fails("hidden, unfollowed and unknown boards are not offered", () => {
   });
 });
 
-test.fails("an item of an unfollowed unit, as search shows it, offers to follow its unit", () => {
+test("an item of an unfollowed unit, as search shows it, offers to follow its unit", () => {
   expect(keys(actions(articles[1], sites, { sites: [1049], hiddenBoards: [] }))).toEqual({
     hide: [],
     unfollow: [],

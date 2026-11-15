@@ -1,5 +1,5 @@
 // The page's state: the settings, kept in localStorage, and the API's lists.
-import { transfer } from "./lang/zh-TW";
+import { menu, transfer } from "./lang/zh-TW";
 import { type Dimension, type Filters, get, NO_FILTERS, type Site } from "./lib/api";
 import {
   DEFAULTS,
@@ -76,6 +76,23 @@ export function ask(question: Omit<Question, "answer">): Promise<boolean> {
 /** Show a notice, with an action such as undo. */
 export function notify(message: string, action?: Notice["action"]): void {
   ui.notice = action ? { message, action } : { message };
+}
+
+/** Change the settings at once, with an undo in a notice. */
+export function withUndo(next: Settings, message: string): void {
+  const before = app.settings;
+  setSettings(next);
+  notify(message, { label: menu.undo, run: () => setSettings(before) });
+}
+
+/** Copy `text`, saying so, or that the clipboard refused. */
+export async function copyText(text: string, done: string): Promise<void> {
+  try {
+    await navigator.clipboard.writeText(text);
+    notify(done);
+  } catch {
+    notify(transfer.noClipboard);
+  }
 }
 
 /** Apply imported or linked settings: at once for a reader who never saved any, else on yes. */

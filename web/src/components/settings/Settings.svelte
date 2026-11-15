@@ -3,7 +3,7 @@
   import X from "@jis3r/icons/icons/x";
   import { settings as copy, transfer } from "../../lang/zh-TW";
   import { type Prefer, readImport, settingsLink, type Theme } from "../../lib/settings";
-  import { app, ask, clearSettings, notify, offerSettings, setSettings, ui } from "../../state.svelte";
+  import { app, ask, clearSettings, copyText, offerSettings, setSettings, ui } from "../../state.svelte";
   import IconButton from "../ui/IconButton.svelte";
   import TopicOrder from "./TopicOrder.svelte";
   import UnitPicker from "./UnitPicker.svelte";
@@ -31,15 +31,6 @@
   let pasted = $state("");
   let importError = $state("");
   const json = () => JSON.stringify(app.settings, null, 2);
-
-  async function copyText(text: string, done: string): Promise<void> {
-    try {
-      await navigator.clipboard.writeText(text);
-      notify(done);
-    } catch {
-      notify(transfer.noClipboard);
-    }
-  }
 
   function download(): void {
     const url = URL.createObjectURL(new Blob([json()], { type: "application/json" }));

@@ -8,9 +8,19 @@ export type Actions = {
 };
 
 export function actions(
-  _item: Item,
-  _sites: Site[],
-  _settings: { sites: number[]; hiddenBoards: string[] },
+  item: Item,
+  sites: Site[],
+  settings: { sites: number[]; hiddenBoards: string[] },
 ): Actions {
-  throw new Error("not implemented");
+  const hide: Board[] = [];
+  const unfollow: Site[] = [];
+  for (const key of item.boards) {
+    const site = sites.find((s) => s.id === Number(key.split("-")[0]));
+    const board = site?.boards.find((b) => b.key === key);
+    if (!site || !board || !settings.sites.includes(site.id) || settings.hiddenBoards.includes(key)) continue;
+    hide.push(board);
+    if (!unfollow.includes(site)) unfollow.push(site);
+  }
+  const own = sites.find((site) => site.id === item.site);
+  return { hide, unfollow, follow: own && !settings.sites.includes(own.id) ? own : null };
 }

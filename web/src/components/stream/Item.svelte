@@ -4,14 +4,75 @@
   import { source } from "../../lib/stream";
   import { app } from "../../state.svelte";
   import { feed } from "../../stream.svelte";
+  import { itemMenu } from "./itemMenu";
+
+  const HOLD = 500; // milliseconds a finger holds before the menu opens
+  const SLOP = 10; // pixels a finger moves before the hold is a scroll
 
   let { item }: { item: Item } = $props();
   const rewrite = $derived(app.settings.prefer === "rendition" ? item.rendition : null);
   const unit = $derived(item.unit ?? app.sites.find((site) => site.id === item.site)?.unit ?? "");
+
+  let press: { x: number; y: number; timer: number } | null = null;
+  let held = false; // the hold opened the menu, so the click that follows does not open the item
+
+  function context(event: MouseEvent): void {
+    event.preventDefault();
+    if (held) return;
+    const box = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    const keyboard = event.clientX === 0 && event.clientY === 0;
+    itemMenu(item, keyboard ? { x: box.left + 16, y: box.top + 24 } : { x: event.clientX, y: event.clientY });
+  }
+
+  function keys(event: KeyboardEvent): void {
+    if (event.key !== "ContextMenu" && !(event.shiftKey && event.key === "F10")) return;
+    event.preventDefault();
+    const box = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    itemMenu(item, { x: box.left + 16, y: box.top + 24 });
+  }
+
+  function down(event: PointerEvent): void {
+    if (event.pointerType !== "touch") return;
+    held = false;
+    const at = { x: event.clientX, y: event.clientY };
+    press = {
+      ...at,
+      timer: window.setTimeout(() => {
+        held = true;
+        navigator.vibrate?.(8);
+        itemMenu(item, at, true);
+      }, HOLD),
+    };
+  }
+
+  function move(event: PointerEvent): void {
+    if (press && Math.hypot(event.clientX - press.x, event.clientY - press.y) >= SLOP) release();
+  }
+
+  function release(): void {
+    if (press) clearTimeout(press.timer);
+    press = null;
+  }
+
+  function click(event: MouseEvent): void {
+    if (!held) return;
+    event.preventDefault();
+    held = false;
+  }
 </script>
 
 <li data-id={item.id} class:arrive={feed.arrived.has(item.id)}>
-  <a class="item" href="/a/{item.id}">
+  <a
+    class="item"
+    href="/a/{item.id}"
+    oncontextmenu={context}
+    onkeydown={keys}
+    onpointerdown={down}
+    onpointermove={move}
+    onpointerup={release}
+    onpointercancel={release}
+    onclick={click}
+  >
     <span class="sec">{source(item, app.sites, app.settings)}</span>
     <span class="title">{rewrite?.title ?? item.title}</span>
     {#if rewrite?.summary}<span class="sum">{rewrite.summary}</span>{/if}

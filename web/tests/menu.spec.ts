@@ -8,6 +8,7 @@ const board = (key: string) => sites.flatMap((site) => site.boards).find((b) => 
 const unit = (id: number) => sites.find((site) => site.id === id)!.unit;
 const item = (page: Page, id: number) => page.locator(`main .items > li[data-id="${id}"] a`);
 const menu = (page: Page) => page.getByRole("menu");
+const notice = (page: Page) => page.locator("[role=status][aria-live=polite]");
 
 test.beforeEach(async ({ page }) => {
   await answer(page);
@@ -17,7 +18,6 @@ test.beforeEach(async ({ page }) => {
 test("An item on two followed boards: its menu offers to hide either board and unfollow either unit", async ({
   page,
 }) => {
-  test.fail(true, "Context menu");
   await page.goto("/");
 
   await item(page, 16).click({ button: "right" });
@@ -36,14 +36,13 @@ test("An item on two followed boards: its menu offers to hide either board and u
 test("Unfollowing and undoing: the unit leaves the stream, then returns, and the settings match the start", async ({
   page,
 }) => {
-  test.fail(true, "Context menu");
   const sent = await answer(page);
   await page.goto("/");
   const start = await stored(page);
 
   await item(page, 16).click({ button: "right" });
   await menu(page).getByRole("menuitem", { name: `不再關注「${unit(1049)}」` }).click();
-  await expect(page.getByRole("status")).toContainText(`已取消關注「${unit(1049)}」`);
+  await expect(notice(page)).toContainText(`已取消關注「${unit(1049)}」`);
   await expect.poll(() => sent.at(-1)).not.toContain("site=1049");
   await page.getByRole("button", { name: "復原" }).click();
 
@@ -53,18 +52,16 @@ test("Unfollowing and undoing: the unit leaves the stream, then returns, and the
 });
 
 test("hiding a board applies at once with an undo", async ({ page }) => {
-  test.fail(true, "Context menu");
   await page.goto("/");
 
   await item(page, 16).click({ button: "right" });
   await menu(page).getByRole("menuitem", { name: `隱藏「${board("1049-1")}」` }).click();
 
-  await expect(page.getByRole("status")).toContainText(`已隱藏「${board("1049-1")}」`);
+  await expect(notice(page)).toContainText(`已隱藏「${board("1049-1")}」`);
   expect(JSON.parse((await stored(page))!).hiddenBoards).toEqual(["1049-1"]);
 });
 
 test("the menu key opens the menu of a focused item, and copying its link works", async ({ page, context }) => {
-  test.fail(true, "Context menu");
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.goto("/");
 
@@ -72,12 +69,11 @@ test("the menu key opens the menu of a focused item, and copying its link works"
   await page.keyboard.press("Shift+F10");
   await menu(page).getByRole("menuitem", { name: "複製連結" }).click();
 
-  await expect(page.getByRole("status")).toContainText("已複製連結");
+  await expect(notice(page)).toContainText("已複製連結");
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(`${new URL(page.url()).origin}/a/16`);
 });
 
 test("a long press opens the menu as a bottom sheet on phones", async ({ page }, info) => {
-  test.fail(true, "Context menu");
   test.skip(info.project.name !== "phone", "a touch hold");
   await page.goto("/");
   const target = item(page, 16);
