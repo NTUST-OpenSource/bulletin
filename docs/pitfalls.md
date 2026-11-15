@@ -98,6 +98,9 @@ Checked with the `@discord/markdown-wasm` 0.15.0 parser:
 - `__underline__` next to CJK characters does not parse.
 - Never emit `@everyone`, `@here` or other mentions.
 - A masked link after punctuation renders fine.
+- A link whose host holds a `%` escape or non-ASCII text does not parse; userinfo, ports, IPs,
+  underscores and punycode do. School pages link to such hosts (`http://` before Chinese text,
+  `name@mail.ntust.edu.tw%20/`) and to `http:// https://host/` (2026-11-16).
 
 ## Gemini
 
