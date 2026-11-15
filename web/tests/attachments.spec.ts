@@ -18,7 +18,8 @@ const stored = (name: string): Attachment => ({
 const pdf = articles[8].attachments[0]!;
 const [poster12, poster16] = articles[14].attachments;
 
-test("A stored PDF: it opens in an in-page preview with a download button", async ({ page }) => {
+test("A stored PDF: it opens in an in-page preview with a download button", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop", "touch screens open PDFs in a new tab");
   await answer(page);
   await saved(page);
   await page.goto("/a/8");
@@ -33,6 +34,21 @@ test("A stored PDF: it opens in an in-page preview with a download button", asyn
   await page.keyboard.press("Escape");
   await expect(preview(page)).toBeHidden();
   await expect(article(page)).toBeVisible();
+});
+
+test("A stored PDF on a touch screen: it opens in a new tab", async ({ page }, info) => {
+  test.fail(true, "Attachments: touch screens open stored PDFs in a new tab");
+  test.skip(info.project.name !== "phone", "a touch screen");
+  await answer(page);
+  await saved(page);
+  await page.goto("/a/8");
+  expect(await page.evaluate(() => navigator.pdfViewerEnabled)).toBe(true);
+
+  const popup = page.waitForEvent("popup", { timeout: 3000 });
+  await file(page, pdf.name).click();
+
+  expect(new URL((await popup).url()).pathname).toBe(pdf.file);
+  await expect(preview(page)).toBeHidden();
 });
 
 test("where the browser shows no PDFs in a page, the stored PDF opens in a new tab", async ({ page }) => {
