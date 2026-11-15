@@ -30,13 +30,13 @@ tests call the app in process with httpx's ASGI transport against the PGroonga t
 
 ## 4. Single announcements, events, sites and tags
 
-- [ ] 4.1 Commit the xfail test for "One announcement" (public-api); verify it fails for the expected reason and the gate stays green
+- [x] 4.1 Commit the xfail test for "One announcement" (public-api); verify it fails for the expected reason and the gate stays green
 - [ ] 4.2 Implement "One announcement" and remove the marker; verify its scenarios pass and the gate is green
-- [ ] 4.3 Commit the xfail test for "Events feed" (public-api); verify it fails for the expected reason and the gate stays green
+- [x] 4.3 Commit the xfail test for "Events feed" (public-api); verify it fails for the expected reason and the gate stays green
 - [ ] 4.4 Implement "Events feed" and remove the marker; verify its scenarios pass and the gate is green
-- [ ] 4.5 Commit the xfail test for "Sites and boards" (public-api); verify it fails for the expected reason and the gate stays green
+- [x] 4.5 Commit the xfail test for "Sites and boards" (public-api); verify it fails for the expected reason and the gate stays green
 - [ ] 4.6 Implement "Sites and boards" and remove the marker; verify its scenarios pass and the gate is green
-- [ ] 4.7 Commit the xfail test for "Tag taxonomy" (public-api); verify it fails for the expected reason and the gate stays green
+- [x] 4.7 Commit the xfail test for "Tag taxonomy" (public-api); verify it fails for the expected reason and the gate stays green
 - [ ] 4.8 Implement "Tag taxonomy" and remove the marker; verify its scenarios pass and the gate is green
 
 ## 5. HTTP behaviour

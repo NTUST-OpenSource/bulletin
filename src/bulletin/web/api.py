@@ -71,4 +71,20 @@ def api_app(connect: Connect, store: FileStore, release: str) -> FastAPI:
         ids, following = await stream.page(conn, filters, after, limit)
         return Page(tuple(await stream.items(conn, ids)), following and following.encode())
 
+    @app.get("/announcements/{announcement}")
+    async def one(announcement: int) -> None:  # pyright: ignore[reportUnusedFunction]
+        raise NotImplementedError
+
+    @app.get("/events")
+    async def events() -> None:  # pyright: ignore[reportUnusedFunction]
+        raise NotImplementedError
+
+    @app.get("/sites")
+    async def sites() -> None:  # pyright: ignore[reportUnusedFunction]
+        raise NotImplementedError
+
+    @app.get("/tags")
+    async def tags() -> None:  # pyright: ignore[reportUnusedFunction]
+        raise NotImplementedError
+
     return app
