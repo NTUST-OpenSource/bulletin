@@ -44,6 +44,10 @@ PARAGRAPHS = frozenset(
 )
 BLOCKS = PARAGRAPHS | HEADINGS | LISTS | {"table"}
 WEB = frozenset({"http", "https"})
+# A pasted link that kept the scheme typed before it: "http:// https://host/".
+SCHEME_TWICE = re.compile(r"https?://\s*(?=https?://)", re.IGNORECASE)
+# A host Discord links: ASCII letters, digits, dots, hyphens and underscores, as punycode and IPs.
+HOST = re.compile(r"[A-Za-z0-9._-]+")
 SPACES = re.compile(f"[{re.escape(''.join(sorted(WHITESPACE)))}]+")
 DROPPED = dict.fromkeys(map(ord, INVISIBLE))
 CELL_PIPE = re.compile(r"\|")
@@ -124,9 +128,16 @@ class _Writer:
         return self.numbers[kind, target]
 
     def _web(self, value: str) -> str | None:
-        """The http(s) URL that `value` names, if any; a malformed one names none."""
-        target = join(self.url, value.strip())
-        return target if target and urlsplit(target).scheme in WEB else None
+        """The http(s) URL that `value` names, if any.
+
+        A scheme typed twice is dropped; a malformed URL, or one whose host Discord would not
+        link, names none.
+        """
+        target = join(self.url, SCHEME_TWICE.sub("", value.strip(), count=1))
+        if target is None:
+            return None
+        parts = urlsplit(target)
+        return target if parts.scheme in WEB and HOST.fullmatch(parts.hostname or "") else None
 
     # shortcut: recursion follows the body's nesting; school bodies nest a few dozen levels at most.
     def blocks(self, container: Element) -> list[str]:

@@ -10,5 +10,5 @@ then implement it, remove the marker and commit with the gate green.
 
 ## 2. Model input
 
-- [ ] 2.1 Commit the tests for "A scheme typed twice" and "A host Discord cannot link", marked to fail; verify they fail for the expected reason and the gate stays green
-- [ ] 2.2 Repair targets that repeat their scheme and drop links and images whose host is not an ASCII host name, and remove the markers; verify the gate is green
+- [x] 2.1 Commit the tests for "A scheme typed twice" and "A host Discord cannot link", marked to fail; verify they fail for the expected reason and the gate stays green
+- [x] 2.2 Repair targets that repeat their scheme and drop links and images whose host is not an ASCII host name, and remove the markers; verify the gate is green

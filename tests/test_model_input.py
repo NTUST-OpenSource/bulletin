@@ -3,8 +3,6 @@
 import json
 from pathlib import Path
 
-import pytest
-
 from bulletin.model_input import model_input
 from bulletin.pages import parse_article
 
@@ -109,7 +107,6 @@ def test_emoji_in_the_source() -> None:
     assert given.text == "Title: Title\n\nBody:\nApply now\n\n![](I1) Poster"
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="Model input")
 def test_a_scheme_typed_twice() -> None:
     """Model input: a target that repeats its scheme names the URL after it."""
     body = (
@@ -125,7 +122,6 @@ def test_a_scheme_typed_twice() -> None:
     }
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="Model input")
 def test_a_host_discord_cannot_link() -> None:
     """Model input: a link whose host is not an ASCII host name keeps its text only, and such an
     image is left out."""
