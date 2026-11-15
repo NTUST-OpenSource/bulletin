@@ -53,7 +53,7 @@ services:
       FORWARDED_ALLOW_IPS: 172.16.0.0/12,192.168.0.0/16
     volumes:
       - files:/data/files
-    # The model server for add-rendering runs natively on the host.
+    # An OpenAI-compatible model server on the host, if one is configured, is host.docker.internal.
     extra_hosts:
       - "host.docker.internal:host-gateway"
 

@@ -6,8 +6,8 @@ it), and serves them at `bulletin.ntust.org` through a public API and a web fron
 
 It is an unofficial service, not run by the university.
 
-Status: the collector runs (specs under `openspec/specs/`); rendering, the public API and the
-frontend follow, in the order of `docs/roadmap.md`.
+Status: the collector runs (specs under `openspec/specs/`) and rendering is being added; the
+public API and the frontend follow, in the order of `docs/roadmap.md`.
 
 Contributors start with `AGENTS.md`.
 
@@ -15,11 +15,13 @@ Contributors start with `AGENTS.md`.
 
 The Compose project `bulletin` (`compose.yaml`) runs two containers: `bulletin-db`, PostgreSQL 18
 with PGroonga, and `bulletin-internal`, one process that serves the public listener (`:8000`), the
-admin listener (`bulletin-internal-admin:8001`) and the worker that polls the school. No ports are
-published; nginx-proxy-manager reaches the public listener over the external network `proxy-net`.
+admin listener (`bulletin-internal-admin:8001`), the worker that polls the school and, with model
+keys, the renderer that rewrites announcements. No ports are published; nginx-proxy-manager reaches
+the public listener over the external network `proxy-net`.
 
 1. Create `proxy-net` once if the host does not have it: `docker network create proxy-net`.
-2. `cp .env.example .env`, then set `POSTGRES_PASSWORD` and `BULLETIN_ADMIN_TOKENS`.
+2. `cp .env.example .env`, then set `POSTGRES_PASSWORD` and `BULLETIN_ADMIN_TOKENS`, and
+   `BULLETIN_MODEL_KEYS` to render announcements.
 3. `docker compose up -d --build`. The first start applies the migrations and adds the boards of
    `seeds/boards.json`; later starts add only boards the registry does not hold.
 4. `docker compose ps` shows `bulletin-internal` as healthy once `/health` answers.
@@ -37,6 +39,13 @@ stack; the `pgdata` and `files` volumes keep the archive and the stored attachme
 | `BULLETIN_ADMIN_HOST` | set by `compose.yaml` | The address the admin listener binds to. |
 | `BULLETIN_FILES` | `/data/files` | Where stored attachment files go. |
 | `BULLETIN_SEED` | `/app/seeds/boards.json` | The boards added on start. |
+| `BULLETIN_MODEL_KEYS` | none | The model API's keys, comma-separated, used in turn; without any, nothing is rendered. |
+| `BULLETIN_MODEL_FORMAT` | `gemini` | `gemini` for Gemini's `generateContent`, `openai` for an OpenAI-compatible chat completions API. |
+| `BULLETIN_MODEL_ENDPOINT` | `https://generativelanguage.googleapis.com/v1beta` | The API's base URL. |
+| `BULLETIN_MODEL` | `gemini-4-hydrogen` | The model id. |
+| `BULLETIN_MODEL_RATE` | `10` | Requests per key per minute. |
+| `BULLETIN_THINKING_LEVEL` | `low` | Gemini's thinking level, or `reasoning_effort` in the OpenAI format; empty sends none. |
+| `BULLETIN_DISCORD_CHECK` | `/app/tools/discord-markdown/check.mjs` | The Discord Markdown check that Node runs. |
 
 ### Operator commands
 
