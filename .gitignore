@@ -12,3 +12,6 @@ htmlcov/
 .idea/
 /.env
 node_modules/
+/web/coverage/
+/web/test-results/
+/web/playwright-report/
