@@ -20,6 +20,7 @@ uv sync                       # create or update .venv from uv.lock
 uv run prek install           # install the git hooks once per clone
 scripts/gate.sh               # the full gate: npm ci, ruff, pyright, pytest + coverage, web, openspec
 (cd web && bun run e2e)       # the frontend's Playwright tests, which CI runs as its own job
+(cd web && BULLETIN_API=https://bulletin.ntust.org bun run dev)   # the page against an API
 npx --yes @fission-ai/openspec@1.14.1 <command>   # OpenSpec CLI (set OPENSPEC_TELEMETRY=0)
 ```
 

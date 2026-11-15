@@ -12,8 +12,13 @@ const policy: Plugin = {
   ],
 };
 
+// BULLETIN_API, such as https://bulletin.ntust.org or a local `bulletin serve`, answers /api for
+// `vite` and `vite preview`; without it, as in the tests, nothing leaves the machine.
+const api = process.env["BULLETIN_API"];
+
 export default defineConfig({
   plugins: [svelte(), policy],
+  server: api ? { proxy: { "/api": { target: api, changeOrigin: true } } } : {},
   preview: { headers: { "Content-Security-Policy": NO_FRAMES } },
   // Vitest runs in Node; components need Svelte's browser build to mount in jsdom.
   resolve: process.env["VITEST"] ? { conditions: ["browser"] } : {},
