@@ -3,6 +3,8 @@
 import json
 from pathlib import Path
 
+import pytest
+
 from bulletin.model_input import model_input
 from bulletin.pages import parse_article
 
@@ -10,6 +12,7 @@ FIXTURES = Path(__file__).parent / "fixtures"
 ARTICLE = FIXTURES / "articles" / "1068-152869"
 URL = "https://she.ntust.edu.tw/p/406-1068-152869.php"
 IMAGES = "https://she.ntust.edu.tw/var/file/68/1068/img/"
+HUMANS = chr(0x4EBA) + chr(0x985E)  # Chinese text a school page put in a link target
 
 
 def test_a_recorded_article() -> None:
@@ -104,3 +107,35 @@ def test_emoji_in_the_source() -> None:
     given = model_input(f"{pin} Title", body, (), "https://www.ntust.edu.tw/p/406-1000-1.php")
 
     assert given.text == "Title: Title\n\nBody:\nApply now\n\n![](I1) Poster"
+
+
+@pytest.mark.xfail(strict=True, raises=AssertionError, reason="Model input")
+def test_a_scheme_typed_twice() -> None:
+    """Model input: a target that repeats its scheme names the URL after it."""
+    body = (
+        '<div class="mpgdetail"><p><a href="http://&nbsp;https://dca.moi.gov.tw/ris">apply</a>'
+        ' <a href="http:// https://www.rd.ntust.edu.tw/p/x.php">calls</a></p></div>'
+    )
+
+    given = model_input("T", body, (), URL)
+
+    assert given.targets == {
+        "L1": "https://dca.moi.gov.tw/ris",
+        "L2": "https://www.rd.ntust.edu.tw/p/x.php",
+    }
+
+
+@pytest.mark.xfail(strict=True, raises=AssertionError, reason="Model input")
+def test_a_host_discord_cannot_link() -> None:
+    """Model input: a link whose host is not an ASCII host name keeps its text only, and such an
+    image is left out."""
+    body = (
+        '<div class="mpgdetail"><p>Mail <a href="http://name@mail.ntust.edu.tw%20/">name</a>,'
+        f' see <a href="http://{HUMANS}">{HUMANS}</a>'
+        f'<img src="http://{HUMANS}/a.png" alt="poster"> or <a href="/apply">apply</a></p></div>'
+    )
+
+    given = model_input("T", body, (), URL)
+
+    assert given.text == f"Title: T\n\nBody:\nMail name, see {HUMANS} or [apply](L1)"
+    assert given.targets == {"L1": "https://she.ntust.edu.tw/apply"}
