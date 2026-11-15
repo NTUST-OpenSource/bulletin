@@ -22,7 +22,6 @@ async def checker() -> AsyncIterator[Checker]:
     await running.close()
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Discord Markdown")
 def test_a_bare_url() -> None:
     """Discord Markdown: a bare URL is wrapped as <url>; links and autolinks stay."""
     assert fix(f"Apply at {URL}. Or [here]({URL}) or <{URL}>.") == (
@@ -31,7 +30,6 @@ def test_a_bare_url() -> None:
     assert fix(f"(see {URL})") == f"(see <{URL}>)"
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Discord Markdown")
 def test_a_masked_link_whose_text_is_a_url() -> None:
     """Discord Markdown: a masked link whose text holds a URL becomes the URL."""
     assert fix(f"[{URL}]({URL})") == f"<{URL}>"
@@ -39,7 +37,6 @@ def test_a_masked_link_whose_text_is_a_url() -> None:
     assert fix(f"![poster]({URL}/p.png)") == f"![poster]({URL}/p.png)"
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Discord Markdown")
 async def test_a_rendition_that_passes(checker: Checker) -> None:
     """Discord Markdown: fixed Markdown that the parser takes is returned."""
     markdown = f"### Apply\n\n- by **12/10** at {URL}\n  - [form]({URL})\n\n![poster]({URL}/p.png)"
@@ -47,7 +44,6 @@ async def test_a_rendition_that_passes(checker: Checker) -> None:
     assert await checker.check(markdown) == markdown.replace(f"at {URL}", f"at <{URL}>")
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Discord Markdown")
 @pytest.mark.parametrize(
     ("markdown", "problem"),
     [
@@ -65,21 +61,28 @@ async def test_a_rendition_that_fails(checker: Checker, markdown: str, problem: 
         await checker.check(markdown)
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Discord Markdown")
-async def test_a_crashed_check(checker: Checker) -> None:
-    """Discord Markdown: a check that dies is an error of its own, and the next check restarts."""
+async def test_a_check_that_died_idle(checker: Checker) -> None:
+    """Discord Markdown: a check that died between texts is started again."""
     assert await checker.check("ok") == "ok"
     process = checker.process
     assert process is not None
     process.kill()
     await process.wait()
 
-    with pytest.raises(CheckerError):
-        await checker.check("ok")
     assert await checker.check("ok") == "ok"
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Discord Markdown")
+async def test_a_check_that_dies(tmp_path: Path) -> None:
+    """Discord Markdown: a check that dies on a text is an error of its own, not of the answer."""
+    script = tmp_path / "dies.mjs"
+    script.write_text("process.stdin.once('data', () => process.exit(1));\n", encoding="utf-8")
+    dying = Checker(script)
+
+    with pytest.raises(CheckerError):
+        await dying.check("ok")
+    assert dying.process is None
+
+
 async def test_no_node(tmp_path: Path) -> None:
     """Discord Markdown: without Node the check cannot answer."""
     missing = Checker(SCRIPT, node=str(tmp_path / "node"))
