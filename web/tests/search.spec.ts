@@ -148,7 +148,6 @@ test("closing the box with its button or Esc clears the query", async ({ page })
 });
 
 test("the open box keeps the header on one row on the narrowest phones", async ({ page }, info) => {
-  test.fail(true, "Search: the box fits beside the header's buttons");
   test.skip(info.project.name !== "phone", "a phone width");
   await page.setViewportSize({ width: 320, height: 640 });
   await open(page);

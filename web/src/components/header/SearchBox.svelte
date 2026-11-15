@@ -148,6 +148,7 @@
     .search {
       flex: 1;
       width: auto;
+      min-width: 0;
     }
   }
 </style>
