@@ -13,3 +13,4 @@ scripts
 tests
 # Secrets for compose.
 .env
+**/node_modules

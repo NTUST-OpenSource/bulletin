@@ -3,6 +3,7 @@
 set -eu
 cd "$(dirname "$0")/.."
 
+npm ci --prefix tools/discord-markdown --prefer-offline --no-audit --no-fund --silent
 uv run --locked ruff check .
 uv run --locked ruff format --check .
 uv run --locked pyright

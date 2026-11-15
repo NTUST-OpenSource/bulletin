@@ -1,0 +1,11 @@
+{
+  "name": "bulletin-discord-markdown",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=26"
+  },
+  "dependencies": {
+    "@discord/markdown-wasm": "0.15.0"
+  }
+}

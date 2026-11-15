@@ -18,9 +18,12 @@ keeps them for ten years, and serves them through a public API and a web fronten
 ```sh
 uv sync                       # create or update .venv from uv.lock
 uv run prek install           # install the git hooks once per clone
-scripts/gate.sh               # the full gate: ruff, pyright, pytest + coverage, openspec
+scripts/gate.sh               # the full gate: npm ci, ruff, pyright, pytest + coverage, openspec
 npx --yes @fission-ai/openspec@1.14.1 <command>   # OpenSpec CLI (set OPENSPEC_TELEMETRY=0)
 ```
+
+The Discord Markdown check (`tools/discord-markdown/`) needs Node.js 26; the gate installs its
+package.
 
 If your global git config sets `core.hooksPath`, run `git config --local core.hooksPath
 .git/hooks` before `prek install`.
