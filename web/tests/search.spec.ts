@@ -43,6 +43,15 @@ test("An unfollowed unit: a search lists an announcement found only there", asyn
   expect(new URL(page.url()).searchParams.get("q")).toBe("跨單位");
 });
 
+test("a result marks the query in its title", async ({ page }) => {
+  test.fail(true, "Search");
+  await open(page);
+
+  await box(page).fill("單位");
+
+  await expect(item(page, elsewhere.id).locator("mark")).toHaveText("單位");
+});
+
 test("Leaving the box: the box closes and the results stay with the query shown", async ({ page }) => {
   await open(page);
   await box(page).fill("跨單位");

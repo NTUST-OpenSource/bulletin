@@ -90,3 +90,8 @@ export function merged(
   );
   return { items, overlap: polled.some((item) => seen.has(item.id)), added: unseen.map((item) => item.id) };
 }
+
+/** `text` cut where the query's words occur, ignoring case, so a search result can mark them. */
+export function marked(text: string, q: string): { text: string; mark: boolean }[] {
+  throw new Error(`not implemented: ${text} ${q}`);
+}

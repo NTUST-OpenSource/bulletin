@@ -2,7 +2,7 @@
 import { describe, expect, test } from "vitest";
 import { articles, sites, stream } from "../../tests/fixtures/recorded.ts";
 import type { Item } from "./api";
-import { byDay, heading, source, today } from "./stream";
+import { byDay, heading, marked, source, today } from "./stream";
 
 const item = (id: number, day: string): Item => ({ ...stream.first.items[0]!, id, day });
 
@@ -59,4 +59,23 @@ describe("source", () => {
 test("today is counted in Taipei", () => {
   expect(today(new Date("2026-11-15T16:30:00Z"))).toBe("2026-11-16");
   expect(today(new Date("2026-11-15T15:30:00Z"))).toBe("2026-11-15");
+});
+
+describe("Search", () => {
+  test.fails("a result marks each word of the query, ignoring case", () => {
+    expect(marked("Scholarship for AI students", "ai SCHOLARSHIP")).toEqual([
+      { text: "Scholarship", mark: true },
+      { text: " for ", mark: false },
+      { text: "AI", mark: true },
+      { text: " students", mark: false },
+    ]);
+    expect(marked("a+b (c)", "+b (c")).toEqual([
+      { text: "a", mark: false },
+      { text: "+b", mark: true },
+      { text: " ", mark: false },
+      { text: "(c", mark: true },
+      { text: ")", mark: false },
+    ]);
+    expect(marked("text", "")).toEqual([{ text: "text", mark: false }]);
+  });
 });
