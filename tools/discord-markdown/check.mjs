@@ -5,12 +5,20 @@ import { iter, parse } from "@discord/markdown-wasm";
 
 const SCHEMES = new Set(["http:", "https:"]);
 
+function isWeb(url) {
+  try {
+    return SCHEMES.has(new URL(url).protocol);
+  } catch {
+    return false;
+  }
+}
+
 function problems(text) {
   const found = new Set();
   for (const node of iter(parse(text))) {
     if (node.type === "mention") {
       found.add("mention");
-    } else if (node.type === "link" && !SCHEMES.has(new URL(node.value.url).protocol)) {
+    } else if (node.type === "link" && !isWeb(node.value.url)) {
       found.add("link scheme");
     } else if (node.type === "text" && node.value.includes("](")) {
       // A masked link the parser did not take shows its brackets as text.

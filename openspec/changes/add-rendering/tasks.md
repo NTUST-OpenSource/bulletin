@@ -34,7 +34,7 @@ never reach the network: the model's answers are fixtures, and the Discord check
 - [x] 4.6 Implement "Structured answer" (the prompt, its JSON schema, `PROMPT_VERSION` with the digest test) and remove the marker; verify its scenarios pass and the gate is green
 - [x] 4.7 Commit the xfail test for "Deadlines from the text" (rendering); verify it fails for the expected reason and the gate stays green
 - [x] 4.8 Implement "Deadlines from the text" (the date finder) and remove the marker; verify its scenarios pass and the gate is green
-- [ ] 4.9 Commit the xfail test for "Discord Markdown" (rendering); verify it fails for the expected reason and the gate stays green
+- [x] 4.9 Commit the xfail test for "Discord Markdown" (rendering); verify it fails for the expected reason and the gate stays green
 - [ ] 4.10 Implement "Discord Markdown" (the fixes and the Node subprocess) and remove the marker; verify its scenarios pass and the gate is green
 
 ## 5. Model client and the rendering loop
