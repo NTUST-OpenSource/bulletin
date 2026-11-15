@@ -2,6 +2,7 @@
 
 import json
 import re
+import unicodedata
 from dataclasses import dataclass
 from datetime import date
 from typing import cast
@@ -13,6 +14,23 @@ from bulletin.taxonomy import TagError, parse_tags
 PLACEHOLDER = re.compile(r"(?<![A-Za-z0-9])([LI])([1-9][0-9]*)(?![0-9])")
 # What a URL keeps as it is inside a Markdown link: the reserved characters but parentheses.
 URL_SAFE = "!#$%&'*+,/:;=?@[]~"
+YEAR, MONTH = chr(0x5E74), chr(0x6708)
+# Dates as the school writes them, after NFKC: a Gregorian or ROC year, a month and a day, with
+# dashes, slashes, dots or the year and month characters; or a month and a day alone.
+FULL_DATE = re.compile(
+    rf"(?<![0-9])([0-9]{{2,4}}) *(?:[-/.]|{YEAR}) *([0-9]{{1,2}}) *(?:[-/.]|{MONTH}) *"
+    r"([0-9]{1,2})(?![0-9])"
+)
+MONTH_DAY = re.compile(rf"(?<![0-9/.-])([0-9]{{1,2}}) *(?:/|{MONTH}) *([0-9]{{1,2}})(?![0-9])")
+ROC_OFFSET = 1911
+MONTHS = ("jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec")
+# English dates: "November 25, 2026", "Nov. 25", "25 November 2026".
+NAME = r"(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?"
+NAMED_DATE = re.compile(
+    rf"\b{NAME} ([0-9]{{1,2}})(?:st|nd|rd|th)?\b(?:,? ([0-9]{{4}}))?"
+    rf"|\b([0-9]{{1,2}}) {NAME}(?: ([0-9]{{4}}))?",
+    re.IGNORECASE,
+)
 
 
 class AnswerError(ValueError):
@@ -102,4 +120,30 @@ def keep_deadline(deadline: date | None, text: str, year: int) -> date | None:
 
     Dates without a year are read in `year`, the year of the list date, and the next one.
     """
-    raise NotImplementedError
+    if deadline is None:
+        return None
+    return deadline if deadline in _dates(unicodedata.normalize("NFKC", text), year) else None
+
+
+def _dates(text: str, year: int) -> set[date]:
+    found: set[date] = set()
+    for match in FULL_DATE.finditer(text):
+        given, month, day = map(int, match.groups())
+        _add(found, given if given > ROC_OFFSET else given + ROC_OFFSET, month, day)
+    for match in MONTH_DAY.finditer(text):
+        month, day = map(int, match.groups())
+        _add(found, year, month, day)
+        _add(found, year + 1, month, day)
+    for match in NAMED_DATE.finditer(text):
+        name, day, given = match.group(1, 2, 3) if match[1] else match.group(5, 4, 6)
+        month = MONTHS.index(name.lower()) + 1
+        for in_year in (int(given),) if given else (year, year + 1):
+            _add(found, in_year, month, int(day))
+    return found
+
+
+def _add(found: set[date], year: int, month: int, day: int) -> None:
+    try:
+        found.add(date(year, month, day))
+    except ValueError:
+        return

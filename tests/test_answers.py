@@ -100,7 +100,6 @@ YEAR, MONTH, DAY = chr(0x5E74), chr(0x6708), chr(0x65E5)
 DECEMBER_10 = date(2026, 12, 10)
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Deadlines from the text")
 @pytest.mark.parametrize(
     "written",
     [
@@ -113,6 +112,9 @@ DECEMBER_10 = date(2026, 12, 10)
         pytest.param(f"12{MONTH}10{DAY}", id="month and day"),
         pytest.param("12/10(Thu)", id="month and day with slashes"),
         pytest.param("".join(chr(0xFF10 + int(d)) for d in "115") + "/12/10", id="full-width"),
+        pytest.param("December 10, 2026", id="English"),
+        pytest.param("Thursday, Dec. 10th", id="English without the year"),
+        pytest.param("10 December 2026", id="English day first"),
     ],
 )
 def test_a_deadline_in_the_text(written: str) -> None:
@@ -122,20 +124,19 @@ def test_a_deadline_in_the_text(written: str) -> None:
     assert keep_deadline(DECEMBER_10, text, 2026) == DECEMBER_10
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Deadlines from the text")
 def test_a_date_of_the_next_year() -> None:
     """Deadlines from the text: a month and day may belong to the year after the list date."""
     assert keep_deadline(date(2027, 1, 5), "Due 1/5.", 2026) == date(2027, 1, 5)
     assert keep_deadline(date(2028, 1, 5), "Due 1/5.", 2026) is None
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Deadlines from the text")
 @pytest.mark.parametrize(
     "text",
     [
         pytest.param("Apply before 2026/12/11.", id="another day"),
         pytest.param("Call 2026-1210 or room 12/101.", id="numbers that are not dates"),
         pytest.param("No date at all.", id="no date"),
+        pytest.param("December 10, 2025", id="English, another year"),
     ],
 )
 def test_an_invented_date(text: str) -> None:
@@ -143,7 +144,6 @@ def test_an_invented_date(text: str) -> None:
     assert keep_deadline(DECEMBER_10, text, 2026) is None
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Deadlines from the text")
 def test_no_deadline() -> None:
     """Deadlines from the text: an answer without a deadline keeps none."""
     assert keep_deadline(None, "2026/12/10", 2026) is None

@@ -95,8 +95,9 @@ three attempts run back to back, each on the next key with room.
 1. JSON that matches the schema, tags from the taxonomy, one nature and one source.
 2. Placeholders: none unknown, every image placeholder present; then each is replaced by its URL.
 3. Deadline: kept only when the text holds the date in one of the forms the date finder knows
-   (`2026-12-10`, `2026/12/10`, `115/12/10`, `115年12月10日`, `12月10日`, `12/10`, the last two
-   read in the announcement's year).
+   (`2026-12-10`, `2026/12/10`, `115/12/10`, `115年12月10日`, `12月10日`, `12/10`,
+   `December 10, 2026`, `10 Dec`; those without a year read in the list date's year and the
+   next), after NFKC so that full-width digits count.
 4. Discord fixes (E4): bare URLs wrapped as `<url>`, masked links whose text is a URL replaced by
    the URL.
 5. The Discord Markdown check: a long-lived Node subprocess runs `@discord/markdown-wasm` and

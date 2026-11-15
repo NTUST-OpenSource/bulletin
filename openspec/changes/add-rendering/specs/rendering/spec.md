@@ -76,8 +76,8 @@ or does not match the schema SHALL fail the attempt.
 
 ### Requirement: Deadlines from the text
 A deadline SHALL be kept only when its date appears in the source text, in any of the school's
-date forms: Gregorian or ROC years, numeric or Chinese, with or without the year. A deadline that
-does not appear SHALL be dropped; the rendition is stored without one.
+date forms: Gregorian or ROC years, numeric, Chinese or with English month names, with or without
+the year. A deadline that does not appear SHALL be dropped; the rendition is stored without one.
 
 #### Scenario: An ROC date
 - **WHEN** the text says the deadline is 115年12月10日 and the answer gives 2026-12-10
