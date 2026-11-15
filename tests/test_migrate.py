@@ -90,8 +90,11 @@ async def test_title_search_finds_two_character_terms(db: AsyncConnection) -> No
     assert await cur.fetchall() == [(1,)]
 
 
-async def stored(db: AsyncConnection, article_id: int, listed_on: date | None) -> int:
-    """An article with a rendition and a model tag, as rendering stored it before 0005."""
+async def stored(
+    db: AsyncConnection, article_id: int, listed_on: date | None, *, fallback: bool = False
+) -> int:
+    """An article with a rendition and a model tag, as rendering stored it before 0005; a
+    fallback has no tag."""
     listed = Listed(1000, "www.ntust.edu.tw", article_id, None, "t", listed_on)
     announcement = await publish(db, listed, notify=False, late=True)
     await revise(db, announcement, Content("t", "p", "<p>b</p>", "b"))
@@ -100,8 +103,9 @@ async def stored(db: AsyncConnection, article_id: int, listed_on: date | None) -
     )
     revision = await cur.fetchone()
     assert revision is not None
-    tags = frozenset({("topic", "courses")})
-    await store(db, announcement, revision[0], Rendition(1, "m", "t", "m", tags=tags))
+    tags = frozenset[tuple[str, str]]() if fallback else frozenset({("topic", "courses")})
+    rendition = Rendition(1, "m", "t", "m", tags=tags, fallback=fallback)
+    await store(db, announcement, revision[0], rendition)
     return announcement
 
 
@@ -126,3 +130,24 @@ async def test_renditions_of_undated_articles_go(db: AsyncConnection, tmp_path: 
     assert set(await cur.fetchall()) == {(dated,)}
     cur = await db.execute("SELECT announcement_id, set_by FROM tag")
     assert set(await cur.fetchall()) == {(dated, "model"), (undated, "manual")}
+
+
+@pytest.mark.xfail(strict=True, raises=IndexError, reason="Placeholders put back")
+async def test_fallbacks_go(db: AsyncConnection, tmp_path: Path) -> None:
+    """Migration 0007: fallback renditions go, so their articles render again with placeholders
+    put back only in link targets; other renditions stay."""
+    for source in MIGRATIONS.iterdir():
+        if source.name < "0007":
+            (tmp_path / source.name).write_text(source.read_text(encoding="utf-8"), "utf-8")
+    await migrate(db, tmp_path)
+    rendered = await stored(db, 1, date(2026, 11, 1))
+    fell_back = await stored(db, 2, date(2026, 11, 1), fallback=True)
+
+    assert (await migrate(db))[0] == "0007_retry_fallbacks.sql"
+
+    cur = await db.execute("SELECT id, current_rendition IS NOT NULL FROM announcement")
+    assert set(await cur.fetchall()) == {(rendered, True), (fell_back, False)}
+    cur = await db.execute(
+        "SELECT r.announcement_id FROM rendition n JOIN revision r ON r.id = n.revision_id"
+    )
+    assert set(await cur.fetchall()) == {(rendered,)}

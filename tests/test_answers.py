@@ -36,6 +36,16 @@ def test_an_invented_placeholder() -> None:
         restore("[here](L9) ![poster](I1)", TARGETS)
 
 
+@pytest.mark.xfail(strict=True, raises=AnswerError, reason="Placeholders put back")
+def test_text_that_looks_like_a_placeholder() -> None:
+    """Placeholders put back: outside a link target, a masked ID number such as L125***256 stays."""
+    restored = restore("Admitted: L125***256, hall I8. [Form](L1) <L1>", TARGETS)
+
+    assert restored == (
+        "Admitted: L125***256, hall I8. [Form](https://forms.gle/abc) <https://forms.gle/abc>"
+    )
+
+
 def test_an_image_left_out() -> None:
     """Placeholders put back: an answer may leave out the input's I1, an icon or a decoration."""
     assert restore("Apply [here](L1).", TARGETS) == "Apply [here](https://forms.gle/abc)."
