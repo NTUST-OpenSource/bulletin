@@ -153,14 +153,16 @@ per article. The 50 labels are drafted first and the owner corrects them before 
 
 ## Risks / Trade-offs
 
-- [Cost] → the owner accepts paid use without a daily cap (2026-11-15). The measurement with
-  `low` thinking used 1.3 requests, about 2,950 tokens in and 1,500 out per announcement: at
-  Google's listed paid price ($1.50 and $7.50 per million) about 1.6 cents, so a year's backlog of
-  some 12,000 announcements would be about $190. 429s rest keys and never become fallbacks.
+- [Cost] → the owner accepts paid use without a daily cap (2026-11-15). The final measurement
+  with `low` thinking used 1.0 request, about 2,600 tokens in and 1,260 out per announcement: at
+  Google's listed paid price ($1.50 and $7.50 per million) about 1.3 cents, so a year's backlog of
+  some 12,000 announcements would be about $160. 429s rest keys and never become fallbacks.
 - [Free-tier keys] → the xincord bot's keys allow 20 requests a day each on the free tier; the
   owner added a Tier 1 key (2026-11-15), and the backlog needs it.
-- [`low` thinking may lower quality] → the measurement compares `low` with the default before the
-  backlog starts.
+- [`low` thinking may lower quality] → measured on the 50 labelled announcements (2026-11-15):
+  `low` passed all 50 (the default 49, one fallback over 4,096 characters), with topic F1 0.85
+  against 0.89, audience F1 0.85 against 0.80, every labelled deadline found by both, at 7 seconds
+  and 1.3 cents per announcement against 16 seconds and 3.1 cents. `low` stays the default.
 - [The model invents deadlines] → the date finder drops any date the text does not hold.
 - [Dates the finder does not know, such as ranges written in words] → such deadlines are dropped,
   never invented; the measurement counts them.

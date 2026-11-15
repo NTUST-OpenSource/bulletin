@@ -55,13 +55,13 @@ never reach the network: the model's answers are fixtures, and the Discord check
 
 - [x] 6.1 Add the Node build stage and binary to the Dockerfile; verify on the remote test host that the image builds and the Discord check answers inside the container
 - [x] 6.2 Draft tags and deadlines for 50 corpus announcements and have the owner correct them; verify the labelled set is saved outside the repository with the corpus
-- [ ] 6.3 Add `scripts/measure_rendering.py` and run it with thinking `low` and with the model's default; verify the report (pass rate, tag agreement, deadline accuracy, requests and tokens per article) is given to the owner
+- [x] 6.3 Add `scripts/measure_rendering.py` and run it with thinking `low` and with the model's default; verify the report (pass rate, tag agreement, deadline accuracy, requests and tokens per article) is given to the owner
 
 ## 7. Verification
 
 - [x] 7.1 Add an end-to-end test: a stored announcement, a fake model answer, the rendition, its tags and the published then rendered events; verify it passes
-- [ ] 7.2 Document the settings in `README.md` and list the user-visible changes of design.md for the owner; wait for approval before pushing
-- [ ] 7.3 Run `scripts/gate.sh`; verify it passes
+- [x] 7.2 Document the settings in `README.md` and list the user-visible changes of design.md for the owner; wait for approval before pushing
+- [x] 7.3 Run `scripts/gate.sh`; verify it passes
 
 ## Workflow follow-up
 
