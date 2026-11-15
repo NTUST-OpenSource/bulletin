@@ -24,6 +24,7 @@ TABLES = {
     "job",
     "poll",
     "frontier",
+    "pointer",
     "schema_migration",
 }
 
@@ -34,7 +35,11 @@ async def tables(db: AsyncConnection) -> set[str]:
 
 
 async def test_migrations_apply_to_an_empty_schema(db: AsyncConnection) -> None:
-    assert await migrate(db) == ["0001_initial.sql", "0002_site_discovered_at.sql"]
+    assert await migrate(db) == [
+        "0001_initial.sql",
+        "0002_site_discovered_at.sql",
+        "0003_pointer.sql",
+    ]
     assert await tables(db) == TABLES
 
 

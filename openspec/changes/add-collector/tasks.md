@@ -67,6 +67,8 @@ List parsing ports xincord's `ntust_announcements/pages.py` and `markup.py`; cer
 - [x] 5.17 Commit the xfail test for "School certificates" (polling); verify it fails for the expected reason and the gate stays green
 - [x] 5.18 Implement "School certificates" and remove the marker; verify its scenarios pass and the gate is green
 - [x] 5.19 Walk each known site's site map once a month as a `discovery` job through the queue and hand the boards found to the registry (Re-discovery); verify against a recorded site map
+- [x] 5.20 Commit the xfail test for "Cross-post pointers" (polling) against the recorded 302 of a `450` pointer; verify it fails for the expected reason and the gate stays green
+- [ ] 5.21 Implement "Cross-post pointers" for polls and backfill walks and remove the marker; verify its scenarios pass and the gate is green
 
 ## 6. Detection
 

@@ -62,6 +62,19 @@ site and id SHALL come from the link, not from the polled board.
 - **WHEN** an item links straight to a file instead of an article
 - **THEN** the item is read with its URL and title and no article id
 
+### Requirement: Cross-post pointers
+A list item that links to a cross-post pointer (`450`) SHALL be resolved once through the
+pointer's redirect and SHALL take the identity of the article it points at. A pointer that does not
+redirect to an article SHALL stay a link item. No pointer SHALL be requested twice.
+
+#### Scenario: A cross-post pointer
+- **WHEN** a board lists a `450` pointer that redirects to another site's article
+- **THEN** the item is read as that article, and later polls do not request the pointer again
+
+#### Scenario: A pointer that does not redirect
+- **WHEN** a pointer answers without a redirect to an article
+- **THEN** the item stays a link item, and later polls do not request the pointer again
+
 ### Requirement: Unchanged pages
 After each poll, the service SHALL compare a fingerprint of the items read (article ids or links,
 titles and list dates, in order) with the board's previous one. When they match, the poll SHALL be
