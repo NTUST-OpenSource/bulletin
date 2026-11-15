@@ -84,7 +84,6 @@ def renderer(model: Model, checker: Checker | None = None) -> Renderer:
     )
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Attempts and fallback")
 async def test_a_good_answer() -> None:
     """Attempts and fallback: a second answer that passes gives the rendition."""
     model = Model(answer("BAD"), GOOD)
@@ -100,7 +99,6 @@ async def test_a_good_answer() -> None:
     assert model.keys == list(KEYS)
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Attempts and fallback")
 async def test_three_bad_answers() -> None:
     """Attempts and fallback: after three failed answers, the title and its link."""
     model = Model("prose", answer("BAD"), answer("[here](L9)"))
@@ -117,7 +115,6 @@ async def test_three_bad_answers() -> None:
     assert len(model.keys) == 3
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Attempts and fallback")
 async def test_a_rate_limit() -> None:
     """Attempts and fallback: a 429 counts no attempt, stores nothing and rests the article."""
     model = Model(ApiError(429, f"quota of {KEYS[0]}"))
@@ -129,7 +126,6 @@ async def test_a_rate_limit() -> None:
     assert rendering.ring.take(100.0) == 1  # the first key rests
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Attempts and fallback")
 @pytest.mark.parametrize(
     "error",
     [ApiError(503, "unavailable"), ApiError(None, "timeout")],
@@ -144,7 +140,6 @@ async def test_other_api_errors(error: ApiError) -> None:
     assert rendering.ring.take(100.0) == 1  # only a rate limit rests the key
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Attempts and fallback")
 async def test_a_check_that_cannot_answer() -> None:
     """Attempts and fallback: a Discord check that dies counts no attempt."""
     rendering = renderer(Model(GOOD), Checker(CheckerError("died")))
