@@ -27,7 +27,7 @@ never reach the network: the model's answers are fixtures, and the Discord check
 ## 4. Model input and answer checks
 
 - [x] 4.1 Commit the xfail test for "Model input" (rendering) over the recorded article fixture; verify it fails for the expected reason and the gate stays green
-- [ ] 4.2 Implement "Model input" (the reducer, the Markdown converter, placeholders) and remove the marker; verify its scenarios pass and the gate is green
+- [x] 4.2 Implement "Model input" (the reducer, the Markdown converter, placeholders) and remove the marker; verify its scenarios pass and the gate is green
 - [ ] 4.3 Commit the xfail test for "Placeholders put back" (rendering); verify it fails for the expected reason and the gate stays green
 - [ ] 4.4 Implement "Placeholders put back" and remove the marker; verify its scenarios pass and the gate is green
 - [ ] 4.5 Commit the xfail test for "Structured answer" (rendering); verify it fails for the expected reason and the gate stays green

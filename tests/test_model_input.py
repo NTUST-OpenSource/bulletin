@@ -3,8 +3,6 @@
 import json
 from pathlib import Path
 
-import pytest
-
 from bulletin.model_input import model_input
 from bulletin.pages import parse_article
 
@@ -14,7 +12,6 @@ URL = "https://she.ntust.edu.tw/p/406-1068-152869.php"
 IMAGES = "https://she.ntust.edu.tw/var/file/68/1068/img/"
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Model input")
 def test_a_recorded_article() -> None:
     """Model input: body text, every attachment's name, placeholders for links, and no URL."""
     content = parse_article(ARTICLE.with_suffix(".html").read_text(encoding="utf-8"), URL)
@@ -40,7 +37,6 @@ def test_a_recorded_article() -> None:
     assert "mailto" not in given.text
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Model input")
 def test_the_kept_elements() -> None:
     """Model input: paragraphs, lists, tables, links and bold; headings become bold lines."""
     body = (
