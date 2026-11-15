@@ -4,13 +4,15 @@ from dataclasses import replace
 from datetime import UTC, date, datetime, timedelta
 from typing import TYPE_CHECKING
 
+import pytest
+
 from bulletin import renditions
 from bulletin.archive import publish, revise
 from bulletin.model import Attachment, Content, Listed
 from bulletin.renditions import Pending, Rendition, next_pending, store
+from bulletin.schedule import TAIPEI
 
 if TYPE_CHECKING:
-    import pytest
     from psycopg import AsyncConnection
 
 LISTED = Listed(site_id=1000, host="www.ntust.edu.tw", article_id=153625, link_url=None, title="t")
@@ -139,6 +141,22 @@ async def test_resting_and_undated_announcements(migrated: AsyncConnection) -> N
 
     assert picked is not None
     assert (picked.announcement_id, picked.listed_on, picked.year) == (undated, None, NOW.year)
+
+
+@pytest.mark.xfail(strict=True, raises=AssertionError, reason="Deadlines from the text")
+async def test_an_announcement_without_a_list_date(migrated: AsyncConnection) -> None:
+    """Deadlines from the text: an announcement without a list date is dated by its first sight,
+    in Taipei."""
+    undated = await article(migrated, 2, None)
+    cur = await migrated.execute("SELECT first_seen_at FROM announcement WHERE id = %s", (undated,))
+    first_seen = await cur.fetchone()
+    assert first_seen is not None
+
+    picked = await next_pending(migrated, NOW)
+
+    assert picked is not None
+    dated = getattr(picked, "dated", None)  # Pending gains `dated` with this requirement
+    assert dated == first_seen[0].astimezone(TAIPEI).date()
 
 
 async def current_rendition(conn: AsyncConnection, announcement: int) -> int | None:

@@ -78,6 +78,8 @@ or does not match the schema SHALL fail the attempt.
 A deadline SHALL be kept only when its date appears in the source text, in any of the school's
 date forms: Gregorian or ROC years, numeric, Chinese or with English month names, with or without
 the year. A deadline that does not appear SHALL be dropped; the rendition is stored without one.
+Dates without a year SHALL be read against the day the announcement appeared, its list date or else
+the day it was first seen, which the prompt SHALL give.
 
 #### Scenario: An ROC date
 - **WHEN** the text says the deadline is 115年12月10日 and the answer gives 2026-12-10
@@ -86,6 +88,10 @@ the year. A deadline that does not appear SHALL be dropped; the rendition is sto
 #### Scenario: An invented date
 - **WHEN** the answer gives a deadline whose date the text does not hold
 - **THEN** the rendition has no deadline
+
+#### Scenario: An announcement without a list date
+- **WHEN** an announcement without a list date is rendered
+- **THEN** its prompt gives the day it was first seen, in Taipei
 
 ### Requirement: Discord Markdown
 Before a rendition is stored, its Markdown SHALL have bare URLs wrapped as `<url>` and masked
