@@ -4,6 +4,8 @@ from dataclasses import replace
 from datetime import UTC, date, datetime, timedelta
 from typing import TYPE_CHECKING
 
+import pytest
+
 from bulletin import renditions
 from bulletin.archive import publish, revise
 from bulletin.model import Attachment, Content, Listed
@@ -11,7 +13,6 @@ from bulletin.renditions import Pending, Rendition, next_pending, store
 from bulletin.schedule import TAIPEI
 
 if TYPE_CHECKING:
-    import pytest
     from psycopg import AsyncConnection
 
 LISTED = Listed(site_id=1000, host="www.ntust.edu.tw", article_id=153625, link_url=None, title="t")
@@ -141,9 +142,9 @@ async def test_resting_and_undated_announcements(migrated: AsyncConnection) -> N
     assert picked.announcement_id == undated
 
 
-async def test_an_announcement_without_a_list_date(migrated: AsyncConnection) -> None:
-    """Deadlines from the text: an announcement without a list date is dated by its first sight,
-    in Taipei."""
+async def test_no_dated_article_at_all(migrated: AsyncConnection) -> None:
+    """Deadlines from the text: with no dated article at all, an article without a list date is
+    dated by its first sight, in Taipei."""
     undated = await article(migrated, 2, None)
     cur = await migrated.execute("SELECT first_seen_at FROM announcement WHERE id = %s", (undated,))
     first_seen = await cur.fetchone()
@@ -153,6 +154,45 @@ async def test_an_announcement_without_a_list_date(migrated: AsyncConnection) ->
 
     assert picked is not None
     assert picked.dated == first_seen[0].astimezone(TAIPEI).date()
+
+
+@pytest.mark.xfail(strict=True, raises=AssertionError, reason="What gets rendered")
+async def test_an_old_article_without_a_list_date(migrated: AsyncConnection) -> None:
+    """What gets rendered: an article without a list date next to one listed two years ago stays
+    raw."""
+    await article(migrated, 100, TODAY - timedelta(days=730), late=True)
+    await article(migrated, 101, None, late=True)
+
+    assert await next_pending(migrated, NOW) is None
+
+
+@pytest.mark.xfail(strict=True, raises=AssertionError, reason="What gets rendered")
+async def test_a_recent_article_without_a_list_date(migrated: AsyncConnection) -> None:
+    """What gets rendered: an article without a list date takes the day of the dated article with
+    the nearest id, last week's rather than last spring's."""
+    spring = await article(migrated, 100, TODAY - timedelta(days=200), late=True)
+    undated = await article(migrated, 150, None, late=True)
+    week = await article(migrated, 190, TODAY - timedelta(days=7), late=True)
+
+    order: list[int] = []
+    while (picked := await next_pending(migrated, NOW)) is not None:
+        order.append(picked.announcement_id)
+        await store(migrated, picked.announcement_id, picked.revision_id, RENDITION)
+
+    assert order == [week, undated, spring]
+
+
+@pytest.mark.xfail(strict=True, raises=AssertionError, reason="Deadlines from the text")
+async def test_an_announcement_without_a_list_date(migrated: AsyncConnection) -> None:
+    """Deadlines from the text: an article without a list date is dated by the list date of the
+    dated article with the nearest id."""
+    await article(migrated, 100, TODAY - timedelta(days=30), late=True)
+    undated = await article(migrated, 101, None, late=True)
+
+    picked = await next_pending(migrated, NOW)
+
+    assert picked is not None
+    assert (picked.announcement_id, picked.dated) == (undated, TODAY - timedelta(days=30))
 
 
 async def current_rendition(conn: AsyncConnection, announcement: int) -> int | None:
