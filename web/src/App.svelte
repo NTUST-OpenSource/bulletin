@@ -2,14 +2,31 @@
   import Search from "@jis3r/icons/icons/search";
   import SlidersHorizontal from "@jis3r/icons/icons/sliders-horizontal";
   import Settings from "./components/settings/Settings.svelte";
+  import Confirm from "./components/ui/Confirm.svelte";
   import IconButton from "./components/ui/IconButton.svelte";
+  import Toast from "./components/ui/Toast.svelte";
   import { brand, header, stream } from "./lang/zh-TW";
-  import { applyTheme } from "./lib/settings";
-  import { app, loadLists, ui } from "./state.svelte";
+  import { applyTheme, readImport } from "./lib/settings";
+  import { app, loadLists, offerSettings, ui } from "./state.svelte";
 
   $effect(() => applyTheme(document.documentElement, app.settings.theme));
   void loadLists();
+
+  // A settings link: read once, then dropped from the address so a reload does not ask again.
+  function readLink(): void {
+    if (!location.hash.startsWith("#s=")) return;
+    const hash = location.hash;
+    history.replaceState(history.state, "", location.pathname + location.search);
+    try {
+      void offerSettings(readImport(hash), "link");
+    } catch {
+      // An unreadable link changes nothing.
+    }
+  }
+  readLink();
 </script>
+
+<svelte:window onhashchange={readLink} />
 
 <header class="top">
   <div class="wrap">
@@ -24,6 +41,8 @@
 </main>
 
 <Settings />
+<Confirm />
+<Toast />
 
 <style>
   .top {

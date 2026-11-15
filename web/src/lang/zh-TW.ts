@@ -24,7 +24,32 @@ export const settings = {
   edit: "編輯",
   hidden: "隱藏的公告板",
   show: "顯示",
+  export: "匯出",
+  copyJson: "複製設定",
+  download: "下載 JSON",
+  copyLink: "複製分享連結",
+  import: "匯入",
+  importLabel: "設定 JSON 或分享連結",
+  importPlaceholder: "貼上設定 JSON 或分享連結",
+  chooseFile: "選擇檔案",
+  unreadablePaste: "無法讀取：請貼上本站匯出的設定或分享連結。",
+  unreadableFile: "無法讀取：檔案不是本站匯出的設定。",
   note: "內容轉寫自國立臺灣科技大學各單位網站，以原網頁內容為準",
+} as const;
+
+export const transfer = {
+  copiedJson: "已複製設定",
+  copiedLink: "已複製分享連結",
+  noClipboard: "無法存取剪貼簿",
+  linkApplied: "已套用分享的設定",
+  imported: "已匯入設定",
+  overwritten: "已覆蓋設定",
+  overwrite: {
+    title: "覆蓋目前的設定？",
+    text: "匯入的設定會取代你目前所有的設定。",
+    yes: "覆蓋",
+    no: "保留目前設定",
+  },
 } as const;
 
 export const units = {

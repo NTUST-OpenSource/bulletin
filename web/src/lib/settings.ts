@@ -119,12 +119,31 @@ export function applyTheme(root: HTMLElement, theme: Theme): void {
 /** Input that is neither settings JSON nor a settings link. */
 export class UnreadableSettings extends Error {}
 
+const toBase64Url = (text: string): string =>
+  btoa(String.fromCharCode(...new TextEncoder().encode(text)))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+
+const fromBase64Url = (text: string): string =>
+  new TextDecoder("utf-8", { fatal: true }).decode(
+    Uint8Array.from(atob(text.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0)),
+  );
+
 /** A link that applies `settings` when opened: the page's address with `#s=<base64url JSON>`. */
-export function settingsLink(_origin: string, _settings: Settings): string {
-  throw new Error("not implemented");
+export function settingsLink(origin: string, settings: Settings): string {
+  return `${origin}/#s=${toBase64Url(JSON.stringify(settings))}`;
 }
 
 /** The settings in pasted JSON, a pasted link or a file's text; UnreadableSettings otherwise. */
-export function readImport(_text: string): Settings {
-  throw new Error("not implemented");
+export function readImport(text: string): Settings {
+  const trimmed = text.trim();
+  const link = /#s=([\w-]+)$/.exec(trimmed);
+  try {
+    const settings = parseSettings(JSON.parse(link ? fromBase64Url(link[1]!) : trimmed));
+    if (settings) return settings;
+  } catch {
+    // Not JSON, not base64url or not UTF-8.
+  }
+  throw new UnreadableSettings();
 }

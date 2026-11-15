@@ -1,9 +1,9 @@
 <script lang="ts">
   import ArrowLeft from "@jis3r/icons/icons/arrow-left";
   import X from "@jis3r/icons/icons/x";
-  import { settings as copy } from "../../lang/zh-TW";
-  import type { Prefer, Theme } from "../../lib/settings";
-  import { app, setSettings, ui } from "../../state.svelte";
+  import { settings as copy, transfer } from "../../lang/zh-TW";
+  import { type Prefer, readImport, settingsLink, type Theme } from "../../lib/settings";
+  import { app, notify, offerSettings, setSettings, ui } from "../../state.svelte";
   import IconButton from "../ui/IconButton.svelte";
   import UnitPicker from "./UnitPicker.svelte";
 
@@ -26,6 +26,49 @@
   function unhide(key: string): void {
     setSettings({ ...app.settings, hiddenBoards: app.settings.hiddenBoards.filter((k) => k !== key) });
   }
+
+  let pasted = $state("");
+  let importError = $state("");
+  const json = () => JSON.stringify(app.settings, null, 2);
+
+  async function copyText(text: string, done: string): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(text);
+      notify(done);
+    } catch {
+      notify(transfer.noClipboard);
+    }
+  }
+
+  function download(): void {
+    const url = URL.createObjectURL(new Blob([json()], { type: "application/json" }));
+    const link = Object.assign(document.createElement("a"), { href: url, download: "bulletin-settings.json" });
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url));
+  }
+
+  /** Offer what was read, or say why it cannot be; the sheet closes first, as the offer may ask. */
+  function offer(text: string, unreadable: string): void {
+    try {
+      const next = readImport(text);
+      importError = "";
+      ui.sheet = null;
+      void offerSettings(next, "import");
+    } catch {
+      importError = unreadable;
+    }
+  }
+
+  async function pickFile(event: Event): Promise<void> {
+    const input = event.currentTarget as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = "";
+    if (file) offer(await file.text(), copy.unreadableFile);
+  }
+
+  $effect(() => {
+    if (!ui.sheet) importError = pasted = "";
+  });
 </script>
 
 <dialog class="sheet" bind:this={dialog} aria-labelledby="settings-title" onclose={() => (ui.sheet = null)}>
@@ -88,6 +131,31 @@
           </div>
         </section>
       {/if}
+      <section class="set">
+        <h3>{copy.export}</h3>
+        <div class="row-btns">
+          <button type="button" class="btn" onclick={() => copyText(json(), transfer.copiedJson)}>{copy.copyJson}</button>
+          <button type="button" class="btn" onclick={download}>{copy.download}</button>
+          <button
+            type="button"
+            class="btn"
+            onclick={() => copyText(settingsLink(location.origin, app.settings), transfer.copiedLink)}
+            >{copy.copyLink}</button
+          >
+        </div>
+      </section>
+      <section class="set">
+        <h3>{copy.import}</h3>
+        <label class="sr" for="import-text">{copy.importLabel}</label>
+        <textarea class="field" id="import-text" rows="3" placeholder={copy.importPlaceholder} bind:value={pasted}
+        ></textarea>
+        {#if importError}<p class="err" role="alert">{importError}</p>{/if}
+        <div class="row-btns">
+          <button type="button" class="btn primary" onclick={() => offer(pasted, copy.unreadablePaste)}>{copy.import}</button>
+          <label class="btn" for="import-file">{copy.chooseFile}</label>
+          <input id="import-file" type="file" accept=".json,application/json" hidden onchange={pickFile} />
+        </div>
+      </section>
       <section class="set">
         <p class="note">{copy.note}</p>
       </section>
@@ -191,6 +259,14 @@
   .rows span {
     min-width: 0;
     overflow-wrap: anywhere;
+  }
+  .err {
+    color: var(--gone);
+    font-size: var(--text-xs);
+    margin: 0;
+  }
+  label.btn {
+    cursor: pointer;
   }
   .note {
     margin: 8px 0 0;

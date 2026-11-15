@@ -13,7 +13,6 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("A link for a new reader: the settings apply without the first-visit picker", async ({ page }) => {
-  test.fail(true, "Settings export and import");
   await page.goto(link(THEIRS));
 
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
@@ -23,7 +22,6 @@ test("A link for a new reader: the settings apply without the first-visit picker
 });
 
 test("A link for an existing reader: keeping theirs changes nothing, and a reload does not ask", async ({ page }) => {
-  test.fail(true, "Settings export and import");
   await saved(page, MINE);
   await page.goto(link(THEIRS));
 
@@ -34,8 +32,15 @@ test("A link for an existing reader: keeping theirs changes nothing, and a reloa
   await expect(page.getByText("覆蓋目前的設定？")).toHaveCount(0);
 });
 
+test("a link opened in a tab that shows the page asks too", async ({ page }) => {
+  await saved(page, MINE);
+  await page.goto("/");
+  await page.goto(link(THEIRS));
+
+  await expect(page.getByText("覆蓋目前的設定？")).toBeVisible();
+});
+
 test("a link for an existing reader overwrites when asked", async ({ page }) => {
-  test.fail(true, "Settings export and import");
   await saved(page, MINE);
   await page.goto(link(THEIRS));
 
@@ -45,7 +50,6 @@ test("a link for an existing reader overwrites when asked", async ({ page }) => 
 });
 
 test("Unreadable input: an error is shown and the settings stay", async ({ page }) => {
-  test.fail(true, "Settings export and import");
   await saved(page, MINE);
   await page.goto("/");
   await page.getByRole("button", { name: "設定" }).click();
@@ -58,7 +62,6 @@ test("Unreadable input: an error is shown and the settings stay", async ({ page 
 });
 
 test("the settings export as copied JSON, a download and a copied link", async ({ page, context }) => {
-  test.fail(true, "Settings export and import");
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await saved(page, MINE);
   await page.goto("/");
@@ -78,7 +81,6 @@ test("the settings export as copied JSON, a download and a copied link", async (
 });
 
 test("a JSON file imports for a reader who confirms", async ({ page }) => {
-  test.fail(true, "Settings export and import");
   await saved(page, MINE);
   await page.goto("/");
   await page.getByRole("button", { name: "設定" }).click();
