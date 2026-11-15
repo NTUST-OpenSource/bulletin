@@ -33,7 +33,7 @@ shapes of the `public-api` spec.
 - [x] 4.3 Commit the xfail test for "Topic chips and unit filter" (web-frontend); verify it fails for the expected reason and the gate stays green
 - [x] 4.4 Implement "Topic chips and unit filter" (dragging and keyboard reordering) and remove the marker; verify its scenarios pass and the gate is green
 - [x] 4.5 Commit the xfail test for "Paging and new announcements" (web-frontend); verify it fails for the expected reason and the gate stays green
-- [ ] 4.6 Implement "Paging and new announcements" (the cursor, de-duplication, the uncached poll, merging by order, the scroll correction) and remove the marker; verify its scenarios pass and the gate is green
+- [x] 4.6 Implement "Paging and new announcements" (the cursor, de-duplication, the uncached poll, merging by order, the scroll correction) and remove the marker; verify its scenarios pass and the gate is green
 - [ ] 4.7 Commit the xfail test for "Context menu" (web-frontend); verify it fails for the expected reason and the gate stays green
 - [ ] 4.8 Implement "Context menu" (entries per board and unit, bottom sheet, long press, undo) and remove the marker; verify its scenarios pass and the gate is green
 

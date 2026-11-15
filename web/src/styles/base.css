@@ -1,6 +1,10 @@
 html:has(dialog[open]) {
   overflow: hidden;
 }
+/* lib/anchor.ts keeps the reader's place in every browser; Safari has no overflow-anchor. */
+html {
+  overflow-anchor: none;
+}
 body {
   margin: 0;
   background: var(--bg);

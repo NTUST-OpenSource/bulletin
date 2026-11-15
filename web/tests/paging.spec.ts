@@ -22,7 +22,6 @@ async function answering(page: Browser, polled: (check: number) => Page) {
 }
 
 test("Reaching the end of a page: the next page loads below without a repeated item", async ({ page }) => {
-  test.fail(true, "Paging and new announcements");
   await answer(page);
   await saved(page);
   await page.goto("/");
@@ -36,27 +35,26 @@ test("Reaching the end of a page: the next page loads below without a repeated i
 });
 
 test("A new announcement while reading: it appears in its place and the read item stays put", async ({ page }) => {
-  test.fail(true, "Paging and new announcements");
   await page.clock.install();
   const arriving = fresh(9001, "新公告");
   await answering(page, () => ({ items: [arriving, ...stream.first.items.slice(0, 29)], next: stream.first.next }));
   await saved(page);
   await page.goto("/");
-  const read = page.locator("main .items > li").nth(15);
+  const id = await page.locator("main .items > li").nth(15).getAttribute("data-id");
+  const read = page.locator(`main .items > li[data-id="${id}"]`);
   await read.scrollIntoViewIfNeeded();
-  await page.mouse.wheel(0, 200);
+  await page.evaluate(() => scrollBy(0, 200));
   const before = (await read.boundingBox())!.y;
 
   await page.clock.fastForward(FIVE_MINUTES);
 
   await expect(page.locator('main .items > li[data-id="9001"]')).toBeAttached();
   expect((await ids(page))[0]).toBe("9001");
-  await page.clock.fastForward(2000); // the arrival's animation
+  await page.waitForTimeout(1000); // the arrival's animation runs on the real clock
   expect(Math.abs((await read.boundingBox())!.y - before)).toBeLessThan(2);
 });
 
 test("A rewrite arrives: the check shows its rewritten title", async ({ page }) => {
-  test.fail(true, "Paging and new announcements");
   await page.clock.install();
   const raw = stream.first.items.findIndex((i) => i.id === 10);
   const rewritten = { ...stream.first.items[raw]!, rendition: { title: "改寫後的標題", summary: "摘要", deadline: null } };
@@ -71,7 +69,6 @@ test("A rewrite arrives: the check shows its rewritten title", async ({ page }) 
 });
 
 test("Many new announcements: every one appears, without a gap before the shown ones", async ({ page }) => {
-  test.fail(true, "Paging and new announcements");
   await page.clock.install();
   const many = Array.from({ length: 30 }, (_, n) => fresh(9100 - n, `新公告 ${n}`));
   const more = Array.from({ length: 5 }, (_, n) => fresh(9050 - n, `新公告 ${30 + n}`));
@@ -96,7 +93,6 @@ test("Many new announcements: every one appears, without a gap before the shown 
 });
 
 test("A hidden tab: no check is sent until it is visible again", async ({ page }) => {
-  test.fail(true, "Paging and new announcements");
   await page.clock.install();
   const sent = await answer(page);
   await saved(page);

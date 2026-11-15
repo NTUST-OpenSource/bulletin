@@ -3,13 +3,14 @@
   import type { Item } from "../../lib/api";
   import { source } from "../../lib/stream";
   import { app } from "../../state.svelte";
+  import { feed } from "../../stream.svelte";
 
   let { item }: { item: Item } = $props();
   const rewrite = $derived(app.settings.prefer === "rendition" ? item.rendition : null);
   const unit = $derived(item.unit ?? app.sites.find((site) => site.id === item.site)?.unit ?? "");
 </script>
 
-<li data-id={item.id}>
+<li data-id={item.id} class:arrive={feed.arrived.has(item.id)}>
   <a class="item" href="/a/{item.id}">
     <span class="sec">{source(item, app.sites, app.settings)}</span>
     <span class="title">{rewrite?.title ?? item.title}</span>
@@ -25,6 +26,28 @@
   li {
     display: grid;
     grid-template-rows: 1fr;
+  }
+  li.arrive {
+    clip-path: inset(0 -24px);
+    animation: arrive 0.7s var(--ease) both;
+  }
+  li.arrive > .item {
+    min-height: 0;
+    animation: glow 2.6s ease-out 0.3s both;
+  }
+  @keyframes arrive {
+    from {
+      grid-template-rows: 0fr;
+      opacity: 0;
+    }
+  }
+  @keyframes glow {
+    from {
+      background: var(--accent-soft);
+    }
+    to {
+      background: transparent;
+    }
   }
   .item {
     display: grid;

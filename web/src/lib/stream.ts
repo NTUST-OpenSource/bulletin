@@ -63,8 +63,9 @@ export function today(now: Date): string {
 }
 
 /** `shown` followed by the next page's items that are not shown yet. */
-export function appended(_shown: Item[], _page: Item[]): Item[] {
-  throw new Error("not implemented");
+export function appended(shown: Item[], page: Item[]): Item[] {
+  const seen = new Set(shown.map((item) => item.id));
+  return [...shown, ...page.filter((item) => !seen.has(item.id))];
 }
 
 /** Whether `a` comes before `b` in the stream: a later day, then a higher id. */
@@ -76,9 +77,16 @@ export const before = (a: Item, b: Item): boolean => a.day > b.day || (a.day ===
  * polled items reached the shown ones; `added` names the inserted ids.
  */
 export function merged(
-  _shown: Item[],
-  _polled: Item[],
-  _complete: boolean,
+  shown: Item[],
+  polled: Item[],
+  complete: boolean,
 ): { items: Item[]; overlap: boolean; added: number[] } {
-  throw new Error("not implemented");
+  const latest = new Map(polled.map((item) => [item.id, item]));
+  const seen = new Set(shown.map((item) => item.id));
+  const last = shown.at(-1);
+  const unseen = polled.filter((item) => !seen.has(item.id) && (complete || !last || before(item, last)));
+  const items = [...shown.map((item) => latest.get(item.id) ?? item), ...unseen].sort((a, b) =>
+    before(a, b) ? -1 : before(b, a) ? 1 : 0,
+  );
+  return { items, overlap: polled.some((item) => seen.has(item.id)), added: unseen.map((item) => item.id) };
 }
