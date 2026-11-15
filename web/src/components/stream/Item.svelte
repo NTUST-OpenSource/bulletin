@@ -1,8 +1,8 @@
 <script lang="ts">
   import { stream as copy } from "../../lang/zh-TW";
   import type { Item } from "../../lib/api";
-  import { source } from "../../lib/stream";
-  import { app } from "../../state.svelte";
+  import { marked, source } from "../../lib/stream";
+  import { app, filters } from "../../state.svelte";
   import { feed } from "../../stream.svelte";
   import { openItem } from "../../article.svelte";
   import { itemMenu } from "./itemMenu";
@@ -66,6 +66,11 @@
   }
 </script>
 
+<!-- A search result marks the query's words. -->
+{#snippet found(text: string)}
+  {#each marked(text, filters.q) as part, index (index)}{#if part.mark}<mark>{part.text}</mark>{:else}{part.text}{/if}{/each}
+{/snippet}
+
 <li data-id={item.id} class:arrive={feed.arrived.has(item.id)}>
   <a
     class="item"
@@ -81,8 +86,8 @@
     onclick={click}
   >
     <span class="sec">{source(item, app.sites, app.settings)}</span>
-    <span class="title">{rewrite?.title ?? item.title}</span>
-    {#if rewrite?.summary}<span class="sum">{rewrite.summary}</span>{/if}
+    <span class="title">{@render found(rewrite?.title ?? item.title)}</span>
+    {#if rewrite?.summary}<span class="sum">{@render found(rewrite.summary)}</span>{/if}
     <span class="foot">
       {#if item.withdrawn_at}<span class="gone">{copy.withdrawn}</span>{/if}
       <span class="pri">{unit}</span>
@@ -154,6 +159,12 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
     transition: color 0.15s;
+  }
+  mark {
+    background: color-mix(in srgb, var(--accent) 22%, transparent);
+    color: inherit;
+    border-radius: 2px;
+    padding: 0 1px;
   }
   .sum {
     font-size: var(--text-sm);

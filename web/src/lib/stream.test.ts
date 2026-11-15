@@ -62,7 +62,7 @@ test("today is counted in Taipei", () => {
 });
 
 describe("Search", () => {
-  test.fails("a result marks each word of the query, ignoring case", () => {
+  test("a result marks each word of the query, ignoring case", () => {
     expect(marked("Scholarship for AI students", "ai SCHOLARSHIP")).toEqual([
       { text: "Scholarship", mark: true },
       { text: " for ", mark: false },

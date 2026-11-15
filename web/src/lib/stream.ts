@@ -93,5 +93,12 @@ export function merged(
 
 /** `text` cut where the query's words occur, ignoring case, so a search result can mark them. */
 export function marked(text: string, q: string): { text: string; mark: boolean }[] {
-  throw new Error(`not implemented: ${text} ${q}`);
+  const words = q.split(" ").filter(Boolean);
+  if (words.length === 0) return [{ text, mark: false }];
+  const escaped = words.toSorted((a, b) => b.length - a.length).map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  // Splitting on a group puts the matches at odd indexes.
+  return text
+    .split(new RegExp(`(${escaped.join("|")})`, "i"))
+    .map((part, index) => ({ text: part, mark: index % 2 === 1 }))
+    .filter((part) => part.text !== "");
 }

@@ -44,7 +44,6 @@ test("An unfollowed unit: a search lists an announcement found only there", asyn
 });
 
 test("a result marks the query in its title", async ({ page }) => {
-  test.fail(true, "Search");
   await open(page);
 
   await box(page).fill("單位");
