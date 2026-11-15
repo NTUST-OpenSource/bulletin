@@ -4,8 +4,6 @@ from dataclasses import replace
 from datetime import UTC, date, datetime, timedelta
 from typing import TYPE_CHECKING
 
-import pytest
-
 from bulletin.archive import publish, revise
 from bulletin.model import Attachment, Content, Listed
 from bulletin.renditions import Pending, Rendition, next_pending, store
@@ -88,7 +86,6 @@ async def article(
     return announcement
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="What gets rendered")
 async def test_a_new_announcement_during_the_backlog(migrated: AsyncConnection) -> None:
     """What gets rendered: a first publication goes before late discoveries from last spring."""
     await article(migrated, 1, TODAY - timedelta(days=200), late=True)
@@ -115,7 +112,6 @@ async def test_a_new_announcement_during_the_backlog(migrated: AsyncConnection) 
     )
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="What gets rendered")
 async def test_an_announcement_from_two_years_ago(migrated: AsyncConnection) -> None:
     """What gets rendered: backfill's announcement listed two years ago stays raw."""
     await article(migrated, 1, TODAY - timedelta(days=730), late=True)
@@ -123,7 +119,6 @@ async def test_an_announcement_from_two_years_ago(migrated: AsyncConnection) -> 
     assert await next_pending(migrated, NOW) is None
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="What gets rendered")
 async def test_a_link_item(migrated: AsyncConnection) -> None:
     """What gets rendered: an announcement that links straight to a file stays raw."""
     link = Listed(1000, "www.ntust.edu.tw", None, FILE.url, "t", TODAY)
@@ -132,7 +127,6 @@ async def test_a_link_item(migrated: AsyncConnection) -> None:
     assert await next_pending(migrated, NOW) is None
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="What gets rendered")
 async def test_resting_and_undated_announcements(migrated: AsyncConnection) -> None:
     """What gets rendered: a resting announcement waits; one without a list date counts its
     first sight."""

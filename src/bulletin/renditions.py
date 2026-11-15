@@ -4,8 +4,10 @@ from dataclasses import dataclass
 from datetime import date
 from typing import TYPE_CHECKING
 
+from bulletin.archive import article_url
 from bulletin.events import Kind, record
 from bulletin.model import Attachment
+from bulletin.prompt import PROMPT_VERSION
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -93,5 +95,38 @@ async def store(
 async def next_pending(
     conn: AsyncConnection, now: datetime, resting: Sequence[int] = ()
 ) -> Pending | None:
-    """The announcement to render next, if any waits."""
-    raise NotImplementedError
+    """The announcement to render next, if any waits.
+
+    An article whose current revision has no rendition for `PROMPT_VERSION`, listed within the
+    last year (or first seen, without a list date) and not resting. First publications go before
+    late discoveries; within each, the most recently listed first.
+    """
+    cur = await conn.execute(
+        "SELECT a.id, r.id, a.host, a.site_id, a.article_id, r.title, r.body_html, a.listed_on,"
+        " a.first_seen_at FROM announcement a JOIN revision r ON r.id = a.current_revision"
+        " WHERE a.article_id IS NOT NULL"
+        " AND COALESCE(a.listed_on, a.first_seen_at::date) >= (%s - interval '1 year')::date"
+        " AND NOT (a.id = ANY(%s))"
+        " AND NOT EXISTS (SELECT FROM rendition n"
+        "  WHERE n.revision_id = r.id AND n.prompt_version = %s)"
+        " ORDER BY a.late, COALESCE(a.listed_on, a.first_seen_at::date) DESC,"
+        " a.first_seen_at DESC, a.id DESC LIMIT 1",
+        (now, list(resting), PROMPT_VERSION),
+    )
+    row = await cur.fetchone()
+    if row is None:
+        return None
+    announcement, revision, host, site, article, title, body, listed_on, first_seen = row
+    cur = await conn.execute(
+        "SELECT name, url, origin FROM attachment WHERE revision_id = %s ORDER BY id", (revision,)
+    )
+    return Pending(
+        announcement_id=announcement,
+        revision_id=revision,
+        url=article_url(host, site, article),
+        title=title,
+        body_html=body,
+        attachments=tuple(Attachment(*file) for file in await cur.fetchall()),
+        listed_on=listed_on,
+        year=(listed_on or first_seen).year,
+    )
