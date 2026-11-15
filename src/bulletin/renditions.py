@@ -5,9 +5,27 @@ from datetime import date
 from typing import TYPE_CHECKING
 
 from bulletin.events import Kind, record
+from bulletin.model import Attachment
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+    from datetime import datetime
+
     from psycopg import AsyncConnection
+
+
+@dataclass(frozen=True)
+class Pending:
+    """An announcement whose current revision waits for a rendition."""
+
+    announcement_id: int
+    revision_id: int
+    url: str  # the article page
+    title: str
+    body_html: str
+    attachments: tuple[Attachment, ...]
+    listed_on: date | None
+    year: int  # the year dates without one belong to: the list date's, else the first sight's
 
 
 @dataclass(frozen=True)
@@ -70,3 +88,10 @@ async def store(
                 )
         await record(conn, announcement_id, Kind.RENDERED)
     return row[0]
+
+
+async def next_pending(
+    conn: AsyncConnection, now: datetime, resting: Sequence[int] = ()
+) -> Pending | None:
+    """The announcement to render next, if any waits."""
+    raise NotImplementedError

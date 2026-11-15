@@ -12,8 +12,8 @@ from bulletin.keys import KeyRing
 from bulletin.model_api import ApiError
 from bulletin.pages import parse_article
 from bulletin.prompt import PROMPT_VERSION
-from bulletin.rendering import API_REST, Pending, Renderer
-from bulletin.renditions import Rendition
+from bulletin.rendering import API_REST, Renderer
+from bulletin.renditions import Pending, Rendition
 
 FIXTURES = Path(__file__).parent / "fixtures"
 URL = "https://she.ntust.edu.tw/p/406-1068-152869.php"

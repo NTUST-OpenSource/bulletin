@@ -3,18 +3,16 @@
 import logging
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from datetime import date
 from http import HTTPStatus
 from typing import Protocol
 
 from bulletin.answers import AnswerError, keep_deadline, parse_answer, restore
 from bulletin.discord import CheckerError
 from bulletin.keys import KeyRing
-from bulletin.model import Attachment
 from bulletin.model_api import ApiError
 from bulletin.model_input import ModelInput, model_input
 from bulletin.prompt import PROMPT_VERSION, prompt
-from bulletin.renditions import Rendition
+from bulletin.renditions import Pending, Rendition
 
 log = logging.getLogger(__name__)
 
@@ -24,20 +22,6 @@ API_REST = 600.0  # seconds an announcement rests after an API error
 KEY_PROBLEMS = frozenset(
     {HTTPStatus.TOO_MANY_REQUESTS, HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN}
 )
-
-
-@dataclass(frozen=True)
-class Pending:
-    """An announcement whose current revision waits for a rendition."""
-
-    announcement_id: int
-    revision_id: int
-    url: str  # the article page
-    title: str
-    body_html: str
-    attachments: tuple[Attachment, ...]
-    listed_on: date | None
-    year: int  # the year dates without one belong to: the list date's, else the first sight's
 
 
 class Generate(Protocol):
