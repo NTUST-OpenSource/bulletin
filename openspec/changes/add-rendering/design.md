@@ -42,13 +42,15 @@ rendition for the current prompt version, first seen or listed within the last y
 after an API error. Order: `late` false before true, then the list date or first-seen date, newest
 first. A new first publication therefore goes before the backlog, which works through the last
 year from the newest end, so the most useful renditions arrive first.
+Resting announcements are kept in the loop's memory; a restart tries them again at once.
 
 ### Renditions and tags
 
 - `rendition`: `id`, `revision_id`, `prompt_version`, `model`, `rendered_at`, `fallback`, `title`,
   `markdown`, `summary`, `deadline`; unique (`revision_id`, `prompt_version`). Earlier rows stay.
 - `announcement.current_rendition` points at the newest, for the public API to read in one join.
-- `tag`: (`announcement_id`, `dimension`, `tag`) primary key, `source` (`model` or `manual`).
+- `tag`: (`announcement_id`, `dimension`, `tag`) primary key, `set_by` (`model` or `manual`);
+  the column is not called `source` because `source` is also one of E3's dimensions.
   Storing a rendition deletes the announcement's model tags and inserts the new ones in the same
   transaction as the rendition and its `rendered` event.
 - The ten-year prune deletes renditions and tags with their announcements.
@@ -57,7 +59,8 @@ year from the newest end, so the most useful renditions arrive first.
 
 ### Prompt version
 
-The prompt template and the answer's JSON schema are files in the package. `PROMPT_VERSION` is an
+The prompt is written for this service, not taken from the xincord bot's (owner, 2026-11-15). The
+prompt template and the answer's JSON schema are files in the package. `PROMPT_VERSION` is an
 integer next to them, and a test pins the files' SHA-256 to that version, so editing the prompt
 fails the gate until the version is raised on purpose. Hashing the files into the version was
 considered; it would re-render the whole last year after every wording fix.
@@ -142,10 +145,10 @@ per article. The 50 labels are drafted first and the owner corrects them before 
 
 ## Risks / Trade-offs
 
-- [The free tier's quota for `gemini-4-hydrogen` is unknown] → 429s rest keys and never become
-  fallbacks; the backlog simply takes longer. At Google's listed paid price ($1.50 and $7.50 per
-  million input and output tokens) a rendition of about 2,000 tokens in and 800 out costs about
-  one cent, so a year's backlog of some 12,000 announcements would be about $120.
+- [Cost] → the owner accepts paid use without a daily cap (2026-11-15). At Google's listed paid
+  price ($1.50 and $7.50 per million input and output tokens) a rendition of about 2,000 tokens in
+  and 800 out costs about one cent, so a year's backlog of some 12,000 announcements would be
+  about $120. 429s rest keys and never become fallbacks.
 - [`low` thinking may lower quality] → the measurement compares `low` with the default before the
   backlog starts.
 - [The model invents deadlines] → the date finder drops any date the text does not hold.
@@ -164,4 +167,4 @@ per article. The 50 labels are drafted first and the owner corrects them before 
 
 ## Open Questions
 
-- The rate per key, once the free tier's limits for `gemini-4-hydrogen` are known; it is a setting.
+- The rate per key, once the keys' limits for `gemini-4-hydrogen` are known; it is a setting.
