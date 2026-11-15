@@ -59,7 +59,7 @@ never reach the network: the model's answers are fixtures, and the Discord check
 
 ## 7. Verification
 
-- [ ] 7.1 Add an end-to-end test: a stored announcement, a fake model answer, the rendition, its tags and the published then rendered events; verify it passes
+- [x] 7.1 Add an end-to-end test: a stored announcement, a fake model answer, the rendition, its tags and the published then rendered events; verify it passes
 - [ ] 7.2 Document the settings in `README.md` and list the user-visible changes of design.md for the owner; wait for approval before pushing
 - [ ] 7.3 Run `scripts/gate.sh`; verify it passes
 
