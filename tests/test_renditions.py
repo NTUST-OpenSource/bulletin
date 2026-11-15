@@ -4,14 +4,13 @@ from dataclasses import replace
 from datetime import UTC, date, datetime, timedelta
 from typing import TYPE_CHECKING
 
-import pytest
-
 from bulletin import renditions
 from bulletin.archive import publish, revise
 from bulletin.model import Attachment, Content, Listed
 from bulletin.renditions import Pending, Rendition, next_pending, store
 
 if TYPE_CHECKING:
+    import pytest
     from psycopg import AsyncConnection
 
 LISTED = Listed(site_id=1000, host="www.ntust.edu.tw", article_id=153625, link_url=None, title="t")
@@ -185,7 +184,6 @@ async def test_a_new_prompt(migrated: AsyncConnection, monkeypatch: pytest.Monke
     assert again.announcement_id == announcement
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="Renditions follow revisions")
 async def test_a_revision_during_rendering(migrated: AsyncConnection) -> None:
     """Renditions follow revisions: a rendition of a revision that is no longer current is kept
     but does not become the current one."""

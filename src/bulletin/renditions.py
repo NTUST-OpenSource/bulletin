@@ -50,7 +50,9 @@ async def store(
     """Store `rendition` of the revision as the announcement's current one and return its id.
 
     Unless it is a fallback, its tags replace the announcement's model tags; manual tags stay. The
-    rendered event is recorded in the same transaction.
+    rendered event is recorded in the same transaction. A rendition of a revision that is no longer
+    current, edited while the model answered, is kept but changes neither the current rendition
+    nor the tags: the new revision is rendered next.
     """
     async with conn.transaction():
         cur = await conn.execute(
@@ -69,11 +71,12 @@ async def store(
         )
         row = await cur.fetchone()
         assert row is not None  # noqa: S101 - INSERT ... RETURNING returns its row
-        await conn.execute(
-            "UPDATE announcement SET current_rendition = %s WHERE id = %s",
-            (row[0], announcement_id),
+        cur = await conn.execute(
+            "UPDATE announcement SET current_rendition = %s"
+            " WHERE id = %s AND current_revision = %s",
+            (row[0], announcement_id, revision_id),
         )
-        if not rendition.fallback:
+        if cur.rowcount and not rendition.fallback:
             await conn.execute(
                 "DELETE FROM tag WHERE announcement_id = %s AND set_by = 'model'",
                 (announcement_id,),
