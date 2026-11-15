@@ -12,4 +12,9 @@ def api_app(connect: Connect, store: FileStore, release: str) -> FastAPI:
     app.state.connect = connect
     app.state.store = store
     app.state.release = release
+
+    @app.get("/announcements")
+    async def announcements() -> None:  # pyright: ignore[reportUnusedFunction]
+        raise NotImplementedError
+
     return app
