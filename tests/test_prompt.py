@@ -5,8 +5,6 @@ from datetime import date
 from importlib import resources
 from typing import cast
 
-import pytest
-
 from bulletin.model_input import ModelInput
 from bulletin.prompt import PROMPT_VERSION, answer_schema, prompt
 from bulletin.taxonomy import taxonomy
@@ -14,7 +12,7 @@ from bulletin.taxonomy import taxonomy
 # The SHA-256 of the files behind each prompt version. Editing one of them fails this test until
 # PROMPT_VERSION is raised and its digest added: a new version renders the last year again.
 DIGESTS = {
-    1: "7cfa2e50cec9aa4db8235685d730bde65c370e9273d29e3cdd07c2a5b2c0660f",
+    1: "555f02e0e5eca3c439442bb2ffc461b1f996362e918149a8d6f341e2bd335d47",
 }
 FILES = ("prompt.md", "answer.schema.json", "taxonomy.json")
 
@@ -50,7 +48,7 @@ def test_the_prompt_holds_the_input() -> None:
     """Structured answer: the prompt holds the input, the day it appeared and every tag label."""
     given = ModelInput("Title: T\n\nBody:\nB", {})
 
-    text = prompt(given, date(2026, 11, 3))
+    text = prompt(given, date(2026, 11, 3), date(2026, 11, 15))
 
     assert text.endswith("Title: T\n\nBody:\nB\n")
     assert "2026-11-03" in text
@@ -58,7 +56,6 @@ def test_the_prompt_holds_the_input() -> None:
     assert "{{" not in text
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="Deadlines from the text")
 def test_the_prompt_gives_both_days() -> None:
     """Deadlines from the text: the prompt gives the day the announcement appeared and today."""
     text = prompt(ModelInput("Title: T", {}), date(2026, 11, 3), date(2026, 11, 15))

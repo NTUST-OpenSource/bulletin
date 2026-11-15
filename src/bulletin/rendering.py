@@ -3,6 +3,7 @@
 import logging
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
+from datetime import date, datetime
 from http import HTTPStatus
 from typing import Protocol
 
@@ -14,6 +15,7 @@ from bulletin.model_api import ApiError
 from bulletin.model_input import ModelInput, model_input
 from bulletin.prompt import PROMPT_VERSION, prompt
 from bulletin.renditions import Pending, Rendition
+from bulletin.schedule import TAIPEI
 
 log = logging.getLogger(__name__)
 
@@ -55,6 +57,7 @@ class Renderer:
     model: str
     clock: Callable[[], float]  # monotonic seconds
     sleep: Callable[[float], Awaitable[object]]
+    today: Callable[[], date] = lambda: datetime.now(TAIPEI).date()
     resting: dict[int, float] = field(default_factory=dict[int, float])
 
     def rest(self, announcement_id: int) -> None:
@@ -74,7 +77,7 @@ class Renderer:
         and the announcement rests for `API_REST` seconds. A rate-limited key rests too.
         """
         given = model_input(item.title, item.body_html, item.attachments, item.url)
-        text = prompt(given, item.dated)
+        text = prompt(given, item.dated, self.today())
         for attempt in range(1, MAX_ATTEMPTS + 1):
             index = await self._key()
             try:

@@ -25,10 +25,11 @@ from typing import TYPE_CHECKING, Literal, TypedDict, get_args
 
 import aiohttp
 
-from bulletin.answers import parse_answer
+from bulletin.answers import PLACEHOLDER, parse_answer
 from bulletin.discord import Checker
 from bulletin.keys import KeyRing
 from bulletin.model_api import ModelClient, ModelConfig
+from bulletin.model_input import model_input
 from bulletin.pages import parse_article
 from bulletin.rendering import Renderer
 from bulletin.renditions import Pending
@@ -86,6 +87,8 @@ class Result:
     input_tokens: int
     output_tokens: int
     seconds: float
+    images: int
+    left_out_images: tuple[str, ...]  # the URLs of input images the answer left out
     tags: dict[str, list[str]]
     labels: dict[str, list[str]]
     model_deadline: date | None  # before the date finder
@@ -136,6 +139,8 @@ def summarize(results: list[Result]) -> dict[str, object]:
         "fallbacks": sum(r.outcome == "fallback" for r in results),
         "given_up_after_api_errors": sum(r.outcome == "api-error" for r in results),
         "api_errors": sum(r.api_errors for r in results),
+        "images": sum(r.images for r in results if r.outcome == "passed"),
+        "images_left_out": sum(len(r.left_out_images) for r in results),
         "per_article": {
             name: round(fmean(getattr(r, name) for r in results), 1) for name in AVERAGED
         },
@@ -218,6 +223,10 @@ async def measure_one(
     for dim, tag in rendition.tags if rendition else ():
         tags.setdefault(dim, []).append(tag)
     wanted = label["deadline"]
+    given = model_input(item.title, item.body_html, item.attachments, item.url)
+    images = {name: url for name, url in given.targets.items() if name.startswith("I")}
+    markdown = parse_answer(recorder.last).markdown if passed else ""
+    kept = {match[0] for match in PLACEHOLDER.finditer(markdown)}
     return Result(
         id=item.announcement_id,
         url=item.url,
@@ -233,6 +242,8 @@ async def measure_one(
         input_tokens=client.input_tokens - before[1],
         output_tokens=client.output_tokens - before[2],
         seconds=round(seconds, 1),
+        images=len(images),
+        left_out_images=tuple(url for name, url in images.items() if passed and name not in kept),
         tags={dim: sorted(tags.get(dim, [])) for dim in SEVERAL + ONE},
         labels=labelled(label),
         model_deadline=parse_answer(recorder.last).deadline if passed else None,

@@ -20,9 +20,10 @@ Answer with JSON that matches the schema. Write every text in the announcement's
     deadlines and requirements. Use `### ` headings only when a long announcement has parts.
   - Write a link as `[text](L1)` with words that say where it leads, or as `<L1>` when nothing
     fits. Never use a URL or a placeholder as the text of a link.
-  - Keep each image as `![description](I1)` where the announcement has it.
+  - Keep each image that carries content, such as a poster, a schedule or a screenshot, as
+    `![description](I1)` where the announcement has it. Leave out icons and decorations.
   - Discord has no tables: turn each table into a list, one item per row.
-  - No mentions such as @everyone, no horizontal rules, no code blocks and no HTML.
+  - No emoji, no mentions such as @everyone, no horizontal rules, no code blocks and no HTML.
   - Do not repeat the list of attachments; readers see it beside the text. Link an attachment
     where the text refers to it.
 - `summary`: one sentence of what the reader must know or do, at most 60 characters in Chinese
@@ -32,10 +33,16 @@ Answer with JSON that matches the schema. Write every text in the announcement's
   A date without a year belongs to the year the announcement appeared, or the next year if that
   is more than two months before the day it appeared. The day of an event the reader only
   attends is not a deadline, nor the end of a trial or of another period the reader may only use.
-- `tags`: `topic` and `audience` hold every tag that fits, `nature` and `source` exactly one.
+  A day written as the end (前, 止, 截止) is the deadline itself. When readers have several
+  deadlines, give the earliest that reasonably applies: an early reminder beats a late one.
+- `tags`: `topic` and `audience` hold each tag that clearly fits, `nature` and `source` exactly
+  one.
   {{taxonomy}}
   - `library`: the library's collections, databases, e-resource trials, borrowing, opening hours
     and spaces; not every notice the library posts.
+  - `audience`: the readers the text addresses. `public` alone for press releases and news
+    written for readers outside NTUST. `all-students` or `staff` only when the text addresses
+    them, and never beside a narrower group of the same readers, such as `undergraduates`.
   - `nature`: `action-required` when the reader must do something by a date; `news-and-records`
     for reports of what happened, awards and congratulations (賀) included; `lists-and-results`
     for lists of names or results that the people on them may act on, such as admissions, exam
@@ -44,7 +51,7 @@ Answer with JSON that matches the schema. Write every text in the announcement's
   - `source`: `forwarded` when NTUST passes on a notice from outside (轉知, another school, a
     ministry, a company); `on-campus` otherwise.
 
-The announcement appeared on {{dated}}.
+The announcement appeared on {{dated}}. Today is {{today}}.
 
 ---
 {{input}}

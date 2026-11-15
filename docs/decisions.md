@@ -96,7 +96,8 @@ Markers: **[rec]** the owner followed Claude's recommendation; **[owner]** the o
 - **E2 What gets rendered** [owner]: announcements from the last year, and every new one. Older
   backfilled announcements stay raw.
 - **E3 Tags** [owner]: four dimensions plus an extracted deadline. The Chinese labels are the
-  approved UI text.
+  approved UI text. The deadline is the day the text gives (before 25 July means 25 July); with
+  several, the earliest that reasonably applies, since an early reminder beats a late one.
   - Topic, several allowed: scholarships, competitions and calls, talks and events, courses,
     enrolment and grades, exams and certification, fees, housing, internships and jobs,
     international exchange, research projects, admissions, venue and service changes, safety
@@ -109,6 +110,8 @@ Markers: **[rec]** the owner followed Claude's recommendation; **[owner]** the o
   - Audience, several allowed: all students, undergraduates, graduate students, new students,
     graduating students, international students, staff, the public.
     Labels: 全體學生, 大學部, 研究生, 新生, 畢業生, 國際生, 教職員, 校外.
+    Press releases and news for outside readers are the public alone; all students and staff
+    only when the text addresses them, never beside a narrower group of the same readers.
   - Nature, one: action required, lists and results, information, news and records. Awards and
     congratulations are news and records; lists and results are lists their people may act on;
     when both fit, news and records.
@@ -116,7 +119,8 @@ Markers: **[rec]** the owner followed Claude's recommendation; **[owner]** the o
   - Source, one: on campus, forwarded from outside. Labels: 校內, 轉知校外.
 - **E4 Discord Markdown first** [owner]: the rewrite targets Discord's Markdown. Output passes
   deterministic fixes, then the `@discord/markdown-wasm` parser in a Node subprocess; failures
-  retry the model up to 3 times, then fall back to the title and the link.
+  retry the model up to 3 times, then fall back to the title and the link. Renditions hold no
+  emoji, and leave out icons and decorative images (2026-11-15).
 
 ## F. Public API and frontend
 

@@ -36,7 +36,6 @@ def test_an_invented_placeholder() -> None:
         restore("[here](L9) ![poster](I1)", TARGETS)
 
 
-@pytest.mark.xfail(strict=True, raises=AnswerError, reason="Placeholders put back")
 def test_an_image_left_out() -> None:
     """Placeholders put back: an answer may leave out the input's I1, an icon or a decoration."""
     assert restore("Apply [here](L1).", TARGETS) == "Apply [here](https://forms.gle/abc)."

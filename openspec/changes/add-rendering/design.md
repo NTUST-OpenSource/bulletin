@@ -94,14 +94,17 @@ next key with room.
 ### Answer checks, in order
 
 1. JSON that matches the schema, tags from the taxonomy, one nature and one source.
-2. Placeholders: none unknown, every image placeholder present; then each is replaced by its URL.
+2. Placeholders: none unknown; then each is replaced by its URL. Images may be left out: the
+   prompt keeps posters, schedules and screenshots and leaves out icons and decorations (owner).
 3. Deadline: kept only when the text holds the date in one of the forms the date finder knows
    (`2026-12-10`, `2026/12/10`, `115/12/10`, `115年12月10日`, `12月10日`, `12/10`,
    `December 10, 2026`, `10 Dec`; those without a year read in the year the announcement
    appeared, its list date or else its first sight in Taipei, and the next), after NFKC so that
    full-width digits count. The prompt gives the model the same day.
-4. Discord fixes (E4): bare URLs wrapped as `<url>`, masked links whose text is a URL replaced by
-   the URL.
+4. Discord fixes (E4): bare URLs wrapped as `<url>`, masked links whose text is a URL or empty
+   replaced by the URL, and images without a description described as 圖片 (Image in a text
+   without Chinese), since Discord leaves an empty link text unparsed. Emoji are removed from the
+   title, Markdown and summary (owner); the model input holds none either.
 5. The Discord Markdown check: a long-lived Node subprocess runs `@discord/markdown-wasm` and
    answers one JSON line per input; Python then rejects pipe tables, link targets that are not
    `http(s)` and text over 4,096 characters. A crashed subprocess is restarted and counts as an
@@ -141,7 +144,8 @@ per article. The 50 labels are drafted first and the owner corrects them before 
 ### User-visible changes for review
 
 - The rendition itself: the prompt's rules for titles, Markdown, summaries and deadlines, in
-  Traditional Chinese.
+  Traditional Chinese. No emoji; icons and decorative images left out.
+- 圖片 or Image as the description of an image that has none.
 - The fallback text: the announcement's title as a link.
 - Tag ids, for example `topic/scholarships`, next to the approved labels of E3.
 - The event kind `rendered` in the events feed.
@@ -149,10 +153,12 @@ per article. The 50 labels are drafted first and the owner corrects them before 
 
 ## Risks / Trade-offs
 
-- [Cost] → the owner accepts paid use without a daily cap (2026-11-15). At Google's listed paid
-  price ($1.50 and $7.50 per million input and output tokens) a rendition of about 2,000 tokens in
-  and 800 out costs about one cent, so a year's backlog of some 12,000 announcements would be
-  about $120. 429s rest keys and never become fallbacks.
+- [Cost] → the owner accepts paid use without a daily cap (2026-11-15). The measurement with
+  `low` thinking used 1.3 requests, about 2,950 tokens in and 1,500 out per announcement: at
+  Google's listed paid price ($1.50 and $7.50 per million) about 1.6 cents, so a year's backlog of
+  some 12,000 announcements would be about $190. 429s rest keys and never become fallbacks.
+- [Free-tier keys] → the xincord bot's keys allow 20 requests a day each on the free tier; the
+  owner added a Tier 1 key (2026-11-15), and the backlog needs it.
 - [`low` thinking may lower quality] → the measurement compares `low` with the default before the
   backlog starts.
 - [The model invents deadlines] → the date finder drops any date the text does not hold.

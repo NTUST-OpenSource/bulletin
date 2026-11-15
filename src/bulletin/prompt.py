@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 # Raise it with every change of prompt.md, answer.schema.json or taxonomy.json.
 PROMPT_VERSION = 1
-TOKEN = re.compile(r"\{\{(taxonomy|dated|input)\}\}")
+TOKEN = re.compile(r"\{\{(taxonomy|dated|today|input)\}\}")
 
 
 def _read(name: str) -> str:
@@ -30,11 +30,12 @@ def _taxonomy() -> str:
     )
 
 
-def prompt(given: ModelInput, dated: date, today: date | None = None) -> str:  # noqa: ARG001 - scaffolding
-    """The prompt for one article: the rules, the taxonomy, the day it appeared and its input."""
+def prompt(given: ModelInput, dated: date, today: date) -> str:
+    """The prompt for one article: the rules, the taxonomy, its day and today, and its input."""
     values = {
         "taxonomy": _taxonomy(),
         "dated": dated.isoformat(),
+        "today": today.isoformat(),
         "input": given.text,
     }
     return TOKEN.sub(lambda token: values[token[1]], _read("prompt.md"))

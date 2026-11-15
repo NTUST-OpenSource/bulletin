@@ -100,17 +100,14 @@ def _date(fields: dict[str, object]) -> date | None:
 
 
 def restore(text: str, targets: dict[str, str]) -> str:
-    """Replace each placeholder in `text` by the URL it stands for.
+    """Replace each placeholder in `text` by the URL it stands for; images may be left out.
 
     Raises:
-        AnswerError: `text` holds a placeholder that `targets` lacks, or leaves out an image.
+        AnswerError: `text` holds a placeholder that `targets` lacks.
     """
     used = {match[0] for match in PLACEHOLDER.finditer(text)}
     if unknown := sorted(used - targets.keys()):
         msg = f"unknown placeholders {', '.join(unknown)}"
-        raise AnswerError(msg)
-    if dropped := sorted(name for name in targets if name[0] == "I" and name not in used):
-        msg = f"dropped images {', '.join(dropped)}"
         raise AnswerError(msg)
     return PLACEHOLDER.sub(lambda match: quote(targets[match[0]], safe=URL_SAFE), text)
 
