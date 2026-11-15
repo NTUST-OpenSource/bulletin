@@ -5,16 +5,20 @@ import binascii
 from dataclasses import dataclass
 from datetime import date, datetime
 from typing import TYPE_CHECKING
+from urllib.parse import quote
 
 from psycopg import sql
 
 from bulletin.archive import article_url
+from bulletin.events import read_after
 from bulletin.taxonomy import taxonomy
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
 
     from psycopg import AsyncConnection
+
+    from bulletin.files import FileStore
 
 MAX_WORDS = 10
 MAX_QUERY = 100
@@ -283,3 +287,147 @@ async def items(conn: AsyncConnection, ids: Iterable[int]) -> list[Item]:
             )
         )
     return found
+
+
+@dataclass(frozen=True)
+class RenditionText(RenditionSummary):
+    """A rendition with its Markdown, for one announcement."""
+
+    markdown: str
+
+
+@dataclass(frozen=True)
+class AttachmentFile:
+    """An attachment, with the path of its stored file while the store holds it."""
+
+    name: str
+    url: str
+    size: int | None
+    file: str | None
+
+
+@dataclass(frozen=True)
+class RevisionTime:
+    """When a revision was fetched."""
+
+    fetched_at: datetime
+
+
+@dataclass(frozen=True)
+class CrossPost:
+    """A copy of an announcement on another site."""
+
+    id: int
+    site: int
+    url: str
+
+
+@dataclass(frozen=True)
+class Announcement(Item):
+    """One announcement with its raw text, rendition, attachments, revisions and copies."""
+
+    rendition: RenditionText | None
+    body_html: str | None
+    attachments: tuple[AttachmentFile, ...]
+    revisions: tuple[RevisionTime, ...]
+    cross_posts: tuple[CrossPost, ...]
+    cross_post_of: int | None
+
+
+def file_path(digest: str, name: str) -> str:
+    """Where the API serves a stored file under its recorded name."""
+    return f"/api/v1/files/{digest}/{quote(name, safe='')}"
+
+
+async def announcement(
+    conn: AsyncConnection, store: FileStore, announcement_id: int
+) -> Announcement | None:
+    """One announcement, or None when there is none with that id."""
+    found = await items(conn, [announcement_id])
+    if not found:
+        return None
+    cur = await conn.execute(
+        "SELECT r.body_html, n.markdown, a.cross_post_of FROM announcement a"
+        " LEFT JOIN revision r ON r.id = a.current_revision"
+        " LEFT JOIN rendition n ON n.id = a.current_rendition AND NOT n.fallback"
+        " WHERE a.id = %s",
+        (announcement_id,),
+    )
+    row = await cur.fetchone()
+    assert row is not None  # noqa: S101 - items() found it a moment ago
+    body, markdown, copies = row
+    cur = await conn.execute(
+        "SELECT f.name, f.url, f.size, f.sha256 FROM attachment f"
+        " JOIN announcement a ON a.current_revision = f.revision_id WHERE a.id = %s"
+        " ORDER BY f.id",
+        (announcement_id,),
+    )
+    attachments = tuple(
+        AttachmentFile(
+            name,
+            url,
+            size,
+            file_path(digest, name) if digest and store.path(digest).exists() else None,
+        )
+        for name, url, size, digest in await cur.fetchall()
+    )
+    cur = await conn.execute(
+        "SELECT fetched_at FROM revision WHERE announcement_id = %s ORDER BY id",
+        (announcement_id,),
+    )
+    revisions = tuple(RevisionTime(row[0]) for row in await cur.fetchall())
+    cur = await conn.execute(
+        "SELECT id, site_id, host, article_id, link_url FROM announcement"
+        " WHERE cross_post_of = %s ORDER BY id",
+        (announcement_id,),
+    )
+    cross_posts = tuple(
+        CrossPost(copy, site, article_url(host, site, article) if article else link)
+        for copy, site, host, article, link in await cur.fetchall()
+    )
+    item = found[0]
+    text = item.rendition and RenditionText(
+        item.rendition.title, item.rendition.summary, item.rendition.deadline, markdown
+    )
+    return Announcement(
+        id=item.id,
+        site=item.site,
+        unit=item.unit,
+        url=item.url,
+        link_item=item.link_item,
+        title=item.title,
+        publisher=item.publisher,
+        day=item.day,
+        listed_on=item.listed_on,
+        first_seen_at=item.first_seen_at,
+        withdrawn_at=item.withdrawn_at,
+        boards=item.boards,
+        tags=item.tags,
+        rendition=text,
+        body_html=body,
+        attachments=attachments,
+        revisions=revisions,
+        cross_posts=cross_posts,
+        cross_post_of=copies,
+    )
+
+
+@dataclass(frozen=True)
+class EventItem:
+    """An event with its announcement as a stream item, as it is now."""
+
+    id: int
+    kind: str
+    notify: bool
+    late: bool
+    at: datetime
+    announcement: Item
+
+
+async def events_after(conn: AsyncConnection, after: int, limit: int) -> list[EventItem]:
+    """Up to `limit` events with ids above `after`, in id order."""
+    found = await read_after(conn, after, limit)
+    by_id = {item.id: item for item in await items(conn, {e.announcement_id for e in found})}
+    return [
+        EventItem(e.id, e.kind, e.notify, e.late, e.at, by_id[e.announcement_id]) for e in found
+    ]

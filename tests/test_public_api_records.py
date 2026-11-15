@@ -19,7 +19,6 @@ if TYPE_CHECKING:
     from psycopg import AsyncConnection
 
 DAY = date(2026, 11, 13)
-PENDING = (AssertionError, NotImplementedError)
 PDF = Attachment(
     "113/1 schedule.pdf", "https://student.ntust.edu.tw/var/file/53/1053/a.pdf", "module"
 )
@@ -50,7 +49,6 @@ async def one(world: World, announcement: int) -> dict[str, object]:
     return response.json()
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="One announcement")
 async def test_attachments(world: World) -> None:
     """One announcement: a stored file has its path, a file that was not stored has null."""
     announcement = await world.add(
@@ -80,7 +78,6 @@ async def test_attachments(world: World) -> None:
     assert (got["cross_posts"], got["cross_post_of"]) == ([], None)
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="One announcement")
 async def test_a_pruned_file(world: World) -> None:
     """One announcement: a file the one-year window deleted has a null path."""
     announcement = await world.add(DAY, attachments=(PDF,))
@@ -91,7 +88,6 @@ async def test_a_pruned_file(world: World) -> None:
     assert got["attachments"][0]["file"] is None  # type: ignore[index]
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="One announcement")
 async def test_a_cross_posts_own_page(world: World) -> None:
     """One announcement: a cross-post names the announcement it copies, which lists it."""
     office = await world.add(DAY)
@@ -102,7 +98,6 @@ async def test_a_cross_posts_own_page(world: World) -> None:
     assert [c["id"] for c in copies] == [copy]  # type: ignore[union-attr]
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="One announcement")
 async def test_an_unknown_announcement(world: World) -> None:
     """One announcement: an unknown id is a 404."""
     async with world.client() as http:
@@ -120,7 +115,6 @@ async def events(world: World, after: int | None = None) -> dict[str, object]:
     return response.json()
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="Events feed")
 async def test_resuming(world: World) -> None:
     """Events feed: asking after an id gives the later events, each with its announcement."""
     first = await world.add(DAY)
@@ -137,7 +131,6 @@ async def test_resuming(world: World) -> None:
     assert first not in [e["announcement"]["id"] for e in got["events"]]  # type: ignore[union-attr]
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="Events feed")
 async def test_nothing_new(world: World) -> None:
     """Events feed: with nothing after `after`, the list is empty and the last id is `after`."""
     await world.add(DAY)
@@ -153,7 +146,6 @@ async def sites(world: World) -> list[dict[str, object]]:
     return response.json()
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="Sites and boards")
 async def test_an_academic_unit(world: World) -> None:
     """Sites and boards: a department is academic with its college, after the college's site."""
     await world.boards(
@@ -173,7 +165,6 @@ async def test_an_academic_unit(world: World) -> None:
     assert (listed[0]["kind"], listed[0]["college"]) == ("all", None)
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="Sites and boards")
 async def test_an_excluded_board(world: World) -> None:
     """Sites and boards: excluded boards are not listed, nor sites with nothing else."""
     await world.boards([Board(1089, 1, "audit.ntust.edu.tw", "audit", "banner", "excluded", "off")])
@@ -184,7 +175,6 @@ async def test_an_excluded_board(world: World) -> None:
     assert 1089 not in [s["id"] for s in listed]
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="Sites and boards")
 async def test_a_board_turned_off(world: World) -> None:
     """Sites and boards: a board turned off stays listed beside one that still polls."""
     await world.conn.execute("UPDATE board SET tier = 'off' WHERE site_id = 1053 AND rcg = 1436")
@@ -193,7 +183,6 @@ async def test_a_board_turned_off(world: World) -> None:
     assert [b["key"] for b in student["boards"]] == ["1053-1435", "1053-1436"]  # type: ignore[union-attr]
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="Sites and boards")
 async def test_a_site_outside_the_unit_data(world: World) -> None:
     """Sites and boards: a site missing from the unit data is listed last, as admin."""
     await world.boards([Board(1999, 1, "new.ntust.edu.tw", "new", "news", "announcement", "P4")])
@@ -202,7 +191,6 @@ async def test_a_site_outside_the_unit_data(world: World) -> None:
     assert (listed[-1]["id"], listed[-1]["kind"]) == (1999, "admin")
 
 
-@pytest.mark.xfail(strict=True, raises=PENDING, reason="Tag taxonomy")
 async def test_the_topics(world: World) -> None:
     """Tag taxonomy: four dimensions in order; topics allow several and include the library."""
     async with world.client() as http:

@@ -4,17 +4,46 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Annotated, Literal
 
-from fastapi import FastAPI, Query, Request, status
+from fastapi import FastAPI, HTTPException, Query, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from bulletin import stream
 from bulletin.files import FileStore
-from bulletin.stream import Cursor, Filters, InvalidRequestError, Item
+from bulletin.registry import Site, public_sites
+from bulletin.stream import Announcement, Cursor, EventItem, Filters, InvalidRequestError, Item
+from bulletin.taxonomy import SEVERAL, taxonomy
 from bulletin.web.db import Conn, Connect
 
 DEFAULT_LIMIT = 30
 MAX_LIMIT = 100
+DEFAULT_EVENTS = 100
+MAX_EVENTS = 500
+
+
+@dataclass(frozen=True)
+class Events:
+    """A page of the events feed and the last id it holds, `after` when it holds none."""
+
+    events: tuple[EventItem, ...]
+    last: int
+
+
+@dataclass(frozen=True)
+class TagLabel:
+    """A tag's id and approved label."""
+
+    id: str
+    label: str
+
+
+@dataclass(frozen=True)
+class Dimension:
+    """A tag dimension, whether it allows several tags, and its tags in order."""
+
+    id: str
+    several: bool
+    tags: tuple[TagLabel, ...]
 
 
 @dataclass(frozen=True)
@@ -72,19 +101,36 @@ def api_app(connect: Connect, store: FileStore, release: str) -> FastAPI:
         return Page(tuple(await stream.items(conn, ids)), following and following.encode())
 
     @app.get("/announcements/{announcement}")
-    async def one(announcement: int) -> None:  # pyright: ignore[reportUnusedFunction]
-        raise NotImplementedError
+    async def one(conn: Conn, request: Request, announcement: int) -> Announcement:  # pyright: ignore[reportUnusedFunction]
+        """One announcement with its raw text, rendition, attachments and revisions."""
+        found = await stream.announcement(conn, request.app.state.store, announcement)
+        if found is None:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, f"no announcement {announcement}")
+        return found
 
     @app.get("/events")
-    async def events() -> None:  # pyright: ignore[reportUnusedFunction]
-        raise NotImplementedError
+    async def events(  # pyright: ignore[reportUnusedFunction]
+        conn: Conn,
+        after: Annotated[int, Query(ge=0)] = 0,
+        limit: Annotated[int, Query(ge=1, le=MAX_EVENTS)] = DEFAULT_EVENTS,
+    ) -> Events:
+        """Events with ids above `after`, in id order, each with its announcement."""
+        found = await stream.events_after(conn, after, limit)
+        return Events(tuple(found), found[-1].id if found else after)
 
     @app.get("/sites")
-    async def sites() -> None:  # pyright: ignore[reportUnusedFunction]
-        raise NotImplementedError
+    async def sites(conn: Conn) -> list[Site]:  # pyright: ignore[reportUnusedFunction]
+        """The sites with their unit's kind and college, and their boards."""
+        return await public_sites(conn)
 
     @app.get("/tags")
-    async def tags() -> None:  # pyright: ignore[reportUnusedFunction]
-        raise NotImplementedError
+    async def tags() -> list[Dimension]:  # pyright: ignore[reportUnusedFunction]
+        """The taxonomy: four dimensions, whether each allows several tags, and their tags."""
+        return [
+            Dimension(
+                dimension, dimension in SEVERAL, tuple(TagLabel(t.id, t.label) for t in found)
+            )
+            for dimension, found in taxonomy().items()
+        ]
 
     return app

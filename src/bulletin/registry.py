@@ -8,6 +8,7 @@ from importlib import resources
 from typing import TYPE_CHECKING, Literal, cast
 
 from bulletin.schedule import interval
+from bulletin.units import Kind, Unit, units
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -246,3 +247,61 @@ async def list_boards(
         (tier, tier, pending, pending),
     )
     return [Board(*row) for row in await cur.fetchall()]
+
+
+@dataclass(frozen=True)
+class PublicBoard:
+    """A board as the public API lists it."""
+
+    key: str
+    name: str
+    category: Category
+
+
+@dataclass(frozen=True)
+class Site:
+    """A site as the public API lists it, with its unit's kind and college."""
+
+    id: int
+    host: str
+    unit: str
+    kind: Kind
+    college: str | None
+    boards: tuple[PublicBoard, ...]
+
+
+async def public_sites(conn: AsyncConnection) -> list[Site]:
+    """List the sites with a board that is neither excluded nor off, in the school's order.
+
+    Each site carries its boards that are not excluded; sites missing from the unit data come
+    last, as admin.
+    """
+    cur = await conn.execute(
+        "SELECT s.site_id, s.host, s.unit, b.rcg, b.name, b.category, b.tier FROM site s"
+        " JOIN board b ON b.site_id = s.site_id WHERE b.category <> 'excluded'"
+        " ORDER BY s.site_id, b.rcg"
+    )
+    rows: dict[int, list[tuple[object, ...]]] = {}
+    for row in await cur.fetchall():
+        rows.setdefault(row[0], []).append(row)
+    known = {unit.site: (n, unit) for n, unit in enumerate(units())}
+    listed = [site for site, boards in rows.items() if any(b[6] != "off" for b in boards)]
+    listed.sort(key=lambda site: (known[site][0] if site in known else len(known), site))
+    found: list[Site] = []
+    for site in listed:
+        unit = known[site][1] if site in known else Unit(site, "admin")
+        first = rows[site][0]
+        found.append(
+            Site(
+                site,
+                cast("str", first[1]),
+                cast("str", first[2]),
+                unit.kind,
+                unit.college,
+                tuple(
+                    PublicBoard(f"{site}-{b[3]}", cast("str", b[4]), cast("Category", b[5]))
+                    for b in rows[site]
+                ),
+            )
+        )
+    return found
