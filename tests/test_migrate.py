@@ -104,7 +104,6 @@ async def stored(db: AsyncConnection, article_id: int, listed_on: date | None) -
     return announcement
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="Renditions of undated articles")
 async def test_renditions_of_undated_articles_go(db: AsyncConnection, tmp_path: Path) -> None:
     """Migration 0005: articles without a list date lose their renditions and model tags, which
     were read against the day of the backfill; dated articles keep theirs, manual tags stay."""

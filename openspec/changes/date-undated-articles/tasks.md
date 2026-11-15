@@ -11,9 +11,9 @@ Each requirement gets two tasks (AGENTS.md, xfail-first): commit its failing tes
 
 ## 2. Migration
 
-- [ ] 2.1 Add to migration `0005` the one-off removal of renditions and model tags of articles without a list date; verify with a migration test that dated articles keep theirs and manual tags stay
+- [x] 2.1 Add to migration `0005` the one-off removal of renditions and model tags of articles without a list date; verify with a migration test that dated articles keep theirs and manual tags stay
 
 ## 3. Verification
 
-- [ ] 3.1 Run `scripts/gate.sh`; verify it passes
+- [x] 3.1 Run `scripts/gate.sh`; verify it passes
 - [ ] 3.2 Deploy to the owner's host and uncomment the keys; verify rendering resumes and an article without a list date whose nearest dated article is over a year old stays raw
