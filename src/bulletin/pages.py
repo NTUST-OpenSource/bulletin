@@ -14,6 +14,8 @@ from bulletin.tls import is_school
 # An article's path, with the optional board suffix: /p/406-1048-149096,r1416.php. A 404 page
 # shows the same article.
 ARTICLE_PATH = re.compile(r"/p/40[46]-(\d+)-(\d+)(?:,r\d+)?\.php")
+# A cross-post pointer: /p/450-1045-152885,c0.php redirects to the article on its own site.
+POINTER_PATH = re.compile(r"/p/450-\d+-\d+(?:,c\d+)?\.php")
 # The labels of the column that names an item's publisher, as the school writes them.
 PUBLISHER = frozenset(
     json.loads((resources.files("bulletin") / "columns.json").read_text(encoding="utf-8"))[
@@ -120,18 +122,25 @@ def _item(row: Element, url: str, site_id: int) -> Listed | None:
         None,
     )
     link = urljoin(url, anchor.attr("href").strip())
-    parts = urlsplit(link)
+    if (article := article_key(link)) is not None:
+        return Listed(article[1], article[0], article[2], None, title, listed_on, publisher)
+    host = urlsplit(url).hostname or ""
+    return Listed(site_id, host, None, link, title, listed_on, publisher)
+
+
+def article_key(url: str) -> tuple[str, int, int] | None:
+    """The host, site and article id of an article link on a school host, or None."""
+    parts = urlsplit(url)
     article = ARTICLE_PATH.fullmatch(parts.path)
     if article and parts.scheme == "https" and is_school(parts.hostname or ""):
-        host, site_id, article_id, link_url = (
-            parts.hostname or "",
-            int(article[1]),
-            int(article[2]),
-            None,
-        )
-    else:
-        host, article_id, link_url = urlsplit(url).hostname or "", None, link
-    return Listed(site_id, host, article_id, link_url, title, listed_on, publisher or None)
+        return parts.hostname or "", int(article[1]), int(article[2])
+    return None
+
+
+def is_pointer(url: str) -> bool:
+    """Whether `url` is a cross-post pointer, a `450` page that redirects to an article."""
+    parts = urlsplit(url)
+    return POINTER_PATH.fullmatch(parts.path) is not None and is_school(parts.hostname or "")
 
 
 def page_count(page: str) -> int | None:

@@ -205,3 +205,25 @@ async def test_a_night_step_walks_a_board(migrated: AsyncConnection, tmp_path: P
     assert await polls(migrated) == [("backfill", None, None, 200, None, 0)]
     cur = await migrated.execute("SELECT backfilled_at FROM board")
     assert await cur.fetchone() == (night,)
+
+
+async def test_a_poll_follows_a_cross_post_pointer(
+    migrated: AsyncConnection, tmp_path: Path
+) -> None:
+    """Cross-post pointers: a poll stores a pointer's item as the article it redirects to."""
+    board = Board(1045, 1391, "bulletin.ntust.edu.tw", "u", "n", "announcement", "P1")
+    await import_seed(migrated, [board])
+    recorded = json.loads((FIXTURES / "lists" / "pointer-450-1045-152885.json").read_text())
+    pointer = "https://bulletin.ntust.edu.tw/p/450-1045-152885,c0.php?Lang=zh-tw"
+    page = (FIXTURES / "lists" / "bulletin-1045-1391.html").read_bytes()
+    web = FakeWeb({"https://bulletin.ntust.edu.tw/p/403-1045-1391-1.php": Answer(200, body=page)})
+    web.answers[pointer] = Answer(302, {"Location": recorded["location"]})
+
+    assert await worker(web, tmp_path).step(migrated)
+
+    cur = await migrated.execute(
+        "SELECT count(*), count(*) FILTER (WHERE site_id = 1068 AND article_id = 152869)"
+        " FROM announcement"
+    )
+    assert await cur.fetchone() == (30, 1)
+    assert [p[3] for p in await polls(migrated)] == [200, 302]

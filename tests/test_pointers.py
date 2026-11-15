@@ -5,8 +5,6 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import pytest
-
 from bulletin.pages import parse_list
 from bulletin.pointers import resolve_pointers
 from web import Answer, FakeWeb
@@ -27,7 +25,6 @@ def bulletin_items() -> list[Listed]:
     return parse_list(page, "https://bulletin.ntust.edu.tw/p/403-1045-1391-1.php", 1045)
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Cross-post pointers")
 async def test_a_cross_post_pointer(migrated: AsyncConnection) -> None:
     """A cross-post pointer: the item is read as the article it redirects to, and later polls do
     not request the pointer again."""
@@ -55,7 +52,6 @@ async def test_a_cross_post_pointer(migrated: AsyncConnection) -> None:
     assert [i for i in resolved if i is not article] == [i for i in items if i is not pointer]
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Cross-post pointers")
 async def test_a_pointer_that_does_not_redirect(migrated: AsyncConnection) -> None:
     """A pointer that does not redirect: the item stays a link item; the pointer is asked once."""
     items = bulletin_items()

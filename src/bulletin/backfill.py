@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from bulletin.archive import is_redirect_home, publish
 from bulletin.detection import find
 from bulletin.pages import PageError, list_url, page_count, parse_list
+from bulletin.pointers import resolve_pointers
 from bulletin.schedule import TAIPEI, enqueue
 
 if TYPE_CHECKING:
@@ -60,9 +61,10 @@ async def walk(conn: AsyncConnection, fetch: Fetch, board: tuple[int, int], at: 
     else:
         oldest = horizon(at)
         text = response.text()
+        listed = parse_list(text, response.url, board[0])
         items = [
             item
-            for item in parse_list(text, response.url, board[0])
+            for item in await resolve_pointers(conn, fetch, listed, at)
             if item.listed_on is None or item.listed_on >= oldest
         ]
         count = page_count(text)

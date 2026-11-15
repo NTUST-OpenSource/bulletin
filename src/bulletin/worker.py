@@ -19,6 +19,7 @@ from bulletin.files import FileStore, keep_files, prune_files
 from bulletin.http import Fetch, Response
 from bulletin.pacer import Pacer
 from bulletin.pages import PageError, list_url, parse_list
+from bulletin.pointers import resolve_pointers
 from bulletin.poller import poll_board
 from bulletin.polllog import Entry, log_request
 from bulletin.registry import get_board
@@ -148,7 +149,8 @@ class Worker:
             response = await fetch(list_url(found.host, *board, page))
             if response.status != HTTPStatus.OK:
                 raise PageError(response.status)
-            return parse_list(response.text(), response.url, found.site_id)
+            items = parse_list(response.text(), response.url, found.site_id)
+            return await resolve_pointers(conn, fetch, items, at)
 
         new: list[int] = []
 
