@@ -88,9 +88,11 @@ Markers: **[rec]** the owner followed Claude's recommendation; **[owner]** the o
 
 ## E. Rendering
 
-- **E1 Model** [owner]: any OpenAI-compatible endpoint; the default is gemma-4-E4B on
-  llama-server running natively on the host. The rendering change compares 2-3 models on 50
-  articles before fixing the default.
+- **E1 Model** [owner]: Gemini `gemini-4-hydrogen` (the owner's choice on 2026-11-15, replacing
+  gemma-4-E4B on a local llama-server). Several API keys are used in turn, as the xincord
+  `ntust_announcements` plugin does; they come from the deployment's configuration, never from the
+  repository. The endpoint and model stay configurable, for Gemini's API or an OpenAI-compatible
+  one.
 - **E2 What gets rendered** [owner]: announcements from the last year, and every new one. Older
   backfilled announcements stay raw.
 - **E3 Tags** [owner]: four dimensions plus an extracted deadline. The Chinese labels are the
