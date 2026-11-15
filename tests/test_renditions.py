@@ -4,6 +4,9 @@ from dataclasses import replace
 from datetime import UTC, date, datetime, timedelta
 from typing import TYPE_CHECKING
 
+import pytest
+
+from bulletin import renditions
 from bulletin.archive import publish, revise
 from bulletin.model import Attachment, Content, Listed
 from bulletin.renditions import Pending, Rendition, next_pending, store
@@ -137,3 +140,60 @@ async def test_resting_and_undated_announcements(migrated: AsyncConnection) -> N
 
     assert picked is not None
     assert (picked.announcement_id, picked.listed_on, picked.year) == (undated, None, NOW.year)
+
+
+async def current_rendition(conn: AsyncConnection, announcement: int) -> int | None:
+    cur = await conn.execute(
+        "SELECT current_rendition FROM announcement WHERE id = %s", (announcement,)
+    )
+    row = await cur.fetchone()
+    assert row is not None
+    return row[0]
+
+
+async def test_an_edited_announcement(migrated: AsyncConnection) -> None:
+    """Renditions follow revisions: a new revision is rendered; the earlier rendition stays."""
+    announcement = await article(migrated, 1, TODAY)
+    first = await next_pending(migrated, NOW)
+    assert first is not None
+    earlier = await store(migrated, announcement, first.revision_id, RENDITION)
+    await revise(migrated, announcement, Content("t1", "p", "<p>edited</p>", "edited"))
+
+    edited = await next_pending(migrated, NOW)
+    assert edited is not None
+    assert (edited.announcement_id, edited.body_html) == (announcement, "<p>edited</p>")
+    later = await store(migrated, announcement, edited.revision_id, RENDITION)
+
+    cur = await migrated.execute("SELECT id FROM rendition ORDER BY id")
+    assert await cur.fetchall() == [(earlier,), (later,)]
+    assert await current_rendition(migrated, announcement) == later
+    assert await next_pending(migrated, NOW) is None
+
+
+async def test_a_new_prompt(migrated: AsyncConnection, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Renditions follow revisions: a new prompt version renders the last year again."""
+    announcement = await article(migrated, 1, TODAY)
+    await article(migrated, 2, TODAY - timedelta(days=730), late=True)
+    first = await next_pending(migrated, NOW)
+    assert first is not None
+    await store(migrated, announcement, first.revision_id, RENDITION)
+
+    monkeypatch.setattr(renditions, "PROMPT_VERSION", RENDITION.prompt_version + 1)
+    again = await next_pending(migrated, NOW)
+
+    assert again is not None
+    assert again.announcement_id == announcement
+
+
+@pytest.mark.xfail(strict=True, raises=AssertionError, reason="Renditions follow revisions")
+async def test_a_revision_during_rendering(migrated: AsyncConnection) -> None:
+    """Renditions follow revisions: a rendition of a revision that is no longer current is kept
+    but does not become the current one."""
+    announcement = await article(migrated, 1, TODAY)
+    picked = await next_pending(migrated, NOW)
+    assert picked is not None
+    await revise(migrated, announcement, Content("t1", "p", "<p>edited</p>", "edited"))
+
+    await store(migrated, announcement, picked.revision_id, RENDITION)
+
+    assert await current_rendition(migrated, announcement) is None
