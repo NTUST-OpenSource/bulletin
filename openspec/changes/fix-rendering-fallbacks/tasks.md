@@ -5,8 +5,8 @@ then implement it, remove the marker and commit with the gate green.
 
 ## 1. Placeholders put back
 
-- [ ] 1.1 Commit the tests for "Text that looks like a placeholder" and for migration 0007, marked to fail; verify they fail for the expected reason and the gate stays green
-- [ ] 1.2 Fail only on unknown placeholders in link or image targets, add migration 0007 dropping fallback renditions, and remove the markers; verify the gate is green
+- [x] 1.1 Commit the tests for "Text that looks like a placeholder" and for migration 0007, marked to fail; verify they fail for the expected reason and the gate stays green
+- [x] 1.2 Fail only on unknown placeholders in link or image targets, add migration 0007 dropping fallback renditions, and remove the markers; verify the gate is green
 
 ## 2. Model input
 

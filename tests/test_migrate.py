@@ -48,6 +48,7 @@ async def test_migrations_apply_to_an_empty_schema(db: AsyncConnection) -> None:
         "0004_rendering.sql",
         "0005_dated_articles.sql",
         "0006_stream_day.sql",
+        "0007_retry_fallbacks.sql",
     ]
     assert await tables(db) == TABLES
 
@@ -132,7 +133,6 @@ async def test_renditions_of_undated_articles_go(db: AsyncConnection, tmp_path: 
     assert set(await cur.fetchall()) == {(dated, "model"), (undated, "manual")}
 
 
-@pytest.mark.xfail(strict=True, raises=IndexError, reason="Placeholders put back")
 async def test_fallbacks_go(db: AsyncConnection, tmp_path: Path) -> None:
     """Migration 0007: fallback renditions go, so their articles render again with placeholders
     put back only in link targets; other renditions stay."""

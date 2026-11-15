@@ -12,6 +12,8 @@ from bulletin.taxonomy import TagError, parse_tags
 
 # A placeholder of the model input (`L1`, `I1`), not part of a longer ASCII word or number.
 PLACEHOLDER = re.compile(r"(?<![A-Za-z0-9])([LI])([1-9][0-9]*)(?![0-9])")
+# A placeholder where only a URL can stand: a masked link's or image's target, or an autolink.
+TARGET = re.compile(r"\]\(([LI][1-9][0-9]*)\)|<([LI][1-9][0-9]*)>")
 # What a URL keeps as it is inside a Markdown link: the reserved characters but parentheses.
 URL_SAFE = "!#$%&'*+,/:;=?@[]~"
 YEAR, MONTH = chr(0x5E74), chr(0x6708)
@@ -100,16 +102,22 @@ def _date(fields: dict[str, object]) -> date | None:
 
 
 def restore(text: str, targets: dict[str, str]) -> str:
-    """Replace each placeholder in `text` by the URL it stands for; images may be left out.
+    """Replace each placeholder of `targets` in `text` by its URL; images may be left out.
+
+    Text that looks like a placeholder outside a link target, as a masked ID number `L125***256`,
+    stays as written.
 
     Raises:
-        AnswerError: `text` holds a placeholder that `targets` lacks.
+        AnswerError: a link or image target in `text` is a placeholder that `targets` lacks.
     """
-    used = {match[0] for match in PLACEHOLDER.finditer(text)}
+    used = {match[1] or match[2] for match in TARGET.finditer(text)}
     if unknown := sorted(used - targets.keys()):
         msg = f"unknown placeholders {', '.join(unknown)}"
         raise AnswerError(msg)
-    return PLACEHOLDER.sub(lambda match: quote(targets[match[0]], safe=URL_SAFE), text)
+    return PLACEHOLDER.sub(
+        lambda match: quote(targets[match[0]], safe=URL_SAFE) if match[0] in targets else match[0],
+        text,
+    )
 
 
 def keep_deadline(deadline: date | None, text: str, year: int) -> date | None:

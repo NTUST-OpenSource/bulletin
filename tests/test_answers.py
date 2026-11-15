@@ -36,7 +36,6 @@ def test_an_invented_placeholder() -> None:
         restore("[here](L9) ![poster](I1)", TARGETS)
 
 
-@pytest.mark.xfail(strict=True, raises=AnswerError, reason="Placeholders put back")
 def test_text_that_looks_like_a_placeholder() -> None:
     """Placeholders put back: outside a link target, a masked ID number such as L125***256 stays."""
     restored = restore("Admitted: L125***256, hall I8. [Form](L1) <L1>", TARGETS)
