@@ -1,13 +1,10 @@
 """Requirement "Keys in turn" of the rendering capability."""
 
-import pytest
-
 from bulletin.keys import KeyRing
 
 KEYS = ("key-one-0123456789", "key-two-0123456789")
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Keys in turn")
 def test_two_keys() -> None:
     """Keys in turn: three requests use the first, the second and the first key."""
     ring = KeyRing(KEYS, limit=10)
@@ -15,7 +12,6 @@ def test_two_keys() -> None:
     assert [ring.take(now) for now in (0.0, 1.0, 2.0)] == [0, 1, 0]
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Keys in turn")
 def test_a_resting_key() -> None:
     """Keys in turn: after a 429 on the first key, the second carries on until the window ends."""
     ring = KeyRing(KEYS, limit=10)
@@ -26,7 +22,6 @@ def test_a_resting_key() -> None:
     assert ring.take(60.0) == 0
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Keys in turn")
 def test_every_key_full() -> None:
     """Keys in turn: when every key is at its limit or rests, rendering waits for the first."""
     ring = KeyRing(KEYS, limit=1)
@@ -39,7 +34,6 @@ def test_every_key_full() -> None:
     assert ring.take(60.0) == 0
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Keys in turn")
 def test_an_error_that_quotes_a_key() -> None:
     """Keys in turn: an error text shows the key hidden and URLs cut to their origins."""
     ring = KeyRing(KEYS, limit=10)

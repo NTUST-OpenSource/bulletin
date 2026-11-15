@@ -42,7 +42,7 @@ never reach the network: the model's answers are fixtures, and the Discord check
 - [x] 5.1 Commit the xfail test for "Model configuration" (rendering); verify it fails for the expected reason and the gate stays green
 - [x] 5.2 Implement "Model configuration" (settings, the Gemini and OpenAI-compatible client) and remove the marker; verify its scenarios pass and the gate is green
 - [x] 5.3 Commit the xfail test for "Keys in turn" (rendering); verify it fails for the expected reason and the gate stays green
-- [ ] 5.4 Implement "Keys in turn" (the ported KeyRing, resting keys, hidden keys) and remove the marker; verify its scenarios pass and the gate is green
+- [x] 5.4 Implement "Keys in turn" (the ported KeyRing, resting keys, hidden keys) and remove the marker; verify its scenarios pass and the gate is green
 - [ ] 5.5 Commit the xfail test for "Attempts and fallback" (rendering); verify it fails for the expected reason and the gate stays green
 - [ ] 5.6 Implement "Attempts and fallback" and remove the marker; verify its scenarios pass and the gate is green
 - [ ] 5.7 Commit the xfail test for "What gets rendered" (rendering); verify it fails for the expected reason and the gate stays green
