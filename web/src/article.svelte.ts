@@ -1,10 +1,18 @@
 // The open article: its path, its answer and the version shown.
-import { ApiError, type Article, get } from "./lib/api";
+import { ApiError, type Article, type Attachment, get } from "./lib/api";
 import type { Prefer } from "./lib/settings";
 import { app, ui } from "./state.svelte";
 import { checkNow } from "./stream.svelte";
 
 const PATH = /^\/a\/(\d+)$/;
+
+export type Picture = { src: string; alt: string; file: Attachment | null };
+export type Shown =
+  | { kind: "images"; pictures: Picture[]; index: number; title: string }
+  | { kind: "pdf" | "docx"; file: Attachment };
+
+/** The preview over the article: its images, or one stored PDF or DOCX. */
+export const viewer = $state({ shown: null as Shown | null });
 
 export const reader = $state({
   id: null as number | null,
@@ -17,6 +25,7 @@ export const reader = $state({
 /** Show the article of `id`: a cross-post shows its original, a link item opens its link. */
 export async function show(id: number): Promise<void> {
   Object.assign(reader, { id, article: null, missing: false, failed: false, mode: null });
+  viewer.shown = null;
   void checkNow();
   try {
     const article = await get<Article>(`/announcements/${id}`);
@@ -63,5 +72,6 @@ export function closeArticle(): void {
 
 function closed(): void {
   Object.assign(reader, { id: null, article: null, missing: false, failed: false, mode: null });
+  viewer.shown = null;
   if (!app.saved) ui.onboarding = true; // a first visit through an article link picks units now
 }

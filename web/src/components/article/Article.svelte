@@ -1,15 +1,20 @@
 <script lang="ts">
   import X from "@jis3r/icons/icons/x";
-  import { closeArticle, reader } from "../../article.svelte";
+  import { closeArticle, type Picture, reader, viewer } from "../../article.svelte";
   import { article as copy, days, menu as menuCopy } from "../../lang/zh-TW";
+  import type { Attachment } from "../../lib/api";
+  import { kind, single } from "../../lib/files";
   import { markdown } from "../../lib/markdown";
   import { raw } from "../../lib/raw";
   import { heading, source, today } from "../../lib/stream";
   import { app, copyText, filters, openMenu, ui } from "../../state.svelte";
   import IconButton from "../ui/IconButton.svelte";
   import More from "../ui/More.svelte";
+  import Attachments from "./Attachments.svelte";
+  import Preview from "./Preview.svelte";
 
   let dialog: HTMLDialogElement;
+  let text = $state<HTMLElement>();
 
   $effect(() => {
     if (reader.id !== null && !dialog.open) {
@@ -34,6 +39,9 @@
   const labels = (dimension: string) =>
     new Map(app.tags.find((d) => d.id === dimension)?.tags.map((tag) => [tag.id, tag.label]) ?? []);
   const topics = $derived(a ? a.tags.topic.flatMap((id) => (labels("topic").has(id) ? [{ id, label: labels("topic").get(id)! }] : [])) : []);
+  const end = $derived(a ? single(a.attachments) : null);
+  let endFailed = $state<string | null>(null); // a pruned file shows only in the list
+  const title = $derived(a ? ((school ? a.title : a.rendition?.title) ?? a.title) : "");
   const audiences = $derived(a ? a.tags.audience.flatMap((id) => labels("audience").get(id) ?? []) : []);
 
   function more(event: MouseEvent): void {
@@ -51,6 +59,36 @@
       { x: box.right - 220, y: box.bottom + 4 },
       false,
     );
+  }
+
+  /** The article's images, in its text and then among the attachments, from `index`. */
+  function showPictures(index: number): void {
+    const inText: Picture[] = [...(text?.querySelectorAll("img") ?? [])].map((img) => ({
+      src: img.getAttribute("src") ?? "",
+      alt: img.alt,
+      file: null,
+    }));
+    const stored: Picture[] = (a?.attachments ?? [])
+      .filter((file) => kind(file) === "image")
+      .map((file) => ({ src: file.file!, alt: file.name, file }));
+    viewer.shown = { kind: "images", pictures: [...inText, ...stored], index, title };
+  }
+
+  function preview(file: Attachment): void {
+    const previewed = kind(file);
+    if (previewed === "image") {
+      const images = text?.querySelectorAll("img").length ?? 0;
+      showPictures(images + a!.attachments.filter((other) => kind(other) === "image").indexOf(file));
+    } else if (previewed) {
+      viewer.shown = { kind: previewed, file };
+    }
+  }
+
+  function textClick(event: MouseEvent): void {
+    const img = (event.target as Element).closest("img");
+    if (!img || !text) return;
+    event.preventDefault(); // an image the school linked previews too
+    showPictures([...text.querySelectorAll("img")].indexOf(img));
   }
 
   function byTopic(id: string): void {
@@ -80,13 +118,21 @@
   {#if a}
     <article class="doc">
       <span class="sec">{source(a, app.sites, app.settings)}</span>
-      <h1 id="a-title">{school ? a.title : a.rendition?.title}</h1>
+      <h1 id="a-title">{title}</h1>
       <p class="when">
         {when}{#if a.withdrawn_at}{" · "}<span class="gone">{copy.withdrawn}</span>{/if}
       </p>
       {#if !school && a.rendition?.summary}<p class="lede">{a.rendition.summary}</p>{/if}
-      <!-- eslint-disable-next-line svelte/no-at-html-tags -- escaped by lib/markdown.ts or sanitized by lib/raw.ts -->
-      {#if body}<div class="body">{@html body}</div>{/if}
+      <!-- The HTML is escaped by lib/markdown.ts or sanitized by lib/raw.ts. A click on an image
+           previews it; keyboard readers see the images in place. -->
+      <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+      {#if body}<div class="body" bind:this={text} onclick={textClick}>{@html body}</div>{/if}
+      {#if end && endFailed !== end.file}
+        <button type="button" class="end" onclick={() => preview(end)}>
+          <img src={end.file} alt={end.name} loading="lazy" onerror={() => (endFailed = end.file)} />
+        </button>
+      {/if}
+      {#if a.attachments.length}<Attachments files={a.attachments} onpreview={preview} />{/if}
       {#if topics.length || audiences.length}
         <div class="tags">
           {#each topics as topic (topic.id)}
@@ -98,6 +144,7 @@
     </article>
   {/if}
 </dialog>
+<Preview />
 
 <style>
   .article {
@@ -244,6 +291,24 @@
     border: 1px solid var(--line-2);
     padding: 6px 8px;
     vertical-align: top;
+  }
+  .end {
+    display: block;
+    padding: 0;
+    border: 0;
+    background: none;
+    border-radius: 10px;
+    cursor: zoom-in;
+  }
+  .end img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    background: var(--bg);
+  }
+  .body :global(img) {
+    cursor: zoom-in;
   }
   .tags {
     display: flex;

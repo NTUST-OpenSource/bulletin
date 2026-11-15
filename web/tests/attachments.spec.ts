@@ -19,7 +19,6 @@ const pdf = articles[8].attachments[0]!;
 const [poster12, poster16] = articles[14].attachments;
 
 test("A stored PDF: it opens in an in-page preview with a download button", async ({ page }) => {
-  test.fail(true, "Attachments");
   await answer(page);
   await saved(page);
   await page.goto("/a/8");
@@ -32,12 +31,11 @@ test("A stored PDF: it opens in an in-page preview with a download button", asyn
   await expect(preview(page).getByRole("link", { name: "下載" })).toHaveAttribute("download", "");
   await expect.poll(() => page.frames().some((frame) => frame.url().startsWith(VIEWER))).toBe(true);
   await page.keyboard.press("Escape");
-  await expect(preview(page)).toHaveCount(0);
+  await expect(preview(page)).toBeHidden();
   await expect(article(page)).toBeVisible();
 });
 
 test("where the browser shows no PDFs in a page, the stored PDF opens in a new tab", async ({ page }) => {
-  test.fail(true, "Attachments");
   await page.addInitScript(() => Object.defineProperty(Navigator.prototype, "pdfViewerEnabled", { get: () => false }));
   await answer(page);
   await saved(page);
@@ -47,11 +45,10 @@ test("where the browser shows no PDFs in a page, the stored PDF opens in a new t
   await file(page, pdf.name).click();
 
   expect(new URL((await popup).url()).pathname).toBe(pdf.file);
-  await expect(preview(page)).toHaveCount(0);
+  await expect(preview(page)).toBeHidden();
 });
 
 test("A file kept only at the school: the school's link opens in a new tab", async ({ page, context }) => {
-  test.fail(true, "Attachments");
   await context.route("https://bulletin.ntust.edu.tw/**", (route) => route.fulfill({ contentType: "text/plain", body: "school" }));
   const sheet = stored("list.xlsx");
   const kept = articles[11].attachments[0]!;
@@ -66,11 +63,10 @@ test("A file kept only at the school: the school's link opens in a new tab", asy
     expect((await popup).url()).toBe(attachment.url);
     await (await popup).close();
   }
-  await expect(preview(page)).toHaveCount(0);
+  await expect(preview(page)).toBeHidden();
 });
 
 test("One image attachment: it shows at the article's end and all three are listed", async ({ page }) => {
-  test.fail(true, "Attachments");
   const image = articles[6].attachments[0]!;
   await answer(page, { articles: { 6: { ...articles[6], attachments: [image, pdf, stored("form.pdf")] } } });
   await saved(page);
@@ -81,7 +77,6 @@ test("One image attachment: it shows at the article's end and all three are list
 });
 
 test("an image previews with zoom and arrows across the article's images", async ({ page }) => {
-  test.fail(true, "Attachments");
   await answer(page);
   await saved(page);
   await page.goto("/a/14");
@@ -104,7 +99,6 @@ test("an image previews with zoom and arrows across the article's images", async
 });
 
 test("an image in the article's text opens the image preview", async ({ page }) => {
-  test.fail(true, "Attachments");
   await answer(page);
   await saved(page, { prefer: "raw" });
   await page.goto("/a/16");
@@ -115,7 +109,6 @@ test("an image in the article's text opens the image preview", async ({ page }) 
 });
 
 test("a stored DOCX shows as text", async ({ page }) => {
-  test.fail(true, "Attachments");
   await answer(page, { articles: { 6: { ...articles[6], attachments: [stored("form.docx")] } } });
   await saved(page);
   await page.goto("/a/6");
@@ -127,10 +120,10 @@ test("a stored DOCX shows as text", async ({ page }) => {
 });
 
 test("A preview that fails: the preview says so and offers the school's link", async ({ page }) => {
-  test.fail(true, "Attachments");
   const broken = stored("broken.docx");
-  await answer(page, { articles: { 6: { ...articles[6], attachments: [broken, poster12!] } } });
+  await answer(page, { articles: { 6: { ...articles[6], attachments: [broken, poster12!, poster16!] } } });
   await page.route("**/broken.docx", (route) => route.fulfill({ contentType: "application/octet-stream", body: "not a document" }));
+  await page.route(`**${poster12!.file!}`, (route) => route.fulfill({ status: 404, contentType: "application/json", body: "{}" }));
   await saved(page);
   await page.goto("/a/6");
 
@@ -138,9 +131,8 @@ test("A preview that fails: the preview says so and offers the school's link", a
   await expect(preview(page)).toContainText("無法預覽這個檔案");
   await expect(preview(page).getByRole("link", { name: "開啟學校的檔案" })).toHaveAttribute("href", broken.url);
   await page.keyboard.press("Escape");
+  await file(page, poster12!.name).click(); // a pruned file
 
-  await page.route("**/api/v1/files/**", (route) => route.fulfill({ status: 404, contentType: "application/json", body: "{}" }));
-  await file(page, poster12!.name).click();
   await expect(preview(page)).toContainText("無法預覽這個檔案");
   await expect(preview(page).getByRole("link", { name: "開啟學校的檔案" })).toHaveAttribute("href", poster12!.url);
 });

@@ -29,6 +29,16 @@ export const article = {
   withdrawn: "已刪除",
 } as const;
 
+export const preview = {
+  download: "下載",
+  previous: "上一張",
+  next: "下一張",
+  zoomIn: "放大",
+  zoomOut: "縮小",
+  failed: "無法預覽這個檔案",
+  school: "開啟學校的檔案",
+} as const;
+
 const WEEKDAYS = "日一二三四五六";
 
 export const days = {

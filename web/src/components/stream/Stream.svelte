@@ -102,17 +102,4 @@
     place-items: center;
     height: 72px;
   }
-  .spinner {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    border: 2.5px solid var(--line-2);
-    border-top-color: var(--accent);
-    animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin {
-    to {
-      transform: rotate(1turn);
-    }
-  }
 </style>

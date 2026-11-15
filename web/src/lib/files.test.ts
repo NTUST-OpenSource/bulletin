@@ -12,7 +12,7 @@ const at = (name: string, file: string | null = stored(name), url = "https://www
 });
 
 describe("Attachments", () => {
-  test.fails("a stored image, PDF or DOCX previews; other types and files kept only at the school do not", () => {
+  test("a stored image, PDF or DOCX previews; other types and files kept only at the school do not", () => {
     for (const name of ["poster.JPG", "a.jpeg", "a.png", "a.gif", "a.webp"]) expect(kind(at(name))).toBe("image");
     expect(kind(at("form.pdf"))).toBe("pdf");
     expect(kind(at("form.docx"))).toBe("docx");
@@ -23,21 +23,21 @@ describe("Attachments", () => {
     expect(kind(at("notes", stored("notes"), "https://rd.ntust.edu.tw/var/file/413.pdf"))).toBeNull();
   });
 
-  test.fails("the badge takes the type from the name, else from the school's file URL", () => {
+  test("the badge takes the type from the name, else from the school's file URL", () => {
     expect(extension(at("poster.JPG"))).toBe("jpg");
     expect(extension(at("notes", null, "https://rd.ntust.edu.tw/var/file/413.pdf"))).toBe("pdf");
     expect(extension(at("notes", null, "https://bulletin.ntust.edu.tw/app/index.php?Action=downloadfile"))).toBe("");
     expect(extension(at("v1.2 final", null, "https://www.ntust.edu.tw/download"))).toBe("");
   });
 
-  test.fails("sizes in KB below a megabyte, else in MB", () => {
+  test("sizes in KB below a megabyte, else in MB", () => {
     expect(size(null)).toBe("");
     expect(size(100)).toBe("1 KB");
     expect(size(290_892)).toBe("284 KB");
     expect(size(1_182_314)).toBe("1.1 MB");
   });
 
-  test.fails("One image attachment: the only stored image shows at the end", () => {
+  test("One image attachment: the only stored image shows at the end", () => {
     const image = at("poster.jpg");
     expect(single([image, at("a.pdf"), at("b.pdf")])).toBe(image);
     expect(single([image, at("other.png")])).toBeNull();

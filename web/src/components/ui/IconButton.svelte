@@ -22,7 +22,7 @@
   onfocus={() => (active = true)}
   onblur={() => (active = false)}
 >
-  <Icon {size} strokeWidth={2.1} animate={active} />
+  <span aria-hidden="true"><Icon {size} strokeWidth={2.1} animate={active} /></span>
 </button>
 
 <style>
@@ -41,6 +41,7 @@
     background: var(--paper);
     color: var(--ink);
   }
+  .icon-btn > span,
   .icon-btn :global(div) {
     display: grid;
   }
