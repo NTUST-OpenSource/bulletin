@@ -21,7 +21,7 @@ the `rendered` event. Measured on 50 hand-labelled announcements: with `low` thi
 at about 1.3 cents and 7 seconds each. Specs under `openspec/specs/`, the change under
 `openspec/changes/archive/2026-11-15-add-rendering/`.
 
-## 3. `add-public-api`
+## 3. `add-public-api` (archived 2026-11-15)
 
 - Same origin as the frontend, under `/api/v1/` on `bulletin.ntust.org` (F1).
 - Read-only JSON, no authentication, cursor pagination, CORS `*` on reads (F2).
@@ -35,9 +35,11 @@ at about 1.3 cents and 7 seconds each. Specs under `openspec/specs/`, the change
   `proxy-net` exempt (F4).
 - tigerduck reads the events feed over `proxy-net` (H1, tigerduck-app/tigerduck-backend#248).
 
-## 4. `add-web-frontend`
+## 4. `add-web-frontend` (archived 2026-11-15)
 
 The owner approved the third prototype on 2026-11-15 (A5), with the last round of changes below.
+Specs under `openspec/specs/web-frontend/`, the change under
+`openspec/changes/archive/2026-11-15-add-web-frontend/`.
 
 - Svelte 5 + Vite static SPA over the public API (F5).
 - Decided while reviewing the prototype:

@@ -53,7 +53,7 @@ shapes of the `public-api` spec.
 - [x] 6.1 Commit the xfail test for "Narrow screens and long text" (web-frontend) over every view at 375 px and 1280 px; verify it fails for the expected reason and the gate stays green
 - [x] 6.2 Fix what it finds and remove the marker; verify its scenarios pass and the gate is green
 - [x] 6.3 Run the built page against the deployed API in headless Chromium at 1280 px and 375 px, light and dark, and compare it with the prototype; verify the screenshots are given to the owner, ask the owner to open a stored PDF on an iPhone and an Android phone, and close the browser and servers afterwards
-- [ ] 6.4 List the user-visible changes of design.md for the owner; wait for approval before pushing
+- [x] 6.4 List the user-visible changes of design.md for the owner; wait for approval before pushing
 - [x] 6.5 Run `scripts/gate.sh`; verify it passes
 
 ## Workflow follow-up
