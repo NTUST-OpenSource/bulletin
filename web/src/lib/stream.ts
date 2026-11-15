@@ -61,3 +61,24 @@ const TAIPEI = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Taipei" });
 export function today(now: Date): string {
   return TAIPEI.format(now);
 }
+
+/** `shown` followed by the next page's items that are not shown yet. */
+export function appended(_shown: Item[], _page: Item[]): Item[] {
+  throw new Error("not implemented");
+}
+
+/** Whether `a` comes before `b` in the stream: a later day, then a higher id. */
+export const before = (a: Item, b: Item): boolean => a.day > b.day || (a.day === b.day && a.id > b.id);
+
+/**
+ * `shown` after a check: polled items replace their shown copies, and unseen ones go where they
+ * belong, but not past the last shown item while more pages remain. `overlap` says whether the
+ * polled items reached the shown ones; `added` names the inserted ids.
+ */
+export function merged(
+  _shown: Item[],
+  _polled: Item[],
+  _complete: boolean,
+): { items: Item[]; overlap: boolean; added: number[] } {
+  throw new Error("not implemented");
+}

@@ -9,7 +9,7 @@
   const unit = $derived(item.unit ?? app.sites.find((site) => site.id === item.site)?.unit ?? "");
 </script>
 
-<li>
+<li data-id={item.id}>
   <a class="item" href="/a/{item.id}">
     <span class="sec">{source(item, app.sites, app.settings)}</span>
     <span class="title">{rewrite?.title ?? item.title}</span>
