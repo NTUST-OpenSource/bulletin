@@ -95,3 +95,11 @@ def restore(text: str, targets: dict[str, str]) -> str:
         msg = f"dropped images {', '.join(dropped)}"
         raise AnswerError(msg)
     return PLACEHOLDER.sub(lambda match: quote(targets[match[0]], safe=URL_SAFE), text)
+
+
+def keep_deadline(deadline: date | None, text: str, year: int) -> date | None:
+    """`deadline` if `text` holds its date in a form the school writes, else None.
+
+    Dates without a year are read in `year`, the year of the list date, and the next one.
+    """
+    raise NotImplementedError
