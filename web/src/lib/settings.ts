@@ -115,3 +115,16 @@ export function applyTheme(root: HTMLElement, theme: Theme): void {
   if (theme === "system") root.removeAttribute("data-theme");
   else root.setAttribute("data-theme", theme);
 }
+
+/** Input that is neither settings JSON nor a settings link. */
+export class UnreadableSettings extends Error {}
+
+/** A link that applies `settings` when opened: the page's address with `#s=<base64url JSON>`. */
+export function settingsLink(_origin: string, _settings: Settings): string {
+  throw new Error("not implemented");
+}
+
+/** The settings in pasted JSON, a pasted link or a file's text; UnreadableSettings otherwise. */
+export function readImport(_text: string): Settings {
+  throw new Error("not implemented");
+}
