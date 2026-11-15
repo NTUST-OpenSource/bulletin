@@ -7,7 +7,8 @@ export default defineConfig({
   testDir: "tests",
   forbidOnly: !!process.env["CI"],
   retries: process.env["CI"] ? 1 : 0,
-  use: { baseURL: `http://localhost:${PORT}` },
+  // Full Chromium: the default headless shell has no PDF viewer.
+  use: { baseURL: `http://localhost:${PORT}`, channel: "chromium" },
   webServer: {
     command: `bun run build && bun run preview --port ${PORT} --strictPort`,
     port: PORT,

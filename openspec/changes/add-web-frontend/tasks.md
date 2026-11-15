@@ -14,7 +14,7 @@ shapes of the `public-api` spec.
 
 ## 2. Serving
 
-- [ ] 2.1 Commit the xfail test for "The page" (web-frontend): pytest for the mount, cache headers, `frame-ancestors` and the `/a/{id}` fallback, Playwright for the tab title and a stored PDF under the built page's policy (full Chromium, `channel: "chromium"`); verify it fails for the expected reason and the gate stays green
+- [x] 2.1 Commit the xfail test for "The page" (web-frontend): pytest for the mount, cache headers, `frame-ancestors` and the `/a/{id}` fallback, Playwright for the tab title and a stored PDF under the built page's policy (full Chromium, `channel: "chromium"`); verify it fails for the expected reason and the gate stays green
 - [ ] 2.2 Implement "The page" (the static mount in `public_app` on top of add-public-api task 1.2, the build-time policy, the Bun stage in the Dockerfile) and remove the markers; verify its scenarios pass, the gate is green and the image builds on the remote test host
 
 ## 3. Settings
