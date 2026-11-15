@@ -30,7 +30,6 @@ def answer(**tags: object) -> dict[str, object]:
     return valid | tags
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Fixed taxonomy")
 def test_the_taxonomy() -> None:
     """Fixed taxonomy: 20 topics, 8 audiences, 4 natures and 2 sources with ids and labels."""
     loaded = taxonomy()
@@ -47,7 +46,6 @@ def test_the_taxonomy() -> None:
         assert len({tag.id for tag in tags}) == len(tags)
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Fixed taxonomy")
 def test_tags_of_an_answer() -> None:
     """Fixed taxonomy: several topics and audiences, one nature and one source."""
     tags = parse_tags(answer(topic=["scholarships", "fees"], audience=["undergraduates"]))
@@ -61,7 +59,6 @@ def test_tags_of_an_answer() -> None:
     }
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Fixed taxonomy")
 @pytest.mark.parametrize(
     "tags",
     [
