@@ -42,6 +42,7 @@ async def test_migrations_apply_to_an_empty_schema(db: AsyncConnection) -> None:
         "0002_site_discovered_at.sql",
         "0003_pointer.sql",
         "0004_rendering.sql",
+        "0005_dated_articles.sql",
     ]
     assert await tables(db) == TABLES
 

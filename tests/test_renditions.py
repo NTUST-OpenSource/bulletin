@@ -4,8 +4,6 @@ from dataclasses import replace
 from datetime import UTC, date, datetime, timedelta
 from typing import TYPE_CHECKING
 
-import pytest
-
 from bulletin import renditions
 from bulletin.archive import publish, revise
 from bulletin.model import Attachment, Content, Listed
@@ -13,6 +11,7 @@ from bulletin.renditions import Pending, Rendition, next_pending, store
 from bulletin.schedule import TAIPEI
 
 if TYPE_CHECKING:
+    import pytest
     from psycopg import AsyncConnection
 
 LISTED = Listed(site_id=1000, host="www.ntust.edu.tw", article_id=153625, link_url=None, title="t")
@@ -156,7 +155,6 @@ async def test_no_dated_article_at_all(migrated: AsyncConnection) -> None:
     assert picked.dated == first_seen[0].astimezone(TAIPEI).date()
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="What gets rendered")
 async def test_an_old_article_without_a_list_date(migrated: AsyncConnection) -> None:
     """What gets rendered: an article without a list date next to one listed two years ago stays
     raw."""
@@ -166,7 +164,6 @@ async def test_an_old_article_without_a_list_date(migrated: AsyncConnection) -> 
     assert await next_pending(migrated, NOW) is None
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="What gets rendered")
 async def test_a_recent_article_without_a_list_date(migrated: AsyncConnection) -> None:
     """What gets rendered: an article without a list date takes the day of the dated article with
     the nearest id, last week's rather than last spring's."""
@@ -182,7 +179,6 @@ async def test_a_recent_article_without_a_list_date(migrated: AsyncConnection) -
     assert order == [week, undated, spring]
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="Deadlines from the text")
 async def test_an_announcement_without_a_list_date(migrated: AsyncConnection) -> None:
     """Deadlines from the text: an article without a list date is dated by the list date of the
     dated article with the nearest id."""

@@ -8,7 +8,6 @@ from bulletin.archive import article_url
 from bulletin.events import Kind, record
 from bulletin.model import Attachment
 from bulletin.prompt import PROMPT_VERSION
-from bulletin.schedule import TAIPEI
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -100,26 +99,38 @@ async def next_pending(
 ) -> Pending | None:
     """The announcement to render next, if any waits.
 
-    An article whose current revision has no rendition for `PROMPT_VERSION`, listed within the
-    last year (or first seen, without a list date) and not resting. First publications go before
-    late discoveries; within each, the most recently listed first.
+    An article whose current revision has no rendition for `PROMPT_VERSION`, whose day falls
+    within the last year, and not resting. Its day is the list date; without one, the list date of
+    the dated article with the nearest id, since ids grow with time across the sites; else the
+    day it was first seen in Taipei. First publications go before late discoveries; within each,
+    the most recent day first.
     """
     cur = await conn.execute(
-        "SELECT a.id, r.id, a.host, a.site_id, a.article_id, r.title, r.body_html, a.listed_on,"
-        " a.first_seen_at FROM announcement a JOIN revision r ON r.id = a.current_revision"
-        " WHERE a.article_id IS NOT NULL"
-        " AND COALESCE(a.listed_on, a.first_seen_at::date) >= (%s - interval '1 year')::date"
-        " AND NOT (a.id = ANY(%s))"
+        "SELECT id, revision, host, site_id, article_id, title, body_html, dated FROM ("
+        " SELECT a.id, r.id AS revision, a.host, a.site_id, a.article_id, r.title, r.body_html,"
+        "  a.late, a.first_seen_at, COALESCE(a.listed_on, near.listed_on,"
+        "  (a.first_seen_at AT TIME ZONE 'Asia/Taipei')::date) AS dated"
+        " FROM announcement a JOIN revision r ON r.id = a.current_revision"
+        " LEFT JOIN LATERAL (SELECT n.listed_on FROM ("
+        "  (SELECT b.listed_on, b.article_id - a.article_id AS gap FROM announcement b"
+        "   WHERE a.listed_on IS NULL AND b.listed_on IS NOT NULL AND b.article_id >= a.article_id"
+        "   ORDER BY b.article_id LIMIT 1)"
+        "  UNION ALL"
+        "  (SELECT b.listed_on, a.article_id - b.article_id FROM announcement b"
+        "   WHERE a.listed_on IS NULL AND b.listed_on IS NOT NULL AND b.article_id < a.article_id"
+        "   ORDER BY b.article_id DESC LIMIT 1)"
+        "  ) n ORDER BY n.gap LIMIT 1) near ON true"
+        " WHERE a.article_id IS NOT NULL AND NOT (a.id = ANY(%s))"
         " AND NOT EXISTS (SELECT FROM rendition n"
         "  WHERE n.revision_id = r.id AND n.prompt_version = %s)"
-        " ORDER BY a.late, COALESCE(a.listed_on, a.first_seen_at::date) DESC,"
-        " a.first_seen_at DESC, a.id DESC LIMIT 1",
-        (now, list(resting), PROMPT_VERSION),
+        ") p WHERE dated >= (%s - interval '1 year')::date"
+        " ORDER BY late, dated DESC, first_seen_at DESC, id DESC LIMIT 1",
+        (list(resting), PROMPT_VERSION, now),
     )
     row = await cur.fetchone()
     if row is None:
         return None
-    announcement, revision, host, site, article, title, body, listed_on, first_seen = row
+    announcement, revision, host, site, article, title, body, dated = row
     cur = await conn.execute(
         "SELECT name, url, origin FROM attachment WHERE revision_id = %s ORDER BY id", (revision,)
     )
@@ -130,5 +141,5 @@ async def next_pending(
         title=title,
         body_html=body,
         attachments=tuple(Attachment(*file) for file in await cur.fetchall()),
-        dated=listed_on or first_seen.astimezone(TAIPEI).date(),
+        dated=dated,
     )

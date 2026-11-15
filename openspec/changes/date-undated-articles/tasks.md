@@ -7,7 +7,7 @@ Each requirement gets two tasks (AGENTS.md, xfail-first): commit its failing tes
 
 - [x] 1.1 Commit the xfail tests for "What gets rendered" (an old and a recent article without a list date); verify they fail for the expected reason and the gate stays green
 - [x] 1.2 Commit the xfail test for "Deadlines from the text" (an article without a list date gets its nearest dated article's day); verify it fails for the expected reason and the gate stays green
-- [ ] 1.3 Implement both in the pick query with migration `0005`'s partial index, and remove the markers; verify their scenarios pass and the gate is green
+- [x] 1.3 Implement both in the pick query with migration `0005`'s partial index, and remove the markers; verify their scenarios pass and the gate is green
 
 ## 2. Migration
 
