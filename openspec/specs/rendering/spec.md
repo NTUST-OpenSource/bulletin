@@ -7,11 +7,10 @@ summary, a deadline and tags, kept next to the school's raw text and checked bef
 ## Requirements
 
 ### Requirement: What gets rendered
-The service SHALL render every announcement with a revision whose day falls within the last year.
-The day is the list date; for an article without one, the list date of the dated article with
-the nearest article id; else the day it was first seen. Link items, which have no article page,
-and older announcements SHALL stay raw. Announcements that are not late discoveries SHALL be
-rendered before late ones, and within each group the most recent day first.
+The service SHALL render every announcement with a revision whose stream day falls within the
+last year. Link items, which have no article page, and older announcements SHALL stay raw.
+Announcements that are not late discoveries SHALL be rendered before late ones, and within each
+group the most recent stream day first.
 
 #### Scenario: A new announcement during the backlog
 - **WHEN** late discoveries from last spring wait for rendering and a first publication is stored

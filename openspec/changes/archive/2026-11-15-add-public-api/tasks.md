@@ -55,7 +55,7 @@ tests call the app in process with httpx's ASGI transport against the PGroonga t
 ## 6. Verification
 
 - [x] 6.1 Load a dump of the production database into a scratch database on the remote test host and run the public app against it; verify the default units' first page, one small department, a rare topic chip, a common and a rare search word, and an article answer correctly, and time each query with `EXPLAIN ANALYZE`
-- [ ] 6.2 Document the API, its limits and the owner's proxy, DNS and Cloudflare steps in `README.md`, and list the user-visible changes of design.md for the owner; wait for approval before pushing
+- [x] 6.2 Document the API, its limits and the owner's proxy, DNS and Cloudflare steps in `README.md`, and list the user-visible changes of design.md for the owner; wait for approval before pushing
 - [x] 6.3 Run `scripts/gate.sh`; verify it passes
 
 ## Workflow follow-up
