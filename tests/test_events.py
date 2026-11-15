@@ -120,3 +120,27 @@ async def test_backfill_is_marked_late(migrated: AsyncConnection) -> None:
     assert not published.notify
     with pytest.raises(ValueError, match="late"):
         await publish(migrated, replace(backfilled, article_id=90002), notify=True, late=True)
+
+
+@pytest.mark.xfail(strict=True, raises=ValueError, reason="Events")
+async def test_a_rendition(migrated: AsyncConnection) -> None:
+    """Events: a new announcement stored and then rendered records published, then rendered."""
+    announcement = await publish(migrated, LISTED, notify=True, late=False)
+    rendered = Kind("rendered")
+    async with migrated.transaction():
+        await record(migrated, announcement, rendered)
+
+    events = await read_after(migrated, 0)
+
+    assert [e.kind for e in events] == [Kind.PUBLISHED, rendered]
+
+
+@pytest.mark.xfail(strict=True, raises=ValueError, reason="Notify flag")
+async def test_a_rendition_is_not_notify_worthy(migrated: AsyncConnection) -> None:
+    """Notify flag: a rendered event is never notify-worthy."""
+    announcement = await publish(migrated, LISTED, notify=True, late=False)
+    rendered = Kind("rendered")
+
+    with pytest.raises(ValueError, match="notify"):
+        async with migrated.transaction():
+            await record(migrated, announcement, rendered, notify=True)
