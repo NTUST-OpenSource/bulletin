@@ -57,7 +57,7 @@ Specs under `openspec/specs/web-frontend/`, the change under
     converted to sanitized HTML; the preview has a download button. A file name is a real link,
     so a right click offers the browser's save-link menu. Only stored files preview (the school
     sends no CORS headers); the others open the school's link.
-  - The tab title is `bulletin. | 臺科大公布欄`.
+  - The tab title is `bulletin. | 臺科公布欄`.
   - One stream for every category, no tabs; day headings stay pinned while scrolling.
   - A first visit asks for the viewer's department, then other units; the six P1 units are
     preselected. The stream shows followed units only; search covers every unit.
