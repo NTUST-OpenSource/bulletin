@@ -33,9 +33,11 @@ Answer with JSON that matches the schema. Write every text in the announcement's
   than two months before it. The day of an event the reader only attends is not a deadline.
 - `tags`: `topic` and `audience` hold every tag that fits, `nature` and `source` exactly one.
   {{taxonomy}}
-  - `nature`: `action-required` when the reader must do something by a date; `lists-and-results`
-    for lists of names, results or winners; `news-and-records` for reports of what happened;
-    `information` otherwise.
+  - `nature`: `action-required` when the reader must do something by a date; `news-and-records`
+    for reports of what happened, awards and congratulations (賀) included; `lists-and-results`
+    for lists of names or results that the people on them may act on, such as admissions, exam
+    rooms or credit reviews; `information` otherwise. When a report and a list both fit, choose
+    `news-and-records`.
   - `source`: `forwarded` when NTUST passes on a notice from outside (轉知, another school, a
     ministry, a company); `on-campus` otherwise.
 

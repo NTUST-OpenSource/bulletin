@@ -107,7 +107,9 @@ Markers: **[rec]** the owner followed Claude's recommendation; **[owner]** the o
   - Audience, several allowed: all students, undergraduates, graduate students, new students,
     graduating students, international students, staff, the public.
     Labels: 全體學生, 大學部, 研究生, 新生, 畢業生, 國際生, 教職員, 校外.
-  - Nature, one: action required, lists and results, information, news and records.
+  - Nature, one: action required, lists and results, information, news and records. Awards and
+    congratulations are news and records; lists and results are lists their people may act on;
+    when both fit, news and records.
     Labels: 需要行動, 名單結果, 資訊宣導, 新聞紀錄.
   - Source, one: on campus, forwarded from outside. Labels: 校內, 轉知校外.
 - **E4 Discord Markdown first** [owner]: the rewrite targets Discord's Markdown. Output passes
