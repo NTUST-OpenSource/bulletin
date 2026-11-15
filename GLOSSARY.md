@@ -107,3 +107,8 @@ _Avoid_: rewrite, LLM output, translation
 **Tag**:
 A label from one of four fixed dimensions: topic, audience, nature and source.
 _Avoid_: label, category, importance
+
+**Stream day**:
+The day an announcement is listed under: its list date, or an estimate from neighbouring
+articles when the school gives none.
+_Avoid_: date (ambiguous with the list date), published date
