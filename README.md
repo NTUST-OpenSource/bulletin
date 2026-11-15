@@ -88,6 +88,7 @@ stack; the `pgdata` and `files` volumes keep the archive and the stored attachme
 | `BULLETIN_MODEL_RATE` | `10` | Requests per key per minute. |
 | `BULLETIN_THINKING_LEVEL` | `low` | Gemini's thinking level, or `reasoning_effort` in the OpenAI format; empty sends none. |
 | `BULLETIN_DISCORD_CHECK` | `/app/tools/discord-markdown/check.mjs` | The Discord Markdown check that Node runs. |
+| `BULLETIN_WEB` | `/app/web` | The built frontend, served at `/`; without its `index.html` the page is off. |
 
 ### Operator commands
 

@@ -56,6 +56,7 @@ class Settings:
     seed: Path = Path("seeds/boards.json")
     model: ModelConfig = field(default_factory=ModelConfig)
     discord_check: Path = Path("tools/discord-markdown/check.mjs")
+    web: Path = Path("web/dist")  # the built frontend
 
     @classmethod
     def from_env(cls, env: Mapping[str, str]) -> Settings:
@@ -83,6 +84,7 @@ class Settings:
             seed=Path(env.get("BULLETIN_SEED", str(defaults.seed))),
             model=ModelConfig.from_env(env),
             discord_check=Path(env.get("BULLETIN_DISCORD_CHECK", str(defaults.discord_check))),
+            web=Path(env.get("BULLETIN_WEB", str(defaults.web))),
         )
 
 
@@ -182,9 +184,12 @@ async def serve(settings: Settings, stop: asyncio.Event) -> None:
                 FileStore(settings.files),
                 lambda: datetime.now(UTC),
             )
+            web = settings.web if (settings.web / "index.html").is_file() else None
+            if web is None:
+                log.info("the web page is off: %s holds no index.html", settings.web)
             public = Listener(
                 uvicorn.Config(
-                    public_app(readers.connection, FileStore(settings.files), RELEASE),
+                    public_app(readers.connection, FileStore(settings.files), RELEASE, web),
                     settings.public_host,
                     settings.public_port,
                 )

@@ -93,12 +93,15 @@ def settings_for(schema: Schema, tmp_path: Path, model: ModelConfig | None = Non
         seed=seed,
         model=model or ModelConfig(),
         discord_check=CHECK,
+        web=tmp_path / "web",
     )
 
 
 async def test_the_service_serves_and_stops(schema: Schema, tmp_path: Path) -> None:
     """Both listeners answer while the worker runs; setting `stop` ends all three."""
     settings = settings_for(schema, tmp_path)
+    settings.web.mkdir()
+    (settings.web / "index.html").write_text("<!doctype html>")
     stop = asyncio.Event()
     running = asyncio.create_task(serve(settings, stop))
 
@@ -106,6 +109,7 @@ async def test_the_service_serves_and_stops(schema: Schema, tmp_path: Path) -> N
         public = f"http://127.0.0.1:{settings.public_port}"
         admin = f"http://127.0.0.1:{settings.admin_port}/admin/boards"
         assert await get(session, running, f"{public}/health") == 200
+        assert await get(session, running, f"{public}/") == 200
         assert await get(session, running, f"{public}/api/v1/openapi.json") == 200
         assert await get(session, running, f"{public}/admin/boards") == 404
         assert await get(session, running, admin) == 401
@@ -127,6 +131,14 @@ def test_model_settings_from_the_environment() -> None:
     assert settings.model.keys == ("a", "b")
     assert str(settings.discord_check) == "/app/tools/discord-markdown/check.mjs"
     assert Settings.from_env({"BULLETIN_DATABASE_URL": "u"}).model == ModelConfig()
+
+
+def test_the_page_from_the_environment() -> None:
+    """The page: the service serves the build that `BULLETIN_WEB` names."""
+    env = {"BULLETIN_DATABASE_URL": "u", "BULLETIN_WEB": "/app/web"}
+
+    assert Settings.from_env(env).web == Path("/app/web")
+    assert Settings.from_env({"BULLETIN_DATABASE_URL": "u"}).web == Path("web/dist")
 
 
 class Model:

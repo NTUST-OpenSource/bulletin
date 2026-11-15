@@ -20,8 +20,6 @@ REVALIDATE = "no-cache"
 IMMUTABLE = "public, max-age=31536000, immutable"
 NO_FRAMES = "frame-ancestors 'none'"
 
-pytestmark = pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="The page")
-
 
 def no_database() -> AbstractAsyncContextManager[AsyncConnection]:
     raise AssertionError
