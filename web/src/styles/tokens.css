@@ -1,0 +1,76 @@
+/* The prototype's tokens, light and dark. A saved theme sets data-theme on <html>. */
+@font-face {
+  font-family: "Bricolage Grotesque";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  /* The Latin subset only: the display face sets "bulletin." and day numerals. */
+  src: url("@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-opsz-normal.woff2")
+    format("woff2-variations");
+  unicode-range: U+0000-00FF, U+2000-206F;
+}
+
+:root {
+  --bg: #f1f3f6;
+  --paper: #ffffff;
+  --ink: #131922;
+  --ink-2: #48515f;
+  --ink-3: #7a8391;
+  --line: #dde2e8;
+  --line-2: #c7ced8;
+  --accent: #1f4bd1;
+  --accent-ink: #ffffff;
+  --accent-soft: #e3e9fb;
+  --gone: #b3261e;
+  --scrim: rgb(13 17 24 / 0.45);
+  --shadow: 0 1px 2px rgb(19 25 34 / 0.06), 0 12px 36px rgb(19 25 34 / 0.14);
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei",
+    "Segoe UI", sans-serif;
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-md: 1.0625rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.875rem;
+  --radius: 8px;
+  --column: 880px;
+  --top-h: 64px;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1015;
+    --paper: #161b24;
+    --ink: #e6eaf0;
+    --ink-2: #aab3c0;
+    --ink-3: #7c8695;
+    --line: #232b37;
+    --line-2: #313b4b;
+    --accent: #88a7ff;
+    --accent-ink: #0a1022;
+    --accent-soft: #1c2948;
+    --gone: #ff8a80;
+    --scrim: rgb(0 0 0 / 0.62);
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 14px 40px rgb(0 0 0 / 0.55);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0d1015;
+  --paper: #161b24;
+  --ink: #e6eaf0;
+  --ink-2: #aab3c0;
+  --ink-3: #7c8695;
+  --line: #232b37;
+  --line-2: #313b4b;
+  --accent: #88a7ff;
+  --accent-ink: #0a1022;
+  --accent-soft: #1c2948;
+  --gone: #ff8a80;
+  --scrim: rgb(0 0 0 / 0.62);
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 14px 40px rgb(0 0 0 / 0.55);
+  color-scheme: dark;
+}

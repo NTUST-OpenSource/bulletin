@@ -10,7 +10,7 @@ shapes of the `public-api` spec.
 - [x] 1.1 Scaffold `web/` (Svelte 5, TypeScript strict, Vite, Vitest, Playwright, `@jis3r/icons`, the font package) with a smoke test that the app mounts; verify `bun run check`, `bun run test` and `bun run build` pass
 - [x] 1.2 Add the frontend to `scripts/gate.sh` (bun install --frozen-lockfile, svelte-check, Vitest with 85% coverage of `lib/`, build) and a Playwright job to CI; verify the gate passes locally and the CI job runs
 - [x] 1.3 Record API fixtures from production renditions in the `public-api` shapes (stream pages, articles with stored and unstored files, sites, tags) plus the cases of design.md (extreme lengths, two followed boards, a cross-post, a link item); verify each fixture parses against the frontend's API types
-- [ ] 1.4 Port the prototype's tokens, light and dark, and its base layout into `styles/` and `App.svelte`; verify against the prototype's screenshots at 1280 px and 375 px
+- [x] 1.4 Port the prototype's tokens, light and dark, and its base layout into `styles/` and `App.svelte`; verify against the prototype's screenshots at 1280 px and 375 px
 
 ## 2. Serving
 
