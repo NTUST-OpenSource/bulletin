@@ -39,8 +39,8 @@ export const preview = {
   next: "下一張",
   zoomIn: "放大",
   zoomOut: "縮小",
-  failed: "無法預覽這個檔案",
-  school: "開啟學校的檔案",
+  failed: "無法預覽",
+  school: "開啟原檔",
 } as const;
 
 const WEEKDAYS = "日一二三四五六";

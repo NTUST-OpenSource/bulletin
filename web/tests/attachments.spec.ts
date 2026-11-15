@@ -128,11 +128,11 @@ test("A preview that fails: the preview says so and offers the school's link", a
   await page.goto("/a/6");
 
   await file(page, broken.name).click();
-  await expect(preview(page)).toContainText("無法預覽這個檔案");
-  await expect(preview(page).getByRole("link", { name: "開啟學校的檔案" })).toHaveAttribute("href", broken.url);
+  await expect(preview(page)).toContainText("無法預覽");
+  await expect(preview(page).getByRole("link", { name: "開啟原檔" })).toHaveAttribute("href", broken.url);
   await page.keyboard.press("Escape");
   await file(page, poster12!.name).click(); // a pruned file
 
-  await expect(preview(page)).toContainText("無法預覽這個檔案");
-  await expect(preview(page).getByRole("link", { name: "開啟學校的檔案" })).toHaveAttribute("href", poster12!.url);
+  await expect(preview(page)).toContainText("無法預覽");
+  await expect(preview(page).getByRole("link", { name: "開啟原檔" })).toHaveAttribute("href", poster12!.url);
 });
