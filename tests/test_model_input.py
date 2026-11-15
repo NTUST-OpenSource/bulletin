@@ -3,6 +3,8 @@
 import json
 from pathlib import Path
 
+import pytest
+
 from bulletin.model_input import model_input
 from bulletin.pages import parse_article
 
@@ -81,3 +83,14 @@ def test_urls_in_the_text() -> None:
         "I1": "https://www.ntust.edu.tw/i.png",
         "L4": "https://example.com/f",
     }
+
+
+@pytest.mark.xfail(strict=True, raises=AssertionError, reason="Model input")
+def test_adjacent_bold_runs() -> None:
+    """Model input: adjacent bold elements make one bold run, so a date split over them stays
+    whole for the model and the date finder."""
+    body = '<div class="mpgdetail"><p>Due <b>9</b><b>/7</b><strong>(Mon)</strong> noon.</p></div>'
+
+    given = model_input("T", body, (), "https://www.ntust.edu.tw/p/406-1000-1.php")
+
+    assert given.text == "Title: T\n\nBody:\nDue **9/7(Mon)** noon."

@@ -95,13 +95,17 @@ the day it was first seen, which the prompt SHALL give.
 
 ### Requirement: Discord Markdown
 Before a rendition is stored, its Markdown SHALL have bare URLs wrapped as `<url>` and masked
-links whose text is a URL replaced by the URL, and SHALL then pass the Discord Markdown check: the
-`@discord/markdown-wasm` parser accepts it, it holds no table, and it fits 4,096 characters. A
-failed check SHALL fail the attempt.
+links whose text is a URL or empty replaced by the URL, images without a description given one,
+and SHALL then pass the Discord Markdown check: the `@discord/markdown-wasm` parser accepts it, it
+holds no table, and it fits 4,096 characters. A failed check SHALL fail the attempt.
 
 #### Scenario: A bare URL
 - **WHEN** the restored Markdown holds a bare URL
 - **THEN** the stored Markdown holds it as `<url>`
+
+#### Scenario: An image without a description
+- **WHEN** the restored Markdown holds an image whose description is empty
+- **THEN** the stored Markdown describes it as 圖片, or Image in a text without Chinese
 
 #### Scenario: A table in the answer
 - **WHEN** the answer's Markdown holds a pipe table
