@@ -135,6 +135,22 @@ def answer_text(api_format: ApiFormat, answer: object) -> str:
     )
 
 
+def _count(value: object) -> int:
+    return value if isinstance(value, int) else 0
+
+
+def usage(api_format: ApiFormat, answer: object) -> tuple[int, int]:
+    """The input and output tokens an answer reports; output counts thinking."""
+    if api_format is ApiFormat.OPENAI:
+        used = _field(answer, "usage")
+        return _count(_field(used, "prompt_tokens")), _count(_field(used, "completion_tokens"))
+    used = _field(answer, "usageMetadata")
+    output = _count(_field(used, "candidatesTokenCount")) + _count(
+        _field(used, "thoughtsTokenCount")
+    )
+    return _count(_field(used, "promptTokenCount")), output
+
+
 def error_message(answer: object) -> str:
     """The message of an error answer; Gemini's compatible endpoint wraps it in a list of one."""
     items = _items(answer)
@@ -147,9 +163,12 @@ class ModelClient:
     """One request at a time to the configured API."""
 
     def __init__(self, session: aiohttp.ClientSession, config: ModelConfig) -> None:
-        """Post over `session` with `config`'s settings."""
+        """Post over `session` with `config`'s settings, counting answers and their tokens."""
         self.session = session
         self.config = config
+        self.answers = 0
+        self.input_tokens = 0
+        self.output_tokens = 0
 
     async def __call__(self, key: str, prompt: str) -> str:
         """The answer's text for `prompt`, asked with `key`; redirects are not followed.
@@ -176,4 +195,8 @@ class ModelClient:
             answer = None
         if status != OK:
             raise ApiError(status, error_message(answer) or text[:200])
+        tokens_in, tokens_out = usage(config.api_format, answer)
+        self.answers += 1
+        self.input_tokens += tokens_in
+        self.output_tokens += tokens_out
         return answer_text(config.api_format, answer)

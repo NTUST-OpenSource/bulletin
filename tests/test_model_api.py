@@ -47,9 +47,11 @@ async def api() -> AsyncGenerator[tuple[Api, TestServer]]:
         yield fake, running
 
 
-async def ask(config: ModelConfig) -> str:
+async def ask(config: ModelConfig) -> tuple[str, ModelClient]:
+    """The answer's text and the client that asked, with its counts."""
     async with aiohttp.ClientSession() as session:
-        return await ModelClient(session, config)(KEY, "the prompt")
+        client = ModelClient(session, config)
+        return await client(KEY, "the prompt"), client
 
 
 async def test_gemini(api: tuple[Api, TestServer]) -> None:
@@ -57,9 +59,10 @@ async def test_gemini(api: tuple[Api, TestServer]) -> None:
     fake, server = api
     endpoint = str(server.make_url("/v1beta"))
 
-    text = await ask(ModelConfig(keys=(KEY,), endpoint=endpoint))
+    text, client = await ask(ModelConfig(keys=(KEY,), endpoint=endpoint))
 
     assert json.loads(text)["deadline"] == "2026-12-10"
+    assert (client.answers, client.input_tokens, client.output_tokens) == (1, 213, 64 + 243)
     ((path, headers, body),) = fake.requests
     assert path == "/v1beta/models/gemini-4-hydrogen:generateContent"
     assert headers["x-goog-api-key"] == KEY
@@ -80,9 +83,10 @@ async def test_an_openai_compatible_endpoint(api: tuple[Api, TestServer]) -> Non
         keys=(KEY,), api_format=ApiFormat.OPENAI, endpoint=str(server.make_url("/v1")), model="m"
     )
 
-    text = await ask(config)
+    text, client = await ask(config)
 
     assert json.loads(text)["title"]
+    assert (client.answers, client.input_tokens, client.output_tokens) == (1, 313, 64)
     ((path, headers, body),) = fake.requests
     assert path == "/v1/chat/completions"
     assert headers["Authorization"] == f"Bearer {KEY}"
