@@ -1,5 +1,5 @@
 // Recorded from https://bulletin.ntust.org/api/v1 on 2026-11-15 by scripts/record-fixtures.ts.
-import type { Article, Dimension, Page, Site } from "../../src/lib/api";
+import type { Article, Dimension, Page, Site } from "../../src/lib/api.ts";
 
 export const sites = [
   {

@@ -1,6 +1,6 @@
 // The page's state: the settings, kept in localStorage, and the API's lists.
 import { transfer } from "./lang/zh-TW";
-import { type Dimension, get, type Site } from "./lib/api";
+import { type Dimension, type Filters, get, NO_FILTERS, type Site } from "./lib/api";
 import { DEFAULTS, loadSettings, STORE_KEY, type Settings, saveSettings } from "./lib/settings";
 
 function storage(): Storage | null {
@@ -18,8 +18,12 @@ export const app = $state({
   saved: loaded.saved, // the reader has saved settings
   sites: [] as Site[],
   tags: [] as Dimension[],
+  listsLoaded: false,
   listsFailed: false,
 });
+
+/** The search, the topic chip and the unit menu. */
+export const filters: Filters = $state({ ...NO_FILTERS });
 
 export type Question = { title: string; text: string; yes: string; no: string; answer: (yes: boolean) => void };
 export type Notice = { message: string; action?: { label: string; run: () => void } };
@@ -76,6 +80,7 @@ export function clearSettings(): void {
 export async function loadLists(): Promise<void> {
   try {
     [app.sites, app.tags] = await Promise.all([get<Site[]>("/sites"), get<Dimension[]>("/tags")]);
+    app.listsLoaded = true;
     app.listsFailed = false;
   } catch {
     app.listsFailed = true;

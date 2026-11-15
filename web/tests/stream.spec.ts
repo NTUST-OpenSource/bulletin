@@ -7,7 +7,6 @@ import { answer, saved } from "./support/api.ts";
 const announcements = (sent: string[]) => sent.filter((path) => path.startsWith("/announcements?") || path === "/announcements");
 
 test("the followed units' announcements, newest day first, under pinned day headings", async ({ page }) => {
-  test.fail(true, "The stream");
   const sent = await answer(page);
   await saved(page);
   await page.goto("/");
@@ -26,7 +25,6 @@ test("the followed units' announcements, newest day first, under pinned day head
 });
 
 test("A hidden board: its announcements are not asked for", async ({ page }) => {
-  test.fail(true, "The stream");
   const sent = await answer(page);
   await saved(page, { sites: [1049], hiddenBoards: ["1049-203"] });
   await page.goto("/");
@@ -36,7 +34,6 @@ test("A hidden board: its announcements are not asked for", async ({ page }) => 
 });
 
 test("A withdrawn announcement stays with the 已刪除 mark", async ({ page }) => {
-  test.fail(true, "The stream");
   const withdrawn = { ...stream.first.items[1]!, id: 615, withdrawn_at: articles[615].withdrawn_at };
   await answer(page, { pages: () => ({ items: [stream.first.items[0]!, withdrawn], next: null }) });
   await saved(page);
@@ -47,7 +44,6 @@ test("A withdrawn announcement stays with the 已刪除 mark", async ({ page }) 
 });
 
 test("No rewrite yet: the school's title and no summary", async ({ page }) => {
-  test.fail(true, "The stream");
   await answer(page);
   await saved(page);
   await page.goto("/");
@@ -58,7 +54,6 @@ test("No rewrite yet: the school's title and no summary", async ({ page }) => {
 });
 
 test("a reader who prefers the school's version sees its titles", async ({ page }) => {
-  test.fail(true, "The stream");
   await answer(page);
   await saved(page, { prefer: "raw" });
   await page.goto("/");
@@ -68,7 +63,6 @@ test("a reader who prefers the school's version sees its titles", async ({ page 
 });
 
 test("Nothing followed: the stream asks for units and requests no announcements", async ({ page }) => {
-  test.fail(true, "The stream");
   const sent = await answer(page);
   await saved(page, { sites: [] });
   await page.goto("/");
@@ -80,7 +74,6 @@ test("Nothing followed: the stream asks for units and requests no announcements"
 });
 
 test("after the first visit the stream shows the picked units", async ({ page }) => {
-  test.fail(true, "The stream");
   const sent = await answer(page);
   await page.goto("/");
 

@@ -3,6 +3,7 @@
   import SlidersHorizontal from "@jis3r/icons/icons/sliders-horizontal";
   import Onboarding from "./components/settings/Onboarding.svelte";
   import Settings from "./components/settings/Settings.svelte";
+  import Stream from "./components/stream/Stream.svelte";
   import Confirm from "./components/ui/Confirm.svelte";
   import IconButton from "./components/ui/IconButton.svelte";
   import Toast from "./components/ui/Toast.svelte";
@@ -25,13 +26,24 @@
     }
   }
   readLink();
+
+  // Day headings pin below the header, whose height changes with the search box.
+  let top: HTMLElement;
+  $effect(() => {
+    const observer = new ResizeObserver(([entry]) => {
+      const height = entry?.borderBoxSize[0]?.blockSize;
+      if (height) document.documentElement.style.setProperty("--top-h", `${Math.round(height)}px`);
+    });
+    observer.observe(top);
+    return () => observer.disconnect();
+  });
   // A first visit starts with the unit picker; one through an article link shows the article first.
   if (!app.saved && !location.pathname.startsWith("/a/")) ui.onboarding = true;
 </script>
 
 <svelte:window onhashchange={readLink} />
 
-<header class="top">
+<header class="top" bind:this={top}>
   <div class="wrap">
     <a class="brand" href="/" aria-label={brand.home}>bulletin<i>.</i></a>
     <IconButton label={header.search} icon={Search} />
@@ -41,6 +53,7 @@
 
 <main class="wrap stream">
   <div class="filters" role="toolbar" aria-label={stream.filters}></div>
+  <Stream />
 </main>
 
 <Settings />

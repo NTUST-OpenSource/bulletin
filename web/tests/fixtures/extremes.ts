@@ -1,6 +1,6 @@
 // The cases of design.md that production does not hold, built from recorded answers.
-import type { Article, Item, Page } from "../../src/lib/api";
-import { articles, stream } from "./recorded";
+import type { Article, Item, Page } from "../../src/lib/api.ts";
+import { articles, stream } from "./recorded.ts";
 
 const LONG_WORD = "Announcement".repeat(17); // 204 characters without a break
 const LONG_URL = `https://www.ntust.edu.tw/var/file/0/1000/img/${"a1b2c3d4".repeat(16)}.pdf`;

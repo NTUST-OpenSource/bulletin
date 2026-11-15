@@ -21,7 +21,7 @@ for (const id of ARTICLES) articles[id] = await get(`/announcements/${id}`);
 
 const json = (value: unknown) => JSON.stringify(value, null, 2);
 const source = `// Recorded from ${API} on ${new Date().toISOString().slice(0, 10)} by scripts/record-fixtures.ts.
-import type { Article, Dimension, Page, Site } from "../../src/lib/api";
+import type { Article, Dimension, Page, Site } from "../../src/lib/api.ts";
 
 export const sites = ${json(await get("/sites"))} satisfies Site[];
 

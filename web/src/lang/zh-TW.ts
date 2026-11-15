@@ -10,6 +10,21 @@ export const header = {
 
 export const stream = {
   filters: "篩選",
+  withdrawn: "已刪除",
+  nothingFollowed: "還沒有關注的單位",
+  pickUnits: "選擇單位",
+  nothingFound: "沒有符合的公告",
+  clearFilters: "清除篩選",
+  loading: "載入中",
+} as const;
+
+const WEEKDAYS = "日一二三四五六";
+
+export const days = {
+  today: "今天",
+  yesterday: "昨天",
+  weekday: (day: number) => `週${WEEKDAYS[day]}`,
+  month: (month: number, year: number | null) => (year ? `${year}年${month}月` : `${month}月`),
 } as const;
 
 export const settings = {
