@@ -1,0 +1,101 @@
+{
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "markdown": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "deadline": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date"
+    },
+    "tags": {
+      "type": "object",
+      "properties": {
+        "topic": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "scholarships",
+              "competitions-and-calls",
+              "talks-and-events",
+              "courses",
+              "enrolment-and-grades",
+              "exams-and-certification",
+              "fees",
+              "housing",
+              "internships-and-jobs",
+              "international-exchange",
+              "research-projects",
+              "admissions",
+              "venue-and-service-changes",
+              "safety-and-health",
+              "it-systems",
+              "military-service",
+              "clubs-and-volunteering",
+              "rules-and-policy",
+              "honours",
+              "free-food"
+            ]
+          }
+        },
+        "audience": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "all-students",
+              "undergraduates",
+              "graduate-students",
+              "new-students",
+              "graduating-students",
+              "international-students",
+              "staff",
+              "public"
+            ]
+          }
+        },
+        "nature": {
+          "type": "string",
+          "enum": [
+            "action-required",
+            "lists-and-results",
+            "information",
+            "news-and-records"
+          ]
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "on-campus",
+            "forwarded"
+          ]
+        }
+      },
+      "required": [
+        "topic",
+        "audience",
+        "nature",
+        "source"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "title",
+    "markdown",
+    "summary",
+    "deadline",
+    "tags"
+  ],
+  "additionalProperties": false
+}

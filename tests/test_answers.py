@@ -58,7 +58,6 @@ def answer(**fields: object) -> str:
     return json.dumps(valid | fields)
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Structured answer")
 def test_an_answer() -> None:
     """Structured answer: title, Markdown, summary, deadline and tags."""
     parsed = parse_answer(answer())
@@ -79,7 +78,6 @@ def test_an_answer() -> None:
     assert parse_answer(answer(deadline=None)).deadline is None
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Structured answer")
 @pytest.mark.parametrize(
     "text",
     [

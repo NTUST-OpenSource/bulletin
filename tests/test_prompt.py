@@ -5,8 +5,6 @@ from datetime import date
 from importlib import resources
 from typing import cast
 
-import pytest
-
 from bulletin.model_input import ModelInput
 from bulletin.prompt import PROMPT_VERSION, answer_schema, prompt
 from bulletin.taxonomy import taxonomy
@@ -14,7 +12,7 @@ from bulletin.taxonomy import taxonomy
 # The SHA-256 of the files behind each prompt version. Editing one of them fails this test until
 # PROMPT_VERSION is raised and its digest added: a new version renders the last year again.
 DIGESTS = {
-    1: "",
+    1: "cd9bd3288cb43ce6666a9fd14759021641b2b2a84476198fc83066bceffe8643",
 }
 FILES = ("prompt.md", "answer.schema.json", "taxonomy.json")
 
@@ -27,7 +25,6 @@ def at(value: object, *keys: str) -> object:
     return value
 
 
-@pytest.mark.xfail(strict=True, raises=FileNotFoundError, reason="Structured answer")
 def test_the_prompt_version_pins_its_files() -> None:
     """Structured answer: the prompt's files match the digest of PROMPT_VERSION."""
     digest = hashlib.sha256()
@@ -37,7 +34,6 @@ def test_the_prompt_version_pins_its_files() -> None:
     assert digest.hexdigest() == DIGESTS[PROMPT_VERSION]
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Structured answer")
 def test_the_schema_lists_the_taxonomy() -> None:
     """Structured answer: the schema's tag enums are the taxonomy's ids."""
     schema = answer_schema()
@@ -48,7 +44,6 @@ def test_the_schema_lists_the_taxonomy() -> None:
         assert enum == [tag.id for tag in known]
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Structured answer")
 def test_the_prompt_holds_the_input() -> None:
     """Structured answer: the prompt holds the input, the list date and every tag label."""
     given = ModelInput("Title: T\n\nBody:\nB", {})
