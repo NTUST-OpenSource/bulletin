@@ -4,6 +4,8 @@ import json
 from datetime import date
 from pathlib import Path
 
+import pytest
+
 from bulletin.model import Listed
 from bulletin.pages import parse_list
 
@@ -96,3 +98,19 @@ def test_a_board_listing_another_sites_articles() -> None:
     assert all(i.article_id is not None for i in items)
     keys = {(i.host, i.site_id, i.article_id) for i in items}
     assert {("www.ntust.edu.tw", 1000, 153625), ("www.ntust.edu.tw", 1000, 153631)} <= keys
+
+
+@pytest.mark.xfail(strict=True, raises=ValueError, reason="List page fetch")
+def test_a_link_that_cannot_be_parsed() -> None:
+    """List page fetch: an item whose link cannot be parsed is skipped; the others stay."""
+    row = '<div class="listBS"><div class="mtitle"><a href="{}">{}</a></div></div>'
+    page = (
+        '<div id="pageptlist">'
+        + row.format("http://[bad", "bad")
+        + row.format("/p/406-1053-153698.php", "good")
+        + "</div>"
+    )
+
+    items = parse_list(page, "https://student.ntust.edu.tw/p/403-1053-1-1.php", 1053)
+
+    assert [item.title for item in items] == ["good"]
