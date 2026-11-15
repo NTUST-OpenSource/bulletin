@@ -1,4 +1,4 @@
-"""The service: migrations and the seed at start, then both listeners and the worker in one loop."""
+"""The service: migrations and the seed, then the listeners, the worker and the renderer."""
 
 import asyncio
 import contextlib
@@ -15,10 +15,14 @@ import uvicorn
 from psycopg import AsyncConnection
 from psycopg_pool import AsyncConnectionPool
 
+from bulletin.discord import Checker
 from bulletin.files import FileStore
 from bulletin.http import Client
-from bulletin.model_api import ModelConfig
+from bulletin.keys import KeyRing
+from bulletin.model_api import ModelClient, ModelConfig
 from bulletin.pacer import Pacer
+from bulletin.rendering import Renderer
+from bulletin.renditions import next_pending, store
 from bulletin.startup import start
 from bulletin.web.admin import admin_app
 from bulletin.web.public import public_app
@@ -74,6 +78,8 @@ class Settings:
             admin_host=env.get("BULLETIN_ADMIN_HOST", defaults.admin_host),
             files=Path(env.get("BULLETIN_FILES", str(defaults.files))),
             seed=Path(env.get("BULLETIN_SEED", str(defaults.seed))),
+            model=ModelConfig.from_env(env),
+            discord_check=Path(env.get("BULLETIN_DISCORD_CHECK", str(defaults.discord_check))),
         )
 
 
@@ -97,6 +103,53 @@ async def work(pool: AsyncConnectionPool[AsyncConnection], worker: Worker) -> No
             busy = False
         if not busy:
             await asyncio.sleep(IDLE)
+
+
+async def render_next(
+    pool: AsyncConnectionPool[AsyncConnection], renderer: Renderer, now: datetime
+) -> bool:
+    """Render the next announcement that waits; return whether a rendition was stored.
+
+    The model is asked outside any connection: its answers take seconds. An announcement whose
+    rendering raised rests like one after an API error, so it cannot stop the others.
+    """
+    async with pool.connection() as conn:
+        item = await next_pending(conn, now, renderer.resting_ids())
+    if item is None:
+        return False
+    try:
+        rendition = await renderer.render(item)
+        if rendition is not None:
+            async with pool.connection() as conn:
+                await store(conn, item.announcement_id, item.revision_id, rendition)
+    except Exception:
+        renderer.rest(item.announcement_id)
+        raise
+    return rendition is not None
+
+
+async def render(pool: AsyncConnectionPool[AsyncConnection], renderer: Renderer) -> None:
+    """Render forever; nothing to render, an API error or a failed step waits a little."""
+    while True:
+        try:
+            rendered = await render_next(pool, renderer, datetime.now(UTC))
+        except Exception:
+            log.exception("rendering step failed")
+            rendered = False
+        if not rendered:
+            await asyncio.sleep(IDLE)
+
+
+def renderer_for(settings: ModelConfig, session: aiohttp.ClientSession, check: Path) -> Renderer:
+    """The renderer of the configured model, its keys in turn."""
+    return Renderer(
+        ModelClient(session, settings),
+        KeyRing(settings.keys, settings.rate),
+        Checker(check),
+        settings.model,
+        time.monotonic,
+        asyncio.sleep,
+    )
 
 
 async def serve(settings: Settings, stop: asyncio.Event) -> None:
@@ -129,10 +182,22 @@ async def serve(settings: Settings, stop: asyncio.Event) -> None:
                     settings.admin_port,
                 )
             )
-            async with asyncio.TaskGroup() as tasks:
-                tasks.create_task(public.serve())
-                tasks.create_task(admin.serve())
-                working = tasks.create_task(work(pool, worker))
-                await stop.wait()
-                public.should_exit = admin.should_exit = True
-                working.cancel()
+            renderer = None
+            if settings.model.keys:
+                renderer = renderer_for(settings.model, session, settings.discord_check)
+            else:
+                log.info("rendering is off: BULLETIN_MODEL_KEYS is not set")
+            try:
+                async with asyncio.TaskGroup() as tasks:
+                    tasks.create_task(public.serve())
+                    tasks.create_task(admin.serve())
+                    loops = [tasks.create_task(work(pool, worker))]
+                    if renderer is not None:
+                        loops.append(tasks.create_task(render(pool, renderer)))
+                    await stop.wait()
+                    public.should_exit = admin.should_exit = True
+                    for loop in loops:
+                        loop.cancel()
+            finally:
+                if renderer is not None:
+                    await renderer.checker.close()

@@ -49,7 +49,7 @@ never reach the network: the model's answers are fixtures, and the Discord check
 - [x] 5.8 Implement "What gets rendered" (the pick query) and remove the marker; verify its scenarios pass and the gate is green
 - [x] 5.9 Commit the xfail test for "Renditions follow revisions" (rendering); verify it fails for the expected reason and the gate stays green
 - [x] 5.10 Implement "Renditions follow revisions" and remove the marker; verify its scenarios pass and the gate is green
-- [ ] 5.11 Run the rendering loop in `bulletin serve` beside the worker, and make the ten-year prune delete renditions and tags; verify with the service test and a prune test
+- [x] 5.11 Run the rendering loop in `bulletin serve` beside the worker, and make the ten-year prune delete renditions and tags; verify with the service test and a prune test
 
 ## 6. Image and measurement
 

@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
-from psycopg.errors import ForeignKeyViolation
 
 from bulletin.archive import fetch_article, prune, publish, withdraw
 from bulletin.detection import detect
@@ -266,7 +265,6 @@ async def test_the_edge_of_ten_years(migrated: AsyncConnection) -> None:
     assert await cur.fetchone() == (len(EXPECTED["attachments"]),)
 
 
-@pytest.mark.xfail(strict=True, raises=ForeignKeyViolation, reason="Ten-year retention")
 async def test_renditions_go_with_their_announcements(migrated: AsyncConnection) -> None:
     """Ten-year retention: the deleted announcement's renditions and tags go too."""
     await import_seed(migrated, [Board(1068, 1, "h", "u", "n", "announcement", "P2")])

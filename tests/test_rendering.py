@@ -73,6 +73,9 @@ class Checker:
             raise AnswerError(msg)
         return fix(markdown)
 
+    async def close(self) -> None:
+        return None
+
 
 async def no_sleep(_: float) -> None:
     return None

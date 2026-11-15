@@ -171,10 +171,18 @@ async def prune(conn: AsyncConnection, now: datetime) -> int:
         # The event trigger lets this transaction delete events.
         await conn.execute("SET LOCAL bulletin.retention = 'on'")
         for statement in (
-            "UPDATE announcement SET current_revision = NULL WHERE id = ANY(%s)",
+            (
+                "UPDATE announcement SET current_revision = NULL, current_rendition = NULL"
+                " WHERE id = ANY(%s)"
+            ),
             "UPDATE announcement SET cross_post_of = NULL WHERE cross_post_of = ANY(%s)",
             (
                 "DELETE FROM attachment WHERE revision_id IN"
+                " (SELECT id FROM revision WHERE announcement_id = ANY(%s))"
+            ),
+            "DELETE FROM tag WHERE announcement_id = ANY(%s)",
+            (
+                "DELETE FROM rendition WHERE revision_id IN"
                 " (SELECT id FROM revision WHERE announcement_id = ANY(%s))"
             ),
             "DELETE FROM revision WHERE announcement_id = ANY(%s)",

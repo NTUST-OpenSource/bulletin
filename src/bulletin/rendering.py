@@ -39,6 +39,10 @@ class Check(Protocol):
         """The fixed Markdown, or `AnswerError`; `CheckerError` when the check cannot answer."""
         ...
 
+    def close(self) -> Awaitable[None]:
+        """Stop the check."""
+        ...
+
 
 @dataclass
 class Renderer:
@@ -51,6 +55,10 @@ class Renderer:
     clock: Callable[[], float]  # monotonic seconds
     sleep: Callable[[float], Awaitable[object]]
     resting: dict[int, float] = field(default_factory=dict[int, float])
+
+    def rest(self, announcement_id: int) -> None:
+        """Leave the announcement for `API_REST` seconds."""
+        self.resting[announcement_id] = self.clock() + API_REST
 
     def resting_ids(self) -> list[int]:
         """The announcements that rest after an API error."""
@@ -88,7 +96,7 @@ class Renderer:
                     self.ring.hide(str(error)),
                     index + 1,
                 )
-                self.resting[item.announcement_id] = self.clock() + API_REST
+                self.rest(item.announcement_id)
                 return None
         log.warning("rendering %s fell back after %d attempts", item.url, MAX_ATTEMPTS)
         title = item.title.replace("[", "\\[").replace("]", "\\]")

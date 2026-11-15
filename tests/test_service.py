@@ -12,12 +12,17 @@ import aiohttp
 import pytest
 from aiohttp import web
 from aiohttp.test_utils import TestServer
+from psycopg import AsyncConnection
+from psycopg_pool import AsyncConnectionPool
 
 from bulletin.archive import publish, revise
+from bulletin.discord import Checker
+from bulletin.keys import KeyRing
 from bulletin.migrate import migrate
 from bulletin.model import Content, Listed
 from bulletin.model_api import ModelConfig
-from bulletin.service import Settings, serve
+from bulletin.rendering import Renderer
+from bulletin.service import Settings, render_next, serve
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator, Awaitable, Callable
@@ -108,7 +113,6 @@ async def test_the_service_serves_and_stops(schema: Schema, tmp_path: Path) -> N
     await asyncio.wait_for(running, 10)
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="Model configuration")
 def test_model_settings_from_the_environment() -> None:
     """Model configuration: the service reads the model's settings and the Discord check."""
     settings = Settings.from_env(
@@ -178,7 +182,6 @@ async def run_until(settings: Settings, done: Callable[[], Awaitable[bool]]) -> 
     await asyncio.wait_for(running, 10)
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="Model configuration")
 async def test_the_service_renders(
     schema: Schema, tmp_path: Path, model: tuple[Model, TestServer]
 ) -> None:
@@ -210,3 +213,28 @@ async def test_no_keys(schema: Schema, tmp_path: Path, model: tuple[Model, TestS
 
     assert await renditions(schema) == []
     assert fake.requests == 0
+
+
+async def test_a_rendering_that_raises(schema: Schema, tmp_path: Path) -> None:
+    """Attempts and fallback: an announcement whose rendering raises rests; nothing else waits."""
+    await pending_article(schema)
+
+    async def broken(_key: str, _prompt: str, /) -> str:
+        msg = "a bug"
+        raise RuntimeError(msg)
+
+    renderer = Renderer(
+        broken, KeyRing(("k",), limit=10), Checker(CHECK), "m", lambda: 0.0, asyncio.sleep
+    )
+    pool = AsyncConnectionPool(
+        settings_for(schema, tmp_path).database_url,
+        connection_class=AsyncConnection,
+        kwargs={"autocommit": True},
+        open=False,
+    )
+    async with pool:
+        with pytest.raises(RuntimeError, match="a bug"):
+            await render_next(pool, renderer, datetime.now(UTC))
+
+        assert len(renderer.resting_ids()) == 1
+        assert not await render_next(pool, renderer, datetime.now(UTC))
