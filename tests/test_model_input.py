@@ -3,8 +3,6 @@
 import json
 from pathlib import Path
 
-import pytest
-
 from bulletin.model_input import model_input
 from bulletin.pages import parse_article
 
@@ -85,7 +83,6 @@ def test_urls_in_the_text() -> None:
     }
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="Model input")
 def test_adjacent_bold_runs() -> None:
     """Model input: adjacent bold elements make one bold run, so a date split over them stays
     whole for the model and the date finder."""

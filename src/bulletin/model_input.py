@@ -79,8 +79,11 @@ def model_input(
 
 
 def _clean(text: str) -> str:
-    """Trim every line and collapse runs of spaces and of blank lines."""
-    lines = (re.sub(" {2,}", " ", line).strip() for line in text.split("\n"))
+    """Trim every line and collapse runs of spaces and of blank lines.
+
+    Adjacent bold elements, as pasted text often splits a date over them, make one bold run.
+    """
+    lines = (re.sub(" {2,}", " ", line).strip() for line in text.replace("****", "").split("\n"))
     return re.sub(r"\n{3,}", "\n\n", "\n".join(lines)).strip()
 
 

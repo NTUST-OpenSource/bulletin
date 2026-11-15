@@ -22,6 +22,8 @@ LINK = re.compile(
     r"|(?P<bare>https?://[A-Za-z0-9\-._~:/?#@!$&'*+,;=%\[\]]+)"
 )
 URL_IN_TEXT = re.compile(r"https?://\S+")
+CJK = re.compile(f"[{chr(0x4E00)}-{chr(0x9FFF)}]")
+PICTURE = chr(0x5716) + chr(0x7247)  # what an image without a description is called in Chinese
 TRAILING = ".,;:!?'*"
 SEPARATOR = re.compile(r"\|? *:?-{3,}:? *(\| *:?-{3,}:? *)*\|?")
 
@@ -31,14 +33,22 @@ class CheckerError(RuntimeError):
 
 
 def fix(markdown: str) -> str:
-    """Wrap bare URLs as `<url>`; replace masked links whose text holds a URL by the URL."""
-    return LINK.sub(_fixed, markdown)
+    """Wrap bare URLs as `<url>`, and fix the links Discord would show wrongly.
+
+    A masked link whose text holds a URL, or nothing, becomes the URL; an image without a
+    description gets one, since Discord leaves an empty link text unparsed.
+    """
+    picture = PICTURE if CJK.search(markdown) else "Image"
+    return LINK.sub(lambda match: _fixed(match, picture), markdown)
 
 
-def _fixed(match: re.Match[str]) -> str:
+def _fixed(match: re.Match[str], picture: str) -> str:
     if match["bare"]:
         url = match["bare"].rstrip(TRAILING)
         return f"<{url}>{match['bare'][len(url) :]}"
+    if match["masked"] and match["target"] and not match["text"].strip():
+        image = match["masked"].startswith("!")
+        return f"![{picture}]({match['target']})" if image else f"<{match['target']}>"
     if match["masked"] and not match["masked"].startswith("!") and "://" in match["text"]:
         rest = URL_IN_TEXT.sub("", match["text"]).strip()
         return f"{rest} <{match['target']}>" if rest else f"<{match['target']}>"

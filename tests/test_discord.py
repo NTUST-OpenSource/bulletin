@@ -39,7 +39,6 @@ def test_a_masked_link_whose_text_is_a_url() -> None:
     assert fix(f"![poster]({URL}/p.png)") == f"![poster]({URL}/p.png)"
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="Discord Markdown")
 def test_links_and_images_without_text() -> None:
     """Discord Markdown: a link without text becomes the URL; an image without a description gets
     one in the text's language."""
@@ -48,7 +47,6 @@ def test_links_and_images_without_text() -> None:
     assert fix(f"![]({URL}/p.png) {IDEOGRAPH}") == f"![{PICTURE}]({URL}/p.png) {IDEOGRAPH}"
 
 
-@pytest.mark.xfail(strict=True, raises=AnswerError, reason="Discord Markdown")
 async def test_an_image_without_a_description_passes(checker: Checker) -> None:
     """Discord Markdown: Discord leaves an empty link text unparsed, so the fix must come first."""
     assert await checker.check(f"![]({URL}/p.png)") == f"![Image]({URL}/p.png)"
