@@ -52,22 +52,66 @@ export const DEFAULTS: Settings = {
   topicOrder: DEFAULT_TOPICS,
 };
 
+const THEMES: readonly Theme[] = ["system", "light", "dark"];
+const PREFERS: readonly Prefer[] = ["rendition", "raw"];
+
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+/** The items of `value` that pass `keep`, once each; `fallback` when it is not a list. */
+function list<T>(value: unknown, keep: (item: unknown) => item is T, fallback: T[]): T[] {
+  return Array.isArray(value) ? [...new Set(value.filter(keep))] : fallback;
+}
+
+const isId = (item: unknown): item is number => Number.isSafeInteger(item);
+const isText = (item: unknown): item is string => typeof item === "string";
+
 /** Settings from parsed JSON, a wrong field falling back to its default; null if not settings. */
-export function parseSettings(_value: unknown): Settings | null {
-  throw new Error("not implemented");
+export function parseSettings(value: unknown): Settings | null {
+  if (!isObject(value) || value["version"] !== 1) return null;
+  const theme = THEMES.find((t) => t === value["theme"]) ?? DEFAULTS.theme;
+  const prefer = PREFERS.find((p) => p === value["prefer"]) ?? DEFAULTS.prefer;
+  return {
+    version: 1,
+    theme,
+    prefer,
+    sites: list(value["sites"], isId, DEFAULTS.sites),
+    hiddenBoards: list(value["hiddenBoards"], isText, DEFAULTS.hiddenBoards),
+    topicOrder: list(value["topicOrder"], isText, DEFAULTS.topicOrder),
+  };
 }
 
 /** The saved settings, or the defaults when nothing readable is saved or storage is blocked. */
-export function loadSettings(_storage: Storage | null): { settings: Settings; saved: boolean } {
-  throw new Error("not implemented");
+export function loadSettings(storage: Storage | null): { settings: Settings; saved: boolean } {
+  try {
+    const raw = storage?.getItem(STORE_KEY);
+    const settings = raw ? parseSettings(JSON.parse(raw)) : null;
+    if (settings) return { settings, saved: true };
+  } catch {
+    // Blocked storage or broken JSON: the defaults, not kept.
+  }
+  return { settings: DEFAULTS, saved: false };
 }
 
 /** Save the settings; false when storage refuses them. */
-export function saveSettings(_storage: Storage | null, _settings: Settings): boolean {
-  throw new Error("not implemented");
+export function saveSettings(storage: Storage | null, settings: Settings): boolean {
+  try {
+    storage?.setItem(STORE_KEY, JSON.stringify(settings));
+    return storage !== null;
+  } catch {
+    return false;
+  }
 }
 
 /** The topics to show, in the reader's order: unknown ids left out, missing ones appended. */
-export function topicOrder(_settings: Settings, _known: string[]): string[] {
-  throw new Error("not implemented");
+export function topicOrder(settings: Settings, known: string[]): string[] {
+  const ordered = settings.topicOrder.filter((topic) => known.includes(topic));
+  const rest = DEFAULT_TOPICS.filter((topic) => known.includes(topic) && !ordered.includes(topic));
+  return [...ordered, ...rest, ...known.filter((topic) => !ordered.includes(topic) && !rest.includes(topic))];
+}
+
+/** Show `theme` on the page: a saved light or dark theme overrides the system's. */
+export function applyTheme(root: HTMLElement, theme: Theme): void {
+  if (theme === "system") root.removeAttribute("data-theme");
+  else root.setAttribute("data-theme", theme);
 }

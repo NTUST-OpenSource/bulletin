@@ -93,15 +93,57 @@ export type Filters = {
 
 export const NO_FILTERS: Filters = { q: "", titleOnly: false, topic: null, unit: null };
 
+/** A site's part of the query: the site when none of its boards is hidden, else its visible boards. */
+function placement(site: Site, hidden: Set<string>, params: [string, string][]): void {
+  const visible = site.boards.filter((board) => !hidden.has(board.key));
+  if (visible.length === site.boards.length) params.push(["site", String(site.id)]);
+  else for (const board of visible) params.push(["board", board.key]);
+}
+
 /**
  * The stream's query string, each list sorted so equal settings share Cloudflare's cache; null
- * when there is nothing to ask for.
+ * when there is nothing to ask for. Units, boards and topics the API does not list are left out.
  */
 export function streamQuery(
-  _settings: { sites: number[]; hiddenBoards: string[] },
-  _sites: Site[],
-  _topics: string[],
-  _filters: Filters,
+  settings: { sites: number[]; hiddenBoards: string[] },
+  sites: Site[],
+  topics: string[],
+  filters: Filters,
 ): string | null {
-  throw new Error("not implemented");
+  const hidden = new Set(settings.hiddenBoards);
+  const followed = sites.filter((site) => settings.sites.includes(site.id));
+  const unit = filters.unit === null ? null : sites.find((site) => site.id === filters.unit);
+  const searching = filters.q !== "";
+  const params: [string, string][] = [];
+  if (unit) placement(unit, hidden, params);
+  else if (!searching) for (const site of followed) placement(site, hidden, params);
+  if (params.length === 0 && (unit || !searching)) return null;
+  params.sort(([a, x], [b, y]) => a.localeCompare(b) || x.localeCompare(y, "en", { numeric: true }));
+  if (filters.topic && topics.includes(filters.topic)) params.push(["tag", `topic:${filters.topic}`]);
+  if (searching) {
+    params.push(["q", filters.q]);
+    if (filters.titleOnly) params.push(["in", "title"]);
+  }
+  return new URLSearchParams(params).toString();
+}
+
+export const API = "/api/v1";
+
+/** An answer other than 200; `status` 0 when the API could not be reached. */
+export class ApiError extends Error {
+  constructor(readonly status: number) {
+    super(`the API answered ${status}`);
+  }
+}
+
+/** GET a path of the API; `fresh` revalidates instead of taking a cached copy. */
+export async function get<T>(path: string, fresh = false): Promise<T> {
+  let answer: Response;
+  try {
+    answer = await fetch(`${API}${path}`, fresh ? { cache: "no-cache" } : {});
+  } catch {
+    throw new ApiError(0);
+  }
+  if (!answer.ok) throw new ApiError(answer.status);
+  return (await answer.json()) as T;
 }

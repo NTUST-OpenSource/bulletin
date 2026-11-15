@@ -20,7 +20,7 @@ shapes of the `public-api` spec.
 ## 3. Settings
 
 - [x] 3.1 Commit the xfail test for "Settings" (web-frontend); verify it fails for the expected reason and the gate stays green
-- [ ] 3.2 Implement "Settings" (`lib/settings.ts`, the settings sheet, themes) and remove the marker; verify its scenarios pass and the gate is green
+- [x] 3.2 Implement "Settings" (`lib/settings.ts`, the settings sheet, themes) and remove the marker; verify its scenarios pass and the gate is green
 - [ ] 3.3 Commit the xfail test for "Settings export and import" (web-frontend); verify it fails for the expected reason and the gate stays green
 - [ ] 3.4 Implement "Settings export and import" and remove the marker; verify its scenarios pass and the gate is green
 - [ ] 3.5 Commit the xfail test for "First visit" (web-frontend); verify it fails for the expected reason and the gate stays green

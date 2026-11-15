@@ -1,21 +1,29 @@
 <script lang="ts">
   import Search from "@jis3r/icons/icons/search";
   import SlidersHorizontal from "@jis3r/icons/icons/sliders-horizontal";
+  import Settings from "./components/settings/Settings.svelte";
   import IconButton from "./components/ui/IconButton.svelte";
   import { brand, header, stream } from "./lang/zh-TW";
+  import { applyTheme } from "./lib/settings";
+  import { app, loadLists, ui } from "./state.svelte";
+
+  $effect(() => applyTheme(document.documentElement, app.settings.theme));
+  void loadLists();
 </script>
 
 <header class="top">
   <div class="wrap">
     <a class="brand" href="/" aria-label={brand.home}>bulletin<i>.</i></a>
     <IconButton label={header.search} icon={Search} />
-    <IconButton label={header.settings} icon={SlidersHorizontal} />
+    <IconButton label={header.settings} icon={SlidersHorizontal} onclick={() => (ui.sheet = "main")} />
   </div>
 </header>
 
 <main class="wrap stream">
   <div class="filters" role="toolbar" aria-label={stream.filters}></div>
 </main>
+
+<Settings />
 
 <style>
   .top {

@@ -51,6 +51,45 @@ a {
   padding-right: max(20px, env(safe-area-inset-right, 0px));
 }
 
+dialog {
+  border: 0;
+  padding: 0;
+  color: var(--ink);
+  background: var(--paper);
+  box-shadow: var(--shadow);
+}
+dialog::backdrop {
+  background: var(--scrim);
+}
+dialog:focus,
+dialog:focus-visible {
+  outline: none;
+}
+.link-btn {
+  flex: none;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  padding: 4px 2px;
+}
+.field {
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px solid var(--line-2);
+  background: var(--bg);
+  border-radius: var(--radius);
+  padding: 9px 12px;
+  font-size: var(--text-sm);
+  resize: vertical;
+}
+.field:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
 @media (max-width: 639px) {
   .wrap {
     padding-left: max(16px, env(safe-area-inset-left, 0px));
