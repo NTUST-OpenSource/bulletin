@@ -197,3 +197,8 @@ async def prune(conn: AsyncConnection, now: datetime) -> int:
         ):
             await conn.execute(statement, (old,))
     return len(old)
+
+
+async def redate(conn: AsyncConnection) -> int:
+    """Estimate again the stream day of announcements without a list date; return how many moved."""
+    raise NotImplementedError

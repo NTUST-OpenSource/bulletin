@@ -11,7 +11,7 @@ tests call the app in process with httpx's ASGI transport against the PGroonga t
 
 ## 2. Stream day
 
-- [ ] 2.1 Commit the xfail test for "Stream day" (archive): migration 0006, the trigger on insert and the nightly re-estimate; verify it fails for the expected reason and the gate stays green
+- [x] 2.1 Commit the xfail test for "Stream day" (archive): migration 0006, the trigger on insert and the nightly re-estimate; verify it fails for the expected reason and the gate stays green
 - [ ] 2.2 Implement "Stream day" (migration 0006 with `stream_day`, the trigger, the indexes, the nightly update) and remove the marker; verify its scenarios and the migration test pass and the gate is green
 - [ ] 2.3 Make `next_pending` read `announcement.dated` for "What gets rendered" (rendering); verify the existing scenarios still pass and the gate is green
 
