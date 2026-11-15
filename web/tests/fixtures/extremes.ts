@@ -25,6 +25,31 @@ export const longFile = {
   ],
 } satisfies Article;
 
+/** Long words and URLs in the rewrite and the school's text, and a table wider than a phone. */
+export const longArticle = {
+  ...articles[1],
+  id: 900003,
+  title: LONG_WORD,
+  rendition: {
+    title: LONG_WORD,
+    summary: LONG_WORD,
+    deadline: null,
+    markdown: `### ${LONG_WORD}\n\n- ${LONG_URL}\n- [${LONG_WORD}](${LONG_URL})\n\n> ${LONG_WORD}`,
+  },
+  body_html: `<h1>${LONG_WORD}</h1><p>${LONG_URL}</p><table><tr>${"<td>column</td>".repeat(20)}</tr></table>`,
+} satisfies Article;
+
+/** 120 stored images: a three-digit count in the image preview. */
+export const manyImages = {
+  ...articles[14],
+  id: 900004,
+  attachments: Array.from({ length: 120 }, (_, index) => ({
+    ...articles[14].attachments[0]!,
+    name: `${"Poster".repeat(18)}-${index + 1}.jpg`,
+    file: `/api/v1/files/${String(index).padStart(64, "0")}/poster-${index + 1}.jpg`,
+  })),
+} satisfies Article;
+
 /** A first page with the extreme item and a link item on top of the recorded one. */
 export const extremePage = {
   items: [longTitle, articles[2533], ...stream.first.items],
