@@ -40,7 +40,7 @@ def test_summary_without_passed_articles() -> None:
     """A run where every article fell back reports zero agreement instead of failing."""
     fallback = Result(
         id=1, url="https://example.edu/p/406-1000-1.php", outcome="fallback", failures=("a",) * 3,
-        api_errors=0, requests=3, input_tokens=30, output_tokens=60, seconds=1.5,
+        api_errors=0, waits=(), requests=3, input_tokens=30, output_tokens=60, seconds=1.5,
         tags={key: list[str]() for key in ("topic", "audience", "nature", "source")},
         labels={"topic": ["t"], "audience": ["a"], "nature": ["n"], "source": ["s"]},
         model_deadline=None, deadline=None, labelled_deadline=DAY, title="T", summary=None,

@@ -81,6 +81,7 @@ class Result:
     outcome: Literal["passed", "fallback", "api-error"]
     failures: tuple[str, ...]  # the checks that failed attempts, in order
     api_errors: int
+    waits: tuple[str, ...]  # the API errors and failed checks that made the article wait
     requests: int
     input_tokens: int
     output_tokens: int
@@ -209,7 +210,9 @@ async def measure_one(
         api_errors += 1
         rendition = await renderer.render(item)
     seconds = time.monotonic() - start
-    failures = tuple(r.getMessage() for r in records.take() if r.levelno == logging.INFO)
+    taken = records.take()
+    failures = tuple(r.getMessage() for r in taken if r.levelno == logging.INFO)
+    waits = tuple(r.getMessage() for r in taken if " waits: " in r.getMessage())
     passed = rendition is not None and not rendition.fallback
     tags: dict[str, list[str]] = {}
     for dim, tag in rendition.tags if rendition else ():
@@ -225,6 +228,7 @@ async def measure_one(
         else "passed",
         failures=failures,
         api_errors=api_errors + (rendition is None),
+        waits=waits,
         requests=recorder.requests - before[0],
         input_tokens=client.input_tokens - before[1],
         output_tokens=client.output_tokens - before[2],
