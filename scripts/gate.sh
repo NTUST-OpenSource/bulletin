@@ -9,4 +9,11 @@ uv run --locked ruff format --check .
 uv run --locked pyright
 uv run --locked coverage run -m pytest
 uv run --locked coverage report
+(
+    cd web
+    bun install --frozen-lockfile --silent
+    bun run check
+    bun run test
+    bun run build
+)
 OPENSPEC_TELEMETRY=0 npx --yes --prefer-offline @fission-ai/openspec@1.14.1 validate --all --strict </dev/null
