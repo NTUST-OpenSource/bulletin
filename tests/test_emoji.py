@@ -4,8 +4,6 @@ import json
 import shutil
 import subprocess
 
-import pytest
-
 from bulletin.emoji import strip_emoji
 
 # Every code point Unicode presents as an emoji by default, by Node's own Unicode data.
@@ -20,7 +18,6 @@ KEYCAP = chr(0x20E3)
 SYMBOLS = "".join(map(chr, (0x203B, 0x2605, 0x25CF, 0x2460, 0x2103, 0xA9, 0x4E2D, 0x3002)))
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="No emoji")
 def test_every_emoji_is_removed() -> None:
     """No emoji: every character Unicode presents as an emoji is removed."""
     node = shutil.which("node")
@@ -34,7 +31,6 @@ def test_every_emoji_is_removed() -> None:
     assert [hex(c) for c in presented if strip_emoji(chr(c))] == []
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="No emoji")
 def test_text_symbols_stay() -> None:
     """No emoji: reference marks, stars, bullets, circled numbers and units are text, not emoji;
     a symbol that asks for emoji presentation goes, a keycap keeps its digit."""

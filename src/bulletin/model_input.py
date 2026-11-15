@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 from urllib.parse import urlsplit
 
+from bulletin.emoji import strip_emoji
 from bulletin.markup import INVISIBLE, RAW_TEXT, WHITESPACE, Element, parse
 from bulletin.pages import join
 
@@ -70,7 +71,10 @@ def model_input(
     the body as a list of names with their link placeholders.
     """
     writer = _Writer(url)
-    sections = [f"Title: {title}", "Body:\n" + "\n\n".join(writer.blocks(parse(body_html)))]
+    sections = [
+        f"Title: {strip_emoji(title)}",
+        "Body:\n" + "\n\n".join(writer.blocks(parse(body_html))),
+    ]
     module = [a for a in attachments if a.origin == "module"]
     if module:
         names = (f"- [{a.name}]({writer.placeholder('L', a.url)})" for a in module)
@@ -157,7 +161,7 @@ class _Writer:
         parts: list[str] = []
         for node in nodes:
             if isinstance(node, str):
-                text = SPACES.sub(" ", node).translate(DROPPED)
+                text = strip_emoji(SPACES.sub(" ", node).translate(DROPPED))
                 parts.append(TEXT_URL.sub(self._text_url, text))
             elif node.tag in RAW_TEXT:
                 continue
@@ -198,7 +202,8 @@ class _Writer:
         target = self._web(element.attr("src"))
         if target is None:
             return ""
-        return f"![{_flat(element.attr('alt'))}]({self.placeholder('I', target)})"
+        alt = _flat(strip_emoji(element.attr("alt")))
+        return f"![{alt}]({self.placeholder('I', target)})"
 
     def _list(self, element: Element, depth: int) -> str:
         lines: list[str] = []

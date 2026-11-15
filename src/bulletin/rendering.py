@@ -8,6 +8,7 @@ from typing import Protocol
 
 from bulletin.answers import AnswerError, keep_deadline, parse_answer, restore
 from bulletin.discord import CheckerError
+from bulletin.emoji import strip_emoji
 from bulletin.keys import KeyRing
 from bulletin.model_api import ApiError
 from bulletin.model_input import ModelInput, model_input
@@ -99,9 +100,10 @@ class Renderer:
                 self.rest(item.announcement_id)
                 return None
         log.warning("rendering %s fell back after %d attempts", item.url, MAX_ATTEMPTS)
-        title = item.title.replace("[", "\\[").replace("]", "\\]")
+        title = strip_emoji(item.title).strip()
+        escaped = title.replace("[", "\\[").replace("]", "\\]")
         return Rendition(
-            PROMPT_VERSION, self.model, item.title, f"[{title}]({item.url})", fallback=True
+            PROMPT_VERSION, self.model, title, f"[{escaped}]({item.url})", fallback=True
         )
 
     async def _key(self) -> int:
@@ -115,13 +117,13 @@ class Renderer:
     async def _checked(self, text: str, given: ModelInput, item: Pending) -> Rendition:
         """The answer's rendition after every check, in the order of design.md."""
         answer = parse_answer(text)
-        markdown = await self.checker.check(restore(answer.markdown, given.targets))
+        markdown = await self.checker.check(strip_emoji(restore(answer.markdown, given.targets)))
         return Rendition(
             prompt_version=PROMPT_VERSION,
             model=self.model,
-            title=answer.title,
+            title=strip_emoji(answer.title).strip(),
             markdown=markdown,
-            summary=answer.summary,
+            summary=strip_emoji(answer.summary).strip(),
             deadline=keep_deadline(answer.deadline, given.text, item.dated.year),
             tags=answer.tags,
         )

@@ -151,7 +151,6 @@ async def test_a_check_that_cannot_answer() -> None:
     assert rendering.resting_ids() == [ITEM.announcement_id]
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="No emoji")
 async def test_emoji_in_the_answer() -> None:
     """No emoji: a rendition's title, Markdown and summary hold none, nor a fallback's title."""
     pin = chr(0x1F4CD)
