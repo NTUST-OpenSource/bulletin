@@ -64,6 +64,7 @@
   }
 </script>
 
+{#if filters.q}<p class="results">「<b>{filters.q}</b>」</p>{/if}
 {#if query === null && filters.q === ""}
   <div class="empty">
     <b>{copy.nothingFollowed}</b>
@@ -71,8 +72,15 @@
   </div>
 {:else if query !== undefined && !feed.loading && !feed.failed && feed.items.length === 0}
   <div class="empty">
-    <b>{copy.nothingFound}</b>
-    {#if filtered}<button type="button" class="btn" onclick={clear}>{copy.clearFilters}</button>{/if}
+    {#if filters.q}
+      <b>{copy.noResults}</b>
+      {#if filters.titleOnly}
+        <button type="button" class="btn" onclick={() => (filters.titleOnly = false)}>{copy.searchText}</button>
+      {/if}
+    {:else}
+      <b>{copy.nothingFound}</b>
+      {#if filtered}<button type="button" class="btn" onclick={clear}>{copy.clearFilters}</button>{/if}
+    {/if}
   </div>
 {/if}
 <div bind:this={list}>
@@ -85,6 +93,15 @@
 </div>
 
 <style>
+  .results {
+    margin: 18px 0 0;
+    font-size: var(--text-sm);
+    color: var(--ink-2);
+    overflow-wrap: anywhere;
+  }
+  .results b {
+    color: var(--ink);
+  }
   .empty {
     display: grid;
     justify-items: center;

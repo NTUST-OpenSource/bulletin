@@ -32,7 +32,6 @@ async function open(page: Page, pages = () => found): Promise<Sent> {
 }
 
 test("An unfollowed unit: a search lists an announcement found only there", async ({ page }) => {
-  test.fail(true, "Search");
   const sent = await open(page);
 
   await box(page).fill("跨單位");
@@ -45,7 +44,6 @@ test("An unfollowed unit: a search lists an announcement found only there", asyn
 });
 
 test("Leaving the box: the box closes and the results stay with the query shown", async ({ page }) => {
-  test.fail(true, "Search");
   await open(page);
   await box(page).fill("跨單位");
   await expect(item(page, elsewhere.id)).toBeVisible();
@@ -63,7 +61,6 @@ test("Leaving the box: the box closes and the results stay with the query shown"
 });
 
 test("Typing with an input method: one search after the word is committed, none while composing", async ({ page }) => {
-  test.fail(true, "Search");
   const sent = await open(page);
   await box(page).focus();
   const cdp = await page.context().newCDPSession(page);
@@ -81,7 +78,6 @@ test("Typing with an input method: one search after the word is committed, none 
 });
 
 test("a search waits for a pause in typing, and Enter searches at once", async ({ page }) => {
-  test.fail(true, "Search");
   const sent = await open(page);
 
   await box(page).pressSequentially("abc", { delay: 60 });
@@ -97,7 +93,6 @@ test("a search waits for a pause in typing, and Enter searches at once", async (
 });
 
 test("a query is capped at the API's limits, and titles only adds in=title", async ({ page }) => {
-  test.fail(true, "Search");
   const sent = await open(page);
   await expect(box(page)).toHaveAttribute("maxlength", "100");
 
@@ -112,7 +107,6 @@ test("a query is capped at the API's limits, and titles only adds in=title", asy
 });
 
 test("the address's query, scope and topic apply on load", async ({ page }) => {
-  test.fail(true, "Search");
   const sent = await answer(page, { pages: () => found });
   await saved(page);
   await page.goto(`/?q=${encodeURIComponent("跨單位")}&in=title&topic=scholarships`);
@@ -127,7 +121,6 @@ test("the address's query, scope and topic apply on load", async ({ page }) => {
 });
 
 test("closing the box with its button or Esc clears the query", async ({ page }) => {
-  test.fail(true, "Search");
   const sent = await open(page);
   await box(page).fill("跨單位");
   await expect(item(page, elsewhere.id)).toBeVisible();
@@ -147,7 +140,6 @@ test("closing the box with its button or Esc clears the query", async ({ page })
 });
 
 test("no results: the stream says so, and offers to search the text too", async ({ page }) => {
-  test.fail(true, "Search");
   const sent = await open(page, () => ({ items: [], next: null }));
   await page.getByRole("button", { name: "僅標題" }).click();
   await box(page).fill("沒有這種公告");
@@ -156,11 +148,11 @@ test("no results: the stream says so, and offers to search the text too", async 
   await page.getByRole("button", { name: "改搜內文" }).click();
 
   await expect.poll(() => searches(sent).at(-1) && param(searches(sent).at(-1)!, "in")).toEqual([]);
+  await searchButton(page).click(); // the click outside closed the box
   await expect(page.getByRole("button", { name: "僅標題" })).toHaveAttribute("aria-pressed", "false");
 });
 
 test("a search result's menu follows its unit", async ({ page }) => {
-  test.fail(true, "Search");
   await open(page);
   await box(page).fill("跨單位");
   await expect(item(page, elsewhere.id)).toBeVisible();

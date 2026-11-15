@@ -46,6 +46,7 @@ export const ui = $state({
   question: null as Question | null,
   notice: null as Notice | null,
   menu: null as Menu | null,
+  searching: false, // the header's search box is open
 });
 
 /** Whether menus open as bottom sheets: the prototype's phone width. */

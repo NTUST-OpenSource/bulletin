@@ -6,6 +6,8 @@ export const brand = {
 export const header = {
   search: "搜尋",
   settings: "設定",
+  titleOnly: "僅標題",
+  closeSearch: "關閉搜尋",
 } as const;
 
 export const stream = {
@@ -19,6 +21,8 @@ export const stream = {
   nothingFound: "沒有符合的公告",
   clearFilters: "清除篩選",
   loading: "載入中",
+  noResults: "找不到相關公告",
+  searchText: "改搜內文",
 } as const;
 
 export const article = {

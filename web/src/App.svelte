@@ -1,8 +1,8 @@
 <script lang="ts">
-  import Search from "@jis3r/icons/icons/search";
   import SlidersHorizontal from "@jis3r/icons/icons/sliders-horizontal";
   import Onboarding from "./components/settings/Onboarding.svelte";
   import Article from "./components/article/Article.svelte";
+  import SearchBox from "./components/header/SearchBox.svelte";
   import Settings from "./components/settings/Settings.svelte";
   import Stream from "./components/stream/Stream.svelte";
   import TopicChips from "./components/stream/TopicChips.svelte";
@@ -11,9 +11,10 @@
   import Menu from "./components/ui/Menu.svelte";
   import Toast from "./components/ui/Toast.svelte";
   import { brand, header } from "./lang/zh-TW";
+  import { addressQuery, readAddress } from "./lib/address";
   import { applyTheme, readImport } from "./lib/settings";
   import { follow } from "./article.svelte";
-  import { app, loadLists, offerSettings, ui } from "./state.svelte";
+  import { app, filters, loadLists, offerSettings, ui } from "./state.svelte";
 
   $effect(() => applyTheme(document.documentElement, app.settings.theme));
   void loadLists();
@@ -31,6 +32,16 @@
   }
   readLink();
 
+  // The search, topic and unit live in the page's address; the filters are the truth, also after
+  // back and forward.
+  Object.assign(filters, readAddress(location.search));
+  function writeAddress(): void {
+    const search = addressQuery(filters);
+    const next = `${location.pathname}${search ? `?${search}` : ""}${location.hash}`;
+    if (next !== `${location.pathname}${location.search}${location.hash}`) history.replaceState(history.state, "", next);
+  }
+  $effect(writeAddress);
+
   // Day headings pin below the header, whose height changes with the search box.
   let top: HTMLElement;
   $effect(() => {
@@ -46,12 +57,18 @@
   follow();
 </script>
 
-<svelte:window onhashchange={readLink} onpopstate={follow} />
+<svelte:window
+  onhashchange={readLink}
+  onpopstate={() => {
+    follow();
+    writeAddress();
+  }}
+/>
 
-<header class="top" bind:this={top}>
+<header class="top" class:searching={ui.searching} bind:this={top}>
   <div class="wrap">
     <a class="brand" href="/" aria-label={brand.home}>bulletin<i>.</i></a>
-    <IconButton label={header.search} icon={Search} />
+    <SearchBox />
     <IconButton label={header.settings} icon={SlidersHorizontal} onclick={() => (ui.sheet = "main")} />
   </div>
 </header>
@@ -91,6 +108,9 @@
   @media (max-width: 639px) {
     .top .wrap {
       min-height: 56px;
+    }
+    .top.searching .brand {
+      display: none;
     }
   }
 </style>
