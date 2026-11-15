@@ -33,6 +33,8 @@ Answer with JSON that matches the schema. Write every text in the announcement's
   than two months before it. The day of an event the reader only attends is not a deadline.
 - `tags`: `topic` and `audience` hold every tag that fits, `nature` and `source` exactly one.
   {{taxonomy}}
+  - `library`: the library's collections, databases, e-resource trials, borrowing, opening hours
+    and spaces; not every notice the library posts.
   - `nature`: `action-required` when the reader must do something by a date; `news-and-records`
     for reports of what happened, awards and congratulations (賀) included; `lists-and-results`
     for lists of names or results that the people on them may act on, such as admissions, exam

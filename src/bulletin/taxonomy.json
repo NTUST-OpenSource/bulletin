@@ -15,6 +15,7 @@
     {"id": "venue-and-service-changes", "label": "場地與服務異動"},
     {"id": "safety-and-health", "label": "安全健康"},
     {"id": "it-systems", "label": "資訊系統"},
+    {"id": "library", "label": "圖書館"},
     {"id": "military-service", "label": "兵役"},
     {"id": "clubs-and-volunteering", "label": "社團志工"},
     {"id": "rules-and-policy", "label": "法規制度"},

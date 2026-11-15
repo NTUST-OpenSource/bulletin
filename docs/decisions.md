@@ -100,10 +100,12 @@ Markers: **[rec]** the owner followed Claude's recommendation; **[owner]** the o
   - Topic, several allowed: scholarships, competitions and calls, talks and events, courses,
     enrolment and grades, exams and certification, fees, housing, internships and jobs,
     international exchange, research projects, admissions, venue and service changes, safety
-    and health, IT systems, military service, clubs and volunteering, rules and policy, honours,
-    free food.
+    and health, IT systems, library, military service, clubs and volunteering, rules and
+    policy, honours, free food. Library covers the library's collections and services, not every
+    notice it posts.
     Labels: 獎助學金, 競賽徵件, 講座活動, 課程選課, 學籍成績, 考試檢定, 繳費, 住宿, 實習就業, 國際交流,
-    研究計畫, 招生, 場地與服務異動, 安全健康, 資訊系統, 兵役, 社團志工, 法規制度, 榮譽賀訊, 免費餐點.
+    研究計畫, 招生, 場地與服務異動, 安全健康, 資訊系統, 圖書館, 兵役, 社團志工, 法規制度, 榮譽賀訊,
+    免費餐點.
   - Audience, several allowed: all students, undergraduates, graduate students, new students,
     graduating students, international students, staff, the public.
     Labels: 全體學生, 大學部, 研究生, 新生, 畢業生, 國際生, 教職員, 校外.

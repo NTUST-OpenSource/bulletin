@@ -15,7 +15,7 @@ one nature and one source, SHALL fail the attempt.
 
 #### Scenario: The taxonomy
 - **WHEN** the taxonomy is loaded
-- **THEN** it holds 20 topics, 8 audiences, 4 natures and 2 sources, each with an id and a label
+- **THEN** it holds 21 topics, 8 audiences, 4 natures and 2 sources, each with an id and a label
 
 #### Scenario: Two natures
 - **WHEN** the answer tags an announcement both as action required and as information

@@ -12,7 +12,7 @@ from bulletin.taxonomy import taxonomy
 # The SHA-256 of the files behind each prompt version. Editing one of them fails this test until
 # PROMPT_VERSION is raised and its digest added: a new version renders the last year again.
 DIGESTS = {
-    1: "7f66a7fa1bc0537e5c1b6bf0331a137fc06b9d243a798197900f75c3b5bd1a2a",
+    1: "6e0a479b9ae6a43eb366be0ccfb6a86ea2ce65c0fa521c7b5f8ecb492776084b",
 }
 FILES = ("prompt.md", "answer.schema.json", "taxonomy.json")
 

@@ -31,11 +31,11 @@ def answer(**tags: object) -> dict[str, object]:
 
 
 def test_the_taxonomy() -> None:
-    """Fixed taxonomy: 20 topics, 8 audiences, 4 natures and 2 sources with ids and labels."""
+    """Fixed taxonomy: 21 topics, 8 audiences, 4 natures and 2 sources with ids and labels."""
     loaded = taxonomy()
 
     assert {dimension: len(tags) for dimension, tags in loaded.items()} == {
-        "topic": 20,
+        "topic": 21,
         "audience": 8,
         "nature": 4,
         "source": 2,
