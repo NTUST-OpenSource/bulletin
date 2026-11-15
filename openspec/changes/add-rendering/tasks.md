@@ -22,7 +22,7 @@ never reach the network: the model's answers are fixtures, and the Discord check
 - [x] 3.1 Commit the xfail test for "Fixed taxonomy" (tags); verify it fails for the expected reason and the gate stays green
 - [x] 3.2 Implement "Fixed taxonomy" with `taxonomy.json` (E3 ids and labels) and remove the marker; verify its scenarios pass and the gate is green
 - [x] 3.3 Commit the xfail test for "Tags with their source" (tags); verify it fails for the expected reason and the gate stays green
-- [ ] 3.4 Implement "Tags with their source" and remove the marker; verify its scenarios pass and the gate is green
+- [x] 3.4 Implement "Tags with their source" and remove the marker; verify its scenarios pass and the gate is green
 
 ## 4. Model input and answer checks
 

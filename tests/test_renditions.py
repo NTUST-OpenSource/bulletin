@@ -3,8 +3,6 @@
 from dataclasses import replace
 from typing import TYPE_CHECKING
 
-import pytest
-
 from bulletin.archive import publish, revise
 from bulletin.model import Content, Listed
 from bulletin.renditions import Rendition, store
@@ -45,7 +43,6 @@ async def tag(conn: AsyncConnection, announcement: int, dimension: str, tag: str
     )
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Tags with their source")
 async def test_a_new_rendition_replaces_model_tags(migrated: AsyncConnection) -> None:
     """Tags with their source: new model tags replace the old ones; a manual tag stays."""
     announcement, revision = await stored(migrated)
@@ -63,7 +60,6 @@ async def test_a_new_rendition_replaces_model_tags(migrated: AsyncConnection) ->
     }
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason="Tags with their source")
 async def test_a_fallback_leaves_the_tags(migrated: AsyncConnection) -> None:
     """Tags with their source: a fallback rendition leaves the tags unchanged."""
     announcement, revision = await stored(migrated)
