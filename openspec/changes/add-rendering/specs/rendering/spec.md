@@ -111,6 +111,15 @@ holds no table, and it fits 4,096 characters. A failed check SHALL fail the atte
 - **WHEN** the answer's Markdown holds a pipe table
 - **THEN** the attempt fails
 
+### Requirement: No emoji
+Renditions SHALL hold no emoji (owner). Emoji SHALL be removed from the model's input and from the
+answer's title, Markdown and summary, and from a fallback's title; a keycap keeps its digit.
+Symbols that are text, such as reference marks, stars and circled numbers, SHALL stay.
+
+#### Scenario: Emoji in the source
+- **WHEN** an article's title, body and image descriptions hold emoji
+- **THEN** neither the model input nor the rendition holds any
+
 ### Requirement: Attempts and fallback
 A rendering SHALL make at most three attempts whose answers fail the checks. After the third, the
 announcement SHALL get a fallback rendition, marked as such, holding its title and link. Errors of

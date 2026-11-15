@@ -1,6 +1,7 @@
 """Requirement "Attempts and fallback" of the rendering capability, with fake model answers."""
 
 import json
+from dataclasses import replace
 from datetime import date
 from pathlib import Path
 
@@ -148,3 +149,22 @@ async def test_a_check_that_cannot_answer() -> None:
 
     assert await rendering.render(ITEM) is None
     assert rendering.resting_ids() == [ITEM.announcement_id]
+
+
+@pytest.mark.xfail(strict=True, raises=AssertionError, reason="No emoji")
+async def test_emoji_in_the_answer() -> None:
+    """No emoji: a rendition's title, Markdown and summary hold none, nor a fallback's title."""
+    pin = chr(0x1F4CD)
+    fields = json.loads(GOOD) | {"title": f"{pin}t", "summary": f"s {pin}"}
+    fields["markdown"] = f"{pin} {fields['markdown']}"
+
+    rendition = await renderer(Model(json.dumps(fields))).render(ITEM)
+    fallback = await renderer(Model("prose", "prose", "prose")).render(
+        replace(ITEM, title=f"{pin} {CONTENT.title}")
+    )
+
+    assert rendition is not None
+    assert (rendition.title, rendition.summary) == ("t", "s")
+    assert rendition.markdown.startswith("Register [here]")
+    assert fallback is not None
+    assert (fallback.title, fallback.markdown) == (CONTENT.title, f"[{CONTENT.title}]({URL})")

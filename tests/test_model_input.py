@@ -3,6 +3,8 @@
 import json
 from pathlib import Path
 
+import pytest
+
 from bulletin.model_input import model_input
 from bulletin.pages import parse_article
 
@@ -91,3 +93,17 @@ def test_adjacent_bold_runs() -> None:
     given = model_input("T", body, (), "https://www.ntust.edu.tw/p/406-1000-1.php")
 
     assert given.text == "Title: T\n\nBody:\nDue **9/7(Mon)** noon."
+
+
+@pytest.mark.xfail(strict=True, raises=AssertionError, reason="No emoji")
+def test_emoji_in_the_source() -> None:
+    """No emoji: the model input holds none of the title's, the body's or the images' emoji."""
+    pin, check = chr(0x1F4CD), chr(0x2705)
+    body = (
+        f'<div class="mpgdetail"><p>{pin}Apply {check} now</p>'
+        f'<p><img src="/i.png" alt="{check}"> Poster</p></div>'
+    )
+
+    given = model_input(f"{pin} Title", body, (), "https://www.ntust.edu.tw/p/406-1000-1.php")
+
+    assert given.text == "Title: Title\n\nBody:\nApply now\n\n![](I1) Poster"
