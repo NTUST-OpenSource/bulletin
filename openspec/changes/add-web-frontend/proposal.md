@@ -52,7 +52,7 @@ None. The frontend reads the `public-api` capability of `add-public-api` as spec
 - Image: a Node build stage for `web/`; the runtime image gains the static files only.
 - Gate and CI: `scripts/gate.sh` runs the frontend's type check, unit tests and build; CI adds a
   Playwright job.
-- Dependencies (npm): `svelte`, `vite`, `@sveltejs/vite-plugin-svelte`, `typescript`,
+- Dependencies (installed with Bun): `svelte`, `vite`, `@sveltejs/vite-plugin-svelte`, `typescript`,
   `svelte-check`, `@jis3r/icons`, `dompurify`, `mammoth` (loaded only for a DOCX preview),
   `@fontsource-variable/bricolage-grotesque`, `vitest`, `@playwright/test`.
 - Data: the reader's settings stay in `localStorage`; nothing about readers reaches the server

@@ -7,15 +7,15 @@ shapes of the `public-api` spec.
 
 ## 1. Foundations
 
-- [ ] 1.1 Scaffold `web/` (Svelte 5, TypeScript strict, Vite, Vitest, Playwright, `@jis3r/icons`, the font package) with a smoke test that the app mounts; verify `npm run check`, `npm test` and `npm run build` pass
-- [ ] 1.2 Add the frontend to `scripts/gate.sh` (npm ci, svelte-check, Vitest with 85% coverage of `lib/`, build) and a Playwright job to CI; verify the gate passes locally and the CI job runs
+- [ ] 1.1 Scaffold `web/` (Svelte 5, TypeScript strict, Vite, Vitest, Playwright, `@jis3r/icons`, the font package) with a smoke test that the app mounts; verify `bun run check`, `bun run test` and `bun run build` pass
+- [ ] 1.2 Add the frontend to `scripts/gate.sh` (bun install --frozen-lockfile, svelte-check, Vitest with 85% coverage of `lib/`, build) and a Playwright job to CI; verify the gate passes locally and the CI job runs
 - [ ] 1.3 Record API fixtures from production renditions in the `public-api` shapes (stream pages, articles with stored and unstored files, sites, tags) plus the cases of design.md (extreme lengths, two followed boards, a cross-post, a link item); verify each fixture parses against the frontend's API types
 - [ ] 1.4 Port the prototype's tokens, light and dark, and its base layout into `styles/` and `App.svelte`; verify against the prototype's screenshots at 1280 px and 375 px
 
 ## 2. Serving
 
 - [ ] 2.1 Commit the xfail test for "The page" (web-frontend): pytest for the mount, cache headers, `frame-ancestors` and the `/a/{id}` fallback, Playwright for the tab title and a stored PDF under the built page's policy (full Chromium, `channel: "chromium"`); verify it fails for the expected reason and the gate stays green
-- [ ] 2.2 Implement "The page" (the static mount in `public_app` on top of add-public-api task 1.2, the build-time policy, the Node stage in the Dockerfile) and remove the markers; verify its scenarios pass, the gate is green and the image builds on the remote test host
+- [ ] 2.2 Implement "The page" (the static mount in `public_app` on top of add-public-api task 1.2, the build-time policy, the Bun stage in the Dockerfile) and remove the markers; verify its scenarios pass, the gate is green and the image builds on the remote test host
 
 ## 3. Settings
 

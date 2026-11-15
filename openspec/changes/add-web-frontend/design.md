@@ -35,7 +35,7 @@ so "its board" and "its unit" are sets in the frontend.
 ```
 web/
   index.html
-  package.json, package-lock.json, vite.config.ts, tsconfig.json, playwright.config.ts
+  package.json, bun.lock, vite.config.ts, tsconfig.json, playwright.config.ts
   src/
     main.ts, App.svelte
     lang/zh-TW.ts            all UI copy (exempt from the English rule, AGENTS.md)
@@ -59,9 +59,17 @@ Svelte 5 runes hold the state: one settings store backed by `localStorage`, one 
 query. No router library: the app reads `location` on load and on `popstate`, and pushes
 `/a/{id}` when an article opens.
 
+### Package manager
+
+Bun installs the frontend's packages from `bun.lock` and runs its scripts (the owner's choice on
+2026-11-15; pnpm if Bun cannot). Vite, Vitest and Playwright keep their own runtimes: `bun run`
+starts their binaries, which run on Node where Node is installed and on Bun in the image's build
+stage. `tools/discord-markdown`, a checker run by the service rather than a frontend, keeps npm.
+
 ### Serving and the page's policy
 
-The image builds `web/` in a Node stage (`npm ci && npm run build`) and copies `web/dist` to
+The image builds `web/` in a Bun stage (`bun install --frozen-lockfile && bun run build`) and
+copies `web/dist` to
 `/app/web`. `public_app` mounts it at `/` after `/health` and `/api/v1`: files under `assets/`
 (hashed by Vite) get `Cache-Control: public, max-age=31536000, immutable`; `index.html`, also
 for `/` and `/a/{id}`, gets `no-cache`. Other unknown paths are 404.
@@ -239,8 +247,9 @@ words, the API's limits, so a search never fails for its length.
   file name, long URLs, an item on two followed boards, a cross-post, a link item.
 - A pytest test checks that `public_app` serves `index.html` for `/` and `/a/{id}` with
   `frame-ancestors 'none'` and the cache headers, and the hashed assets as immutable.
-- The gate runs `npm ci`, `svelte-check`, Vitest with coverage of `lib/` of at least 85% and
-  `vite build`. CI adds a Playwright job with cached browsers; locally `npm run e2e`.
+- The gate runs `bun install --frozen-lockfile`, `svelte-check`, Vitest with coverage of `lib/`
+  of at least 85% and `vite build`. CI adds a Playwright job with cached browsers; locally
+  `bun run e2e`.
 
 ### User-visible changes for review
 
