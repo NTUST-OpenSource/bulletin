@@ -6,7 +6,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import httpx
+from fastapi import FastAPI
 from psycopg import AsyncConnection
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from bulletin.archive import publish, revise, withdraw
 from bulletin.files import FileStore
@@ -28,6 +30,8 @@ BOARDS = (
     Board(1017, 632, "ece.ntust.edu.tw", "electronics", "banner", "excluded", "off"),
 )
 HOSTS = {b.site_id: b.host for b in BOARDS}
+# FORWARDED_ALLOW_IPS in compose.yaml: nginx-proxy-manager on proxy-net.
+PROXIES = "172.16.0.0/12,192.168.0.0/16"
 
 
 @dataclass
@@ -38,6 +42,7 @@ class World:
     files: Path
     next_article: int = 150000
     ids: dict[int, int] = field(default_factory=dict[int, int])  # article id -> announcement id
+    app: FastAPI | None = None
 
     async def boards(self, boards: Iterable[Board] = BOARDS) -> None:
         await import_seed(self.conn, list(boards))
@@ -105,13 +110,17 @@ class World:
         return row[0]
 
     @asynccontextmanager
-    async def client(self) -> AsyncGenerator[httpx.AsyncClient]:
-        @asynccontextmanager
-        async def connect() -> AsyncGenerator[AsyncConnection]:
-            yield self.conn
+    async def client(self, peer: str = "127.0.0.1") -> AsyncGenerator[httpx.AsyncClient]:
+        """A client of one public app per world, reaching it from `peer` as uvicorn runs it."""
+        if self.app is None:
 
-        app = public_app(connect, FileStore(self.files), "test")
-        transport = httpx.ASGITransport(app=app)
+            @asynccontextmanager
+            async def connect() -> AsyncGenerator[AsyncConnection]:
+                yield self.conn
+
+            self.app = public_app(connect, FileStore(self.files), "test")
+        proxied = ProxyHeadersMiddleware(self.app, trusted_hosts=PROXIES)  # type: ignore[arg-type]
+        transport = httpx.ASGITransport(app=proxied, client=(peer, 50000))  # type: ignore[arg-type]
         async with httpx.AsyncClient(transport=transport, base_url="http://bulletin") as client:
             yield client
 
