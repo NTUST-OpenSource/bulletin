@@ -27,8 +27,7 @@ ITEM = Pending(
     title=CONTENT.title,
     body_html=CONTENT.body_html,
     attachments=CONTENT.attachments,
-    listed_on=date(2026, 11, 3),
-    year=2026,
+    dated=date(2026, 11, 3),
 )
 KEYS = ("key-one-0123456789", "key-two-0123456789")
 TAGS = {"topic": ["safety-and-health"], "audience": ["staff"], "nature": "information"}

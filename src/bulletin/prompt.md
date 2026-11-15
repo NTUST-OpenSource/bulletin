@@ -29,8 +29,8 @@ Answer with JSON that matches the schema. Write every text in the announcement's
   or 30 words in English.
 - `deadline`: the last day for the reader to act (apply, register, submit, pay, reply) as
   `YYYY-MM-DD`, only when the text states it; else `null`. An ROC year adds 1911 (115年 is 2026).
-  A date without a year belongs to the year of the list date, or the next year if that is more
-  than two months before it. The day of an event the reader only attends is not a deadline.
+  A date without a year belongs to the year the announcement appeared, or the next year if that
+  is more than two months before the day it appeared. The day of an event the reader only attends is not a deadline.
 - `tags`: `topic` and `audience` hold every tag that fits, `nature` and `source` exactly one.
   {{taxonomy}}
   - `library`: the library's collections, databases, e-resource trials, borrowing, opening hours
@@ -43,7 +43,7 @@ Answer with JSON that matches the schema. Write every text in the announcement's
   - `source`: `forwarded` when NTUST passes on a notice from outside (轉知, another school, a
     ministry, a company); `on-campus` otherwise.
 
-The announcement was listed on {{listed_on}}.
+The announcement appeared on {{dated}}.
 
 ---
 {{input}}

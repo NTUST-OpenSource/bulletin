@@ -185,10 +185,9 @@ def pending(entry: Entry, corpus: Path) -> Pending:
     """The sampled article as the rendering loop would pick it."""
     page = corpus / "pages" / f"{entry['site']}-{entry['id']}.html.gz"
     content = parse_article(gzip.decompress(page.read_bytes()).decode(), entry["url"])
-    listed = date.fromisoformat(entry["listed_on"])
     return Pending(
         entry["id"], 0, entry["url"], content.title, content.body_html, content.attachments,
-        listed, listed.year,
+        date.fromisoformat(entry["listed_on"]),
     )  # fmt: skip
 
 

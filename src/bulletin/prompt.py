@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 # Raise it with every change of prompt.md, answer.schema.json or taxonomy.json.
 PROMPT_VERSION = 1
-TOKEN = re.compile(r"\{\{(taxonomy|listed_on|input)\}\}")
+TOKEN = re.compile(r"\{\{(taxonomy|dated|input)\}\}")
 
 
 def _read(name: str) -> str:
@@ -30,11 +30,11 @@ def _taxonomy() -> str:
     )
 
 
-def prompt(given: ModelInput, listed_on: date | None) -> str:
-    """The prompt for one article: the rules, the taxonomy, its list date and its input."""
+def prompt(given: ModelInput, dated: date) -> str:
+    """The prompt for one article: the rules, the taxonomy, the day it appeared and its input."""
     values = {
         "taxonomy": _taxonomy(),
-        "listed_on": listed_on.isoformat() if listed_on else "an unknown date",
+        "dated": dated.isoformat(),
         "input": given.text,
     }
     return TOKEN.sub(lambda token: values[token[1]], _read("prompt.md"))

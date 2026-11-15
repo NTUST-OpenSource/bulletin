@@ -73,7 +73,7 @@ class Renderer:
         and the announcement rests for `API_REST` seconds. A rate-limited key rests too.
         """
         given = model_input(item.title, item.body_html, item.attachments, item.url)
-        text = prompt(given, item.listed_on)
+        text = prompt(given, item.dated)
         for attempt in range(1, MAX_ATTEMPTS + 1):
             index = await self._key()
             try:
@@ -122,6 +122,6 @@ class Renderer:
             title=answer.title,
             markdown=markdown,
             summary=answer.summary,
-            deadline=keep_deadline(answer.deadline, given.text, item.year),
+            deadline=keep_deadline(answer.deadline, given.text, item.dated.year),
             tags=answer.tags,
         )

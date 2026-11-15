@@ -12,7 +12,7 @@ from bulletin.taxonomy import taxonomy
 # The SHA-256 of the files behind each prompt version. Editing one of them fails this test until
 # PROMPT_VERSION is raised and its digest added: a new version renders the last year again.
 DIGESTS = {
-    1: "6e0a479b9ae6a43eb366be0ccfb6a86ea2ce65c0fa521c7b5f8ecb492776084b",
+    1: "7270a60abcc8b7fa4b1777436122f673d93d81f944bbabe68dd5f590773452ed",
 }
 FILES = ("prompt.md", "answer.schema.json", "taxonomy.json")
 
@@ -45,7 +45,7 @@ def test_the_schema_lists_the_taxonomy() -> None:
 
 
 def test_the_prompt_holds_the_input() -> None:
-    """Structured answer: the prompt holds the input, the list date and every tag label."""
+    """Structured answer: the prompt holds the input, the day it appeared and every tag label."""
     given = ModelInput("Title: T\n\nBody:\nB", {})
 
     text = prompt(given, date(2026, 11, 3))

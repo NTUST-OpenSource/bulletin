@@ -8,6 +8,7 @@ from bulletin.archive import article_url
 from bulletin.events import Kind, record
 from bulletin.model import Attachment
 from bulletin.prompt import PROMPT_VERSION
+from bulletin.schedule import TAIPEI
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -26,8 +27,7 @@ class Pending:
     title: str
     body_html: str
     attachments: tuple[Attachment, ...]
-    listed_on: date | None
-    year: int  # the year dates without one belong to: the list date's, else the first sight's
+    dated: date  # the list date, else the day it was first seen in Taipei; dates are read by it
 
 
 @dataclass(frozen=True)
@@ -130,6 +130,5 @@ async def next_pending(
         title=title,
         body_html=body,
         attachments=tuple(Attachment(*file) for file in await cur.fetchall()),
-        listed_on=listed_on,
-        year=(listed_on or first_seen).year,
+        dated=listed_on or first_seen.astimezone(TAIPEI).date(),
     )
