@@ -1,0 +1,90 @@
+{
+  "source": "Recorded on 2026-11-15 from gemini-4-hydrogen through generateContent with generationConfig.responseFormat.text and thinkingLevel low.",
+  "status": 200,
+  "request": {
+    "contents": [
+      {
+        "parts": [
+          {
+            "text": "Rewrite the title without its bracketed tag and give the deadline as YYYY-MM-DD, or null.\nTitle: 【獎學金】115學年度校外獎學金申請\nBody: 申請截止日為115年12月10日。"
+          }
+        ]
+      }
+    ],
+    "generationConfig": {
+      "responseFormat": {
+        "text": {
+          "mimeType": "APPLICATION_JSON",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "deadline": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date"
+              },
+              "nature": {
+                "type": "string",
+                "enum": [
+                  "action-required",
+                  "information"
+                ]
+              }
+            },
+            "required": [
+              "title",
+              "deadline",
+              "nature"
+            ]
+          }
+        }
+      },
+      "thinkingConfig": {
+        "thinkingLevel": "low"
+      }
+    }
+  },
+  "response": {
+    "candidates": [
+      {
+        "content": {
+          "parts": [
+            {
+              "text": "{\n  \"title\": \"115學年度校外獎學金申請\",\n  \"deadline\": \"2026-12-10\",\n  \"nature\": \"action-required\"\n}",
+              "thoughtSignature": "EsEGCr4GAWkUfRMnudzCMmqca/Hj8hBgUh9r3uW205o7TEkLHqjm3kp3Oio969xgVnkUqNK23doqJkhrY59ib3g3cxBqmnazjRwGAAkCWZBHP5Zuc79G+dL2OE5ve0411M16V5JXys++/1LqBFWJEkZVudSYO/i5kwUJCDmtBp0tK/R1kn1gSUgMslGebMTMDD5cp5UfKBbeeume2UnjPkPbwFecHFtlh1Ef3fzf4aXCk8Qki6v3moGc2v9utglJNLsIu1QvmGfy7oFeM/zadtS5gpYgNNL8qD+QgzQcd52BeimKYN1vcgn7To8ttBAkfUqkhJi5buBbkOybuXozaPDIehQjJUeUqozfqS00K4a/oQsskBPerH/ODlaN6dnMorbaOUobYiSNdpd5qgId0OeTkBI11gp9k6nOSZlj/8qhM+Rt1Xnc+U3dTiGDB9RF//GXVlUmQWa6vwR9NMYTZgbd3t90uF7V4UIizW6hLUQEaky2fN26Zg4zzjrCwxp0QGNYpp4RtqlvnTooLaytIBg/dzdN+dO9C+yt+jun0gyfyVqCIBXNthP6yhicTDVSxOdq6gqgFJ+NFl+O+opofWLlCE4GB4ewG9tYJYvxVrJtpql/y5cc6KkwecQkL9mKmsHws+seZn3ST81TwvZmIMPV8Cfz2J2/J3hDk8+KszfBwMpivo1yNPKpSzdy3hOyhI3SO5WjmjJV4JOGwp2z4fT1n568RBK4rQWVjK2Mmze7w8J68S3NRHg6b6dRvkx7e8/PV2PMHm/KmxvEin/34d8MY+160H2ufj5PfOKk203YknhpLjwcuZUi+Lc8TFkG3/+dnwHbuRy9oNwMLM/m0U4gy00kV4qoFYXLgA0tQ5d1o496Gktp6MVvmBFbNWXrToMrW/vI324xqmvL8A+PR7wObuNV7NodRY/aXyUd1wfOsDIscf/bOWo1IpFHpOSymUo4/hnVqvFf3hUeU6Cs2k7AJGAc8EVJONdY/6Oqs+bpHzefHEDpj1ZGbcPgQhocb7PStlSgYlmQZvQOZ2QSh2PcY3P9DRl8zzBN85iVRen1dOL9l7jeCkeh42gIjUP6RSfMTpafTzcnGXcLRZmjW/zYctE="
+            }
+          ],
+          "role": "model"
+        },
+        "finishReason": "STOP",
+        "index": 0
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 213,
+      "candidatesTokenCount": 64,
+      "totalTokenCount": 520,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 213
+        }
+      ],
+      "candidatesTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 64
+        }
+      ],
+      "thoughtsTokenCount": 243,
+      "serviceTier": "standard"
+    },
+    "modelVersion": "gemini-4-hydrogen",
+    "responseId": "20T5asXgOrG_0-kPwL65yAc"
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "source": "Recorded on 2026-11-15 from gemini-4-hydrogen through Gemini OpenAI-compatible chat/completions with a json_schema response_format and reasoning_effort low.",
+  "status": 200,
+  "request": {
+    "model": "gemini-4-hydrogen",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Rewrite the title without its bracketed tag and give the deadline as YYYY-MM-DD, or null.\nTitle: 【獎學金】115學年度校外獎學金申請\nBody: 申請截止日為115年12月10日。"
+      }
+    ],
+    "response_format": {
+      "type": "json_schema",
+      "json_schema": {
+        "name": "rendition",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "deadline": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date"
+            },
+            "nature": {
+              "type": "string",
+              "enum": [
+                "action-required",
+                "information"
+              ]
+            }
+          },
+          "required": [
+            "title",
+            "deadline",
+            "nature"
+          ]
+        },
+        "strict": true
+      }
+    },
+    "reasoning_effort": "low"
+  },
+  "response": {
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\n  \"title\": \"115學年度校外獎學金申請\",\n  \"deadline\": \"2026-12-10\",\n  \"nature\": \"action-required\"\n}",
+          "extra_content": {
+            "google": {
+              "thought_signature": "EoEFCv4EAWkUfROW7bpawPSZETfE7bryd3c/uzeKSHcN1hYdhFvrlzHvMlYRxJJDoszz9bE5D9Z8APgt/FI3/IV6LjwM1Pliny/3Tqnl9L3X6LJIlWG52Tc4+U3YlxFTApqW3IRjh6amdyY0P99BllLcPUfbSJpW35R6KlI3C3/akKZxtCIIc8R9qQHVqJsG5StzM2xS+l11P8fCcuC9IomfLEx1K6AmXUq4eQq9WI0GvgvmcqrkPcbCsB3bsO8q38Z5+pPRr5KzT4j9sl6Xvd2pwsm9+3bCdJnqGMWvVwUwNZaamdf3yiRtPkIbGc6XqtK03jNHctmexVMjIhprAg4F0K4SZYXsPMUO3lA0DZ2OgUyfyEXGt2sjOI27Hvhhum22ab2QfF4k3ZD1LlIFwBOn529D8uGnJVKDAfj8oX94vpuEcUYauO2lAc97NdelkNpioJfLwUxadZPNmOWPBSitmTpckjm/PUYvOioVwEwChCzI6mKqFqQ+viLV0ukFPGg/3FM9F3OGiofNTb2O8lTl5DlYrHnaVv7O/PNLfLIA+oEJjrlnFMq2DuoSA4oSsUW1XR69/zR5M4NzrRmAZLwIu2bC2aMdfzJpOIvMdij+EYIWP7vPCu2JKiHoW6XNgZXH25YnclqXd7mw+dDowYnDY0qiGBvz5oteIU9iRB9w6PM5cLN5Rh+uspaNEQcQOz9FFue3uPTnvaBLPxm5TpOQ9+XtA9cMHZfq2S2Yy0RxjeJwAYkEUocVLFxBTckyIydJqZsg242iPVSw0H8aNBUv0L1m5UrJ0T9i6VTwG4dQwPr3zFssxBuK5nQYs8XpJRJQLvafNwyGlxsoquYwP0N4mcI="
+            }
+          },
+          "role": "assistant"
+        }
+      }
+    ],
+    "created": 1794720998,
+    "id": "4kT5arvYEuqX9tMPyPGfoAg",
+    "model": "gemini-4-hydrogen",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 64,
+      "prompt_tokens": 313,
+      "total_tokens": 588
+    }
+  }
+}

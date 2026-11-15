@@ -77,10 +77,11 @@ avoids a dependency; the roadmap's numbers came from the same reduction.
 ### Model client and keys
 
 The client ports xincord's `Api`: Gemini's `generateContent` with the key in `x-goog-api-key`, or
-an OpenAI-compatible `chat/completions` with a bearer token. Gemini gets `responseMimeType:
-application/json` with the JSON schema and `thinkingConfig.thinkingLevel` (default `low`); the
-OpenAI format gets `response_format` with the same schema. Which of Gemini's two schema fields
-`gemini-4-hydrogen` takes is checked against Google's documentation during implementation.
+an OpenAI-compatible `chat/completions` with a bearer token. Gemini gets
+`generationConfig.responseFormat.text` with `mimeType: APPLICATION_JSON` and the JSON schema, and
+`thinkingConfig.thinkingLevel` (default `low`; the model's own default is `high`); the OpenAI
+format gets a `json_schema` `response_format` with the same schema and `reasoning_effort`. Both
+shapes were recorded from `gemini-4-hydrogen` (`tests/fixtures/model/`).
 
 Keys come from `KeyRing`, ported: a sliding window per key, keys in turn, a wait when all are full.
 A 429 rests that key until `Retry-After` or the end of its window. Error texts pass through the

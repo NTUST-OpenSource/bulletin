@@ -95,3 +95,25 @@ Checked with the `@discord/markdown-wasm` 0.15.0 parser:
 - `__underline__` next to CJK characters does not parse.
 - Never emit `@everyone`, `@here` or other mentions.
 - A masked link after punctuation renders fine.
+
+## Gemini
+
+Checked against Google's documentation and two recorded answers on 2026-11-15:
+
+- `gemini-4-hydrogen` is a stable model id. Its context window is 1,048,576 tokens, input and
+  output together; output defaults to at most 65,536 tokens.
+- `thinkingLevel` takes `low`, `medium`, `high` (the default) or `xhigh`; `minimal` is an error
+  and thinking cannot be turned off. Sending `thinkingBudget` with it is a 400. At `low`, a
+  213-token prompt still used 243 thinking tokens (`usageMetadata.thoughtsTokenCount`), billed as
+  output.
+- REST `generateContent` takes the JSON schema as
+  `generationConfig.responseFormat.text.{mimeType: "APPLICATION_JSON", schema}`; nullable fields
+  as `"type": ["string", "null"]` are accepted. Google calls `generateContent` legacy next to the
+  Interactions API, but supports it.
+- A text part may carry a `thoughtSignature` beside its `text`; thought summaries come only with
+  `includeThoughts` and are marked `thought: true`.
+- The OpenAI-compatible endpoint is `https://generativelanguage.googleapis.com/v1beta/openai/`;
+  it takes a strict `json_schema` `response_format` and `reasoning_effort`, which maps to the
+  thinking level.
+- The rate-limit page lists no limits for `gemini-4-hydrogen`; a 429 `RESOURCE_EXHAUSTED` comes
+  with no documented `Retry-After`.
