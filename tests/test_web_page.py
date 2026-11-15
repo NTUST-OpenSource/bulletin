@@ -125,7 +125,6 @@ ICONS = {
 DAY = "public, max-age=86400"
 
 
-@pytest.mark.xfail(strict=True, reason="The site's icon")
 @pytest.mark.parametrize(("name", "kind"), ICONS.items())
 async def test_the_icons(tmp_path: Path, name: str, kind: str) -> None:
     """The site's icon: each icon is served from the site's root and cached for a day."""

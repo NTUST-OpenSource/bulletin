@@ -14,7 +14,6 @@ test("the tab title", async ({ page }) => {
 });
 
 test("The site's icon: the page links its icons, and each is served", async ({ page, request }) => {
-  test.fail(true, "The site's icon");
   await page.goto("/");
   const links = page.locator('link[rel="icon"], link[rel="apple-touch-icon"]');
   const hrefs = await links.evaluateAll((all) => all.map((link) => link.getAttribute("href") ?? ""));

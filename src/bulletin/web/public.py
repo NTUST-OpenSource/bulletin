@@ -21,6 +21,13 @@ if TYPE_CHECKING:
 PAGE_HEADERS = {"Cache-Control": "no-cache", "Content-Security-Policy": "frame-ancestors 'none'"}
 IMMUTABLE = {"Cache-Control": "public, max-age=31536000, immutable"}
 ASSET = re.compile(r"[\w.-]+", re.ASCII)  # Vite writes assets/ flat
+# The site's icons, at the root where browsers ask for them; not hashed, so cached for a day.
+ICONS = {
+    "favicon.svg": "image/svg+xml",
+    "favicon.ico": "image/vnd.microsoft.icon",
+    "apple-touch-icon.png": "image/png",
+}
+DAY = {"Cache-Control": "public, max-age=86400"}
 
 
 def public_app(
@@ -40,7 +47,7 @@ def public_app(
 
 
 def _serve_page(app: FastAPI, web: Path) -> None:
-    """Serve the page at / and /a/{id}, and its built files under /assets; nothing else.
+    """Serve the page at / and /a/{id}, its built files under /assets and its icons; nothing else.
 
     Other paths answer 404 with the page, which shows its not-found view; the API mounted under
     /api/v1 keeps its own answers.
@@ -55,6 +62,12 @@ def _serve_page(app: FastAPI, web: Path) -> None:
             raise HTTPException(404)
         return FileResponse(path, headers=IMMUTABLE)
 
+    async def icon(name: str) -> FileResponse:
+        path = web / name
+        if name not in ICONS or not path.is_file():
+            raise HTTPException(404)
+        return FileResponse(path, headers=DAY, media_type=ICONS[name])
+
     async def missing(request: Request, error: Exception) -> Response:
         assert isinstance(error, StarletteHTTPException)  # noqa: S101 - registered for this type only
         built_file = request.url.path.startswith("/assets/")
@@ -65,4 +78,5 @@ def _serve_page(app: FastAPI, web: Path) -> None:
     app.get("/")(page)
     app.get("/a/{announcement:int}")(page)
     app.get("/assets/{name}")(asset)
+    app.get("/{name}")(icon)
     app.add_exception_handler(StarletteHTTPException, missing)
