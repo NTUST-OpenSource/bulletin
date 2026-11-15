@@ -16,4 +16,4 @@ Each requirement gets two tasks (AGENTS.md, xfail-first): commit its failing tes
 ## 3. Verification
 
 - [x] 3.1 Run `scripts/gate.sh`; verify it passes
-- [ ] 3.2 Deploy to the owner's host and uncomment the keys; verify rendering resumes and an article without a list date whose nearest dated article is over a year old stays raw
+- [x] 3.2 Deploy to the owner's host and uncomment the keys; verify rendering resumes and an article without a list date whose nearest dated article is over a year old stays raw
