@@ -82,3 +82,26 @@ export type Dimension = {
   several: boolean;
   tags: { id: string; label: string }[];
 };
+
+/** The stream's filters besides the settings: the search, the topic chip and the unit menu. */
+export type Filters = {
+  q: string;
+  titleOnly: boolean;
+  topic: string | null;
+  unit: number | null;
+};
+
+export const NO_FILTERS: Filters = { q: "", titleOnly: false, topic: null, unit: null };
+
+/**
+ * The stream's query string, each list sorted so equal settings share Cloudflare's cache; null
+ * when there is nothing to ask for.
+ */
+export function streamQuery(
+  _settings: { sites: number[]; hiddenBoards: string[] },
+  _sites: Site[],
+  _topics: string[],
+  _filters: Filters,
+): string | null {
+  throw new Error("not implemented");
+}
