@@ -9,7 +9,7 @@ kept in the reader's browser.
 
 ### Requirement: The page
 The public listener SHALL serve the frontend at `/` and at article paths `/a/{id}`, with the tab
-title `bulletin. | 臺科大公布欄`. Built files with a content hash in their names SHALL be cached as
+title `bulletin. | 臺科公布欄`. Built files with a content hash in their names SHALL be cached as
 immutable, the page itself revalidated on every load. The page SHALL load no script, style or
 font from another origin, and SHALL not be framed by other sites.
 
@@ -24,6 +24,10 @@ font from another origin, and SHALL not be framed by other sites.
 #### Scenario: A stored PDF under the page's policy
 - **WHEN** the built page, served with its production policy, previews a stored PDF
 - **THEN** the PDF shows, and the browser reports no policy violation
+
+#### Scenario: The tab title
+- **WHEN** a reader opens the page
+- **THEN** the tab reads `bulletin. | 臺科公布欄`
 
 ### Requirement: First visit
 A reader without saved settings and without a settings link SHALL first pick their department
@@ -148,12 +152,16 @@ its link instead.
 The article SHALL list its attachments by name, each a link to the school's file. A left click on
 a stored image, PDF or DOCX SHALL preview it in the page: images with zoom and arrows across
 the article's images, PDFs in the browser's viewer, DOCX as sanitized HTML, each with a download
-of the stored copy. Where the browser shows no PDFs inline, the stored PDF SHALL open in a new tab. A
-single image attachment SHALL also show at the article's end.
+of the stored copy. On touch screens, and where the browser shows no PDFs inline, the stored PDF
+SHALL open in a new tab. A single image attachment SHALL also show at the article's end.
 
 #### Scenario: A stored PDF
 - **WHEN** a reader clicks a stored PDF's name
 - **THEN** the PDF opens in an in-page preview with a download button
+
+#### Scenario: A stored PDF on a touch screen
+- **WHEN** a reader taps a stored PDF's name on a phone
+- **THEN** the stored PDF opens in a new tab
 
 #### Scenario: A file kept only at the school
 - **WHEN** a reader clicks an attachment without a stored file, or a stored spreadsheet
