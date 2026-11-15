@@ -1,0 +1,44 @@
+{
+  "topic": [
+    {"id": "scholarships", "label": "獎助學金"},
+    {"id": "competitions-and-calls", "label": "競賽徵件"},
+    {"id": "talks-and-events", "label": "講座活動"},
+    {"id": "courses", "label": "課程選課"},
+    {"id": "enrolment-and-grades", "label": "學籍成績"},
+    {"id": "exams-and-certification", "label": "考試檢定"},
+    {"id": "fees", "label": "繳費"},
+    {"id": "housing", "label": "住宿"},
+    {"id": "internships-and-jobs", "label": "實習就業"},
+    {"id": "international-exchange", "label": "國際交流"},
+    {"id": "research-projects", "label": "研究計畫"},
+    {"id": "admissions", "label": "招生"},
+    {"id": "venue-and-service-changes", "label": "場地與服務異動"},
+    {"id": "safety-and-health", "label": "安全健康"},
+    {"id": "it-systems", "label": "資訊系統"},
+    {"id": "military-service", "label": "兵役"},
+    {"id": "clubs-and-volunteering", "label": "社團志工"},
+    {"id": "rules-and-policy", "label": "法規制度"},
+    {"id": "honours", "label": "榮譽賀訊"},
+    {"id": "free-food", "label": "免費餐點"}
+  ],
+  "audience": [
+    {"id": "all-students", "label": "全體學生"},
+    {"id": "undergraduates", "label": "大學部"},
+    {"id": "graduate-students", "label": "研究生"},
+    {"id": "new-students", "label": "新生"},
+    {"id": "graduating-students", "label": "畢業生"},
+    {"id": "international-students", "label": "國際生"},
+    {"id": "staff", "label": "教職員"},
+    {"id": "public", "label": "校外"}
+  ],
+  "nature": [
+    {"id": "action-required", "label": "需要行動"},
+    {"id": "lists-and-results", "label": "名單結果"},
+    {"id": "information", "label": "資訊宣導"},
+    {"id": "news-and-records", "label": "新聞紀錄"}
+  ],
+  "source": [
+    {"id": "on-campus", "label": "校內"},
+    {"id": "forwarded", "label": "轉知校外"}
+  ]
+}
