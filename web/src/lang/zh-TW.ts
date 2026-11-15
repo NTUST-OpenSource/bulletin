@@ -34,7 +34,23 @@ export const settings = {
   chooseFile: "選擇檔案",
   unreadablePaste: "無法讀取：請貼上本站匯出的設定或分享連結。",
   unreadableFile: "無法讀取：檔案不是本站匯出的設定。",
+  reset: "清除所有設定",
+  resetAsk: {
+    title: "清除所有設定？",
+    text: "關注的單位、隱藏的公告板、標籤順序與外觀都會恢復預設。",
+    yes: "清除",
+    no: "取消",
+  },
   note: "內容轉寫自國立臺灣科技大學各單位網站，以原網頁內容為準",
+} as const;
+
+export const onboarding = {
+  department: "你在哪個系所？",
+  others: "還想看哪些單位的公告？",
+  skip: "略過",
+  next: "下一步",
+  back: "上一步",
+  done: "開始使用",
 } as const;
 
 export const transfer = {

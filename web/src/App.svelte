@@ -1,6 +1,7 @@
 <script lang="ts">
   import Search from "@jis3r/icons/icons/search";
   import SlidersHorizontal from "@jis3r/icons/icons/sliders-horizontal";
+  import Onboarding from "./components/settings/Onboarding.svelte";
   import Settings from "./components/settings/Settings.svelte";
   import Confirm from "./components/ui/Confirm.svelte";
   import IconButton from "./components/ui/IconButton.svelte";
@@ -24,6 +25,8 @@
     }
   }
   readLink();
+  // A first visit starts with the unit picker; one through an article link shows the article first.
+  if (!app.saved && !location.pathname.startsWith("/a/")) ui.onboarding = true;
 </script>
 
 <svelte:window onhashchange={readLink} />
@@ -41,6 +44,7 @@
 </main>
 
 <Settings />
+<Onboarding />
 <Confirm />
 <Toast />
 
@@ -59,18 +63,7 @@
     min-height: 64px;
   }
   .brand {
-    font-family: var(--font-display);
-    font-weight: 800;
-    font-size: 1.5rem;
-    letter-spacing: -0.035em;
-    font-variation-settings: "opsz" 48;
-    color: var(--ink);
-    text-decoration: none;
     margin-right: auto;
-  }
-  .brand i {
-    font-style: normal;
-    color: var(--accent);
   }
   .stream {
     padding-bottom: 96px;

@@ -1,7 +1,7 @@
 // The page's state: the settings, kept in localStorage, and the API's lists.
 import { transfer } from "./lang/zh-TW";
 import { type Dimension, get, type Site } from "./lib/api";
-import { loadSettings, type Settings, saveSettings } from "./lib/settings";
+import { DEFAULTS, loadSettings, STORE_KEY, type Settings, saveSettings } from "./lib/settings";
 
 function storage(): Storage | null {
   try {
@@ -27,6 +27,7 @@ export type Notice = { message: string; action?: { label: string; run: () => voi
 /** What the page shows over the stream. */
 export const ui = $state({
   sheet: null as null | "main" | "units",
+  onboarding: false,
   question: null as Question | null,
   notice: null as Notice | null,
 });
@@ -57,6 +58,18 @@ export function setSettings(next: Settings): void {
   app.settings = next;
   app.saved = true;
   saveSettings(storage(), next);
+}
+
+/** Forget the saved settings: the defaults apply, and the unit picker starts again. */
+export function clearSettings(): void {
+  try {
+    storage()?.removeItem(STORE_KEY);
+  } catch {
+    // Blocked storage kept nothing.
+  }
+  app.settings = DEFAULTS;
+  app.saved = false;
+  ui.onboarding = true;
 }
 
 /** Load the sites and the tags; a failure leaves the settings as they are. */

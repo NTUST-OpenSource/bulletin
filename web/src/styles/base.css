@@ -74,6 +74,19 @@ dialog:focus-visible {
   font-weight: 600;
   padding: 4px 2px;
 }
+.brand {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.5rem;
+  letter-spacing: -0.035em;
+  font-variation-settings: "opsz" 48;
+  color: var(--ink);
+  text-decoration: none;
+}
+.brand i {
+  font-style: normal;
+  color: var(--accent);
+}
 .row-btns {
   display: flex;
   flex-wrap: wrap;

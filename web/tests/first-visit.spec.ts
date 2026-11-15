@@ -13,7 +13,6 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("Picking a department: the department and the six preselected units are saved", async ({ page }) => {
-  test.fail(true, "First visit");
   await page.goto("/");
   const picker = page.getByRole("dialog", { name: DEPARTMENT });
 
@@ -29,7 +28,6 @@ test("Picking a department: the department and the six preselected units are sav
 });
 
 test("skipping the department keeps the six, and Esc does not close the picker", async ({ page }) => {
-  test.fail(true, "First visit");
   await page.goto("/");
 
   await page.keyboard.press("Escape");
@@ -50,7 +48,6 @@ test("a reader with saved settings sees no picker", async ({ page }) => {
 });
 
 test("clearing all settings starts the picker again", async ({ page }) => {
-  test.fail(true, "First visit");
   await saved(page, { theme: "dark" });
   await page.goto("/");
   await page.getByRole("button", { name: "設定" }).click();

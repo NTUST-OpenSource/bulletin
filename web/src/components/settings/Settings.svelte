@@ -3,7 +3,7 @@
   import X from "@jis3r/icons/icons/x";
   import { settings as copy, transfer } from "../../lang/zh-TW";
   import { type Prefer, readImport, settingsLink, type Theme } from "../../lib/settings";
-  import { app, notify, offerSettings, setSettings, ui } from "../../state.svelte";
+  import { app, ask, clearSettings, notify, offerSettings, setSettings, ui } from "../../state.svelte";
   import IconButton from "../ui/IconButton.svelte";
   import UnitPicker from "./UnitPicker.svelte";
 
@@ -64,6 +64,11 @@
     const file = input.files?.[0];
     input.value = "";
     if (file) offer(await file.text(), copy.unreadableFile);
+  }
+
+  async function reset(): Promise<void> {
+    ui.sheet = null;
+    if (await ask(copy.resetAsk)) clearSettings();
   }
 
   $effect(() => {
@@ -157,6 +162,9 @@
         </div>
       </section>
       <section class="set">
+        <div class="row-btns">
+          <button type="button" class="btn danger" onclick={reset}>{copy.reset}</button>
+        </div>
         <p class="note">{copy.note}</p>
       </section>
     {/if}
