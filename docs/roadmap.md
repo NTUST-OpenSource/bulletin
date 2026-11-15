@@ -11,38 +11,15 @@ withdrawal checks, the ten-year backfill, attachments, the events table, the tie
 API, and the Compose deployment of the database and the worker. Specs under `openspec/specs/`, the
 change under `openspec/changes/archive/2026-11-15-add-collector/`.
 
-## 2. `add-rendering` (next)
+## 2. `add-rendering` (archived 2026-11-15)
 
-- A client for Gemini's API, and an OpenAI-compatible one; the endpoint, model and keys come from
-  configuration (E1). The default model is `gemini-4-hydrogen`; check its exact id and limits in
-  Google's documentation before fixing it.
-- Several keys in turn, as the xincord plugin's key ring does: a key that is rate-limited or fails
-  waits while the others carry on.
-- Measure on 50 announcements of the corpus: Discord validation pass rate, tag agreement with a
-  hand-labelled set, deadline accuracy, and the requests and tokens per article.
-- Renders every new announcement and those from the last year; older ones stay raw (E2).
-- A rendition is tied to a revision and a prompt version, so a new revision or prompt renders
-  again.
-- Model input, measured on 59 cached pages (trafilatura kept 7 of 42 attachment names and lost
-  over 40% of the text on 10 pages; this pipeline kept 36 of 42 at a median of 786 characters
-  against 1,942 for the raw container):
-  1. Take `.mpgdetail` and the `mptattach` module by selector, not with a generic extractor.
-  2. Reduce the HTML to paragraphs, lists, tables, links, bold and images, then convert it to
-     Markdown. Tables stay as pipe tables in the input; only the output avoids them.
-  3. Replace each link and image with a placeholder (`L1`, `I1`, ...) and substitute the real
-     URLs after the model answers, so the model never copies a URL. An unknown placeholder fails
-     the attempt, and so does a dropped image: the rewrite keeps each image where the source has
-     it.
-  4. Attachments reach the frontend from stored data, not through the model.
-  5. Ask for JSON constrained by a JSON schema (Gemini's response schema, or `response_format` on
-     an OpenAI-compatible API).
-  6. Reject a deadline whose date does not appear in the source text.
-- Output: a rewritten title without bracketed tags, Markdown for Discord, a summary, a deadline
-  date when the text states one, and tags from the fixed taxonomy (E3). Tags are stored per
-  announcement with their source (model or manual).
-- Validation pipeline (E4): wrap bare URLs as `<url>`, replace masked links whose text is a URL,
-  then check with `@discord/markdown-wasm` in a Node subprocess; retry up to 3 times, then fall
-  back to the title and the link.
+Renditions of every new announcement and those of the last year with `gemini-4-hydrogen` (or an
+OpenAI-compatible API), keys in turn, the model input reduced by selector with placeholders for
+links and images, a versioned prompt and JSON schema, the deadline finder, the Discord Markdown
+fixes and check in a Node subprocess, three attempts then a fallback, tags with their source and
+the `rendered` event. Measured on 50 hand-labelled announcements: with `low` thinking all 50 pass,
+at about 1.3 cents and 7 seconds each. Specs under `openspec/specs/`, the change under
+`openspec/changes/archive/2026-11-15-add-rendering/`.
 
 ## 3. `add-public-api`
 

@@ -6,8 +6,8 @@ it), and serves them at `bulletin.ntust.org` through a public API and a web fron
 
 It is an unofficial service, not run by the university.
 
-Status: the collector runs (specs under `openspec/specs/`) and rendering is being added; the
-public API and the frontend follow, in the order of `docs/roadmap.md`.
+Status: the collector runs and rendering is built (specs under `openspec/specs/`); the public API
+and the frontend follow, in the order of `docs/roadmap.md`.
 
 Contributors start with `AGENTS.md`.
 
