@@ -10,6 +10,9 @@ export const header = {
 
 export const stream = {
   filters: "篩選",
+  allUnits: "所有單位",
+  allTopics: "全部",
+  reorder: "調整標籤順序",
   withdrawn: "已刪除",
   nothingFollowed: "還沒有關注的單位",
   pickUnits: "選擇單位",
@@ -39,6 +42,9 @@ export const settings = {
   edit: "編輯",
   hidden: "隱藏的公告板",
   show: "顯示",
+  topics: "標籤順序",
+  adjust: "調整",
+  move: (topic: string) => `移動「${topic}」`,
   export: "匯出",
   copyJson: "複製設定",
   download: "下載 JSON",

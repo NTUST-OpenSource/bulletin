@@ -149,6 +149,9 @@ export function readImport(text: string): Settings {
 }
 
 /** `order` with `topic` moved to position `to`, within the list's bounds. */
-export function moveTopic(_order: string[], _topic: string, _to: number): string[] {
-  throw new Error("not implemented");
+export function moveTopic(order: string[], topic: string, to: number): string[] {
+  if (!order.includes(topic)) return order;
+  const rest = order.filter((t) => t !== topic);
+  const at = Math.max(0, Math.min(to, rest.length));
+  return [...rest.slice(0, at), topic, ...rest.slice(at)];
 }

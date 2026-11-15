@@ -5,6 +5,7 @@
   import { type Prefer, readImport, settingsLink, type Theme } from "../../lib/settings";
   import { app, ask, clearSettings, notify, offerSettings, setSettings, ui } from "../../state.svelte";
   import IconButton from "../ui/IconButton.svelte";
+  import TopicOrder from "./TopicOrder.svelte";
   import UnitPicker from "./UnitPicker.svelte";
 
   let dialog: HTMLDialogElement;
@@ -77,16 +78,18 @@
 </script>
 
 <dialog class="sheet" bind:this={dialog} aria-labelledby="settings-title" onclose={() => (ui.sheet = null)}>
-  <div class="sheet-head" class:sub={ui.sheet === "units"}>
-    {#if ui.sheet === "units"}
+  <div class="sheet-head" class:sub={ui.sheet === "units" || ui.sheet === "topics"}>
+    {#if ui.sheet === "units" || ui.sheet === "topics"}
       <IconButton label={copy.back} icon={ArrowLeft} onclick={() => (ui.sheet = "main")} />
     {/if}
-    <h2 id="settings-title">{ui.sheet === "units" ? copy.units : copy.title}</h2>
+    <h2 id="settings-title">{ui.sheet === "units" ? copy.units : ui.sheet === "topics" ? copy.topics : copy.title}</h2>
     <IconButton label={copy.close} icon={X} onclick={() => (ui.sheet = null)} />
   </div>
   <div class="sheet-body">
     {#if ui.sheet === "units"}
       <UnitPicker />
+    {:else if ui.sheet === "topics"}
+      <TopicOrder />
     {:else}
       <section class="set">
         <h3>{copy.appearance}</h3>
@@ -136,6 +139,12 @@
           </div>
         </section>
       {/if}
+      <section class="set">
+        <div class="set-head">
+          <h3>{copy.topics}</h3>
+          <button type="button" class="link-btn" onclick={() => (ui.sheet = "topics")}>{copy.adjust}</button>
+        </div>
+      </section>
       <section class="set">
         <h3>{copy.export}</h3>
         <div class="row-btns">

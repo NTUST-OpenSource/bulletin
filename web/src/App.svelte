@@ -4,10 +4,12 @@
   import Onboarding from "./components/settings/Onboarding.svelte";
   import Settings from "./components/settings/Settings.svelte";
   import Stream from "./components/stream/Stream.svelte";
+  import TopicChips from "./components/stream/TopicChips.svelte";
   import Confirm from "./components/ui/Confirm.svelte";
   import IconButton from "./components/ui/IconButton.svelte";
+  import Menu from "./components/ui/Menu.svelte";
   import Toast from "./components/ui/Toast.svelte";
-  import { brand, header, stream } from "./lang/zh-TW";
+  import { brand, header } from "./lang/zh-TW";
   import { applyTheme, readImport } from "./lib/settings";
   import { app, loadLists, offerSettings, ui } from "./state.svelte";
 
@@ -52,13 +54,14 @@
 </header>
 
 <main class="wrap stream">
-  <div class="filters" role="toolbar" aria-label={stream.filters}></div>
+  <TopicChips />
   <Stream />
 </main>
 
 <Settings />
 <Onboarding />
 <Confirm />
+<Menu />
 <Toast />
 
 <style>
@@ -81,19 +84,6 @@
   .stream {
     padding-bottom: 96px;
   }
-  .filters {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    padding: 4px 40px 10px 2px;
-    margin: 0 -2px;
-    mask-image: linear-gradient(90deg, #000 calc(100% - 48px), transparent);
-  }
-  .filters::-webkit-scrollbar {
-    display: none;
-  }
-
   @media (max-width: 639px) {
     .top .wrap {
       min-height: 56px;

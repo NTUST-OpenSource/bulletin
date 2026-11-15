@@ -1,7 +1,15 @@
 // The page's state: the settings, kept in localStorage, and the API's lists.
 import { transfer } from "./lang/zh-TW";
 import { type Dimension, type Filters, get, NO_FILTERS, type Site } from "./lib/api";
-import { DEFAULTS, loadSettings, STORE_KEY, type Settings, saveSettings } from "./lib/settings";
+import {
+  DEFAULTS,
+  loadSettings,
+  moveTopic,
+  STORE_KEY,
+  type Settings,
+  saveSettings,
+  topicOrder,
+} from "./lib/settings";
 
 function storage(): Storage | null {
   try {
@@ -25,16 +33,40 @@ export const app = $state({
 /** The search, the topic chip and the unit menu. */
 export const filters: Filters = $state({ ...NO_FILTERS });
 
+export type Entry = { label: string; run: () => void } | { label: string; href: string } | "-";
+export type Menu = { entries: Entry[]; at: { x: number; y: number }; sheet: boolean };
+
 export type Question = { title: string; text: string; yes: string; no: string; answer: (yes: boolean) => void };
 export type Notice = { message: string; action?: { label: string; run: () => void } };
 
 /** What the page shows over the stream. */
 export const ui = $state({
-  sheet: null as null | "main" | "units",
+  sheet: null as null | "main" | "units" | "topics",
   onboarding: false,
   question: null as Question | null,
   notice: null as Notice | null,
+  menu: null as Menu | null,
 });
+
+/** Whether menus open as bottom sheets: the prototype's phone width. */
+export const phone = (): boolean => matchMedia("(max-width: 639px)").matches;
+
+/** Open a menu at a point, or as a bottom sheet. */
+export function openMenu(entries: Entry[], at: Menu["at"], sheet = phone()): void {
+  ui.menu = { entries, at, sheet };
+}
+
+/** The topics to show as chips, in the reader's order, with their labels. */
+export function topics(): { id: string; label: string }[] {
+  const tags = app.tags.find((dimension) => dimension.id === "topic")?.tags ?? [];
+  const labels = new Map(tags.map((tag) => [tag.id, tag.label]));
+  return topicOrder(app.settings, [...labels.keys()]).map((id) => ({ id, label: labels.get(id)! }));
+}
+
+/** Save `topic` at position `to` of the shown order. */
+export function moveTo(topic: string, to: number): void {
+  setSettings({ ...app.settings, topicOrder: moveTopic(topics().map((t) => t.id), topic, to) });
+}
 
 /** Ask a yes-or-no question in a dialog. */
 export function ask(question: Omit<Question, "answer">): Promise<boolean> {

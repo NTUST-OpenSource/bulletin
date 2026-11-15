@@ -84,7 +84,7 @@ test("a saved light or dark theme overrides the system's", () => {
 describe("Topic chips and unit filter", () => {
   const order = ["a", "b", "c", "d"];
 
-  test.fails("a topic moves to a position, within bounds", () => {
+  test("a topic moves to a position, within bounds", () => {
     expect(moveTopic(order, "d", 0)).toEqual(["d", "a", "b", "c"]);
     expect(moveTopic(order, "a", 2)).toEqual(["b", "c", "a", "d"]);
     expect(moveTopic(order, "b", -1)).toEqual(["b", "a", "c", "d"]);

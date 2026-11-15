@@ -7,9 +7,10 @@ const lastQuery = async (sent: string[]) => {
   return new URLSearchParams(sent.filter((path) => path.startsWith("/announcements?")).at(-1)!.split("?")[1]);
 };
 const chips = (page: Page) => page.getByRole("toolbar", { name: "篩選" }).locator("[data-topic]");
+const unitMenu = (page: Page, name: string) =>
+  page.getByRole("button", { name, exact: true }).and(page.locator("[aria-haspopup=menu]"));
 
 test("Filtering by topic: only that topic is asked for, one at a time", async ({ page }) => {
-  test.fail(true, "Topic chips and unit filter");
   const sent = await answer(page);
   await saved(page);
   await page.goto("/");
@@ -25,7 +26,6 @@ test("Filtering by topic: only that topic is asked for, one at a time", async ({
 });
 
 test("every topic shows, in the reader's order", async ({ page }) => {
-  test.fail(true, "Topic chips and unit filter");
   await answer(page);
   await saved(page, { topicOrder: ["free-food", "library"] });
   await page.goto("/");
@@ -39,31 +39,33 @@ test("every topic shows, in the reader's order", async ({ page }) => {
 test("Reordering topics: a dragged chip stays first after a reload, in the stream and in the settings", async ({
   page,
 }, info) => {
-  test.fail(true, "Topic chips and unit filter");
   test.skip(info.project.name !== "desktop", "a mouse drag");
   await answer(page);
   await saved(page);
   await page.goto("/");
+  const row = page.getByRole("toolbar", { name: "篩選" });
   const food = page.getByRole("button", { name: "免費餐點" });
   await food.scrollIntoViewIfNeeded();
-  await page.getByRole("button", { name: "講座活動" }).scrollIntoViewIfNeeded();
+  const box = (await food.boundingBox())!;
+  const left = (await row.boundingBox())!.x + 20;
+  const y = box.y + box.height / 2;
 
-  await food.hover();
+  await page.mouse.move(box.x + box.width / 2, y);
   await page.mouse.down();
-  const first = (await page.getByRole("button", { name: "講座活動" }).boundingBox())!;
-  await page.mouse.move(first.x + 10, first.y + first.height / 2, { steps: 12 });
+  await page.mouse.move(left, y, { steps: 12 });
+  await expect.poll(() => row.evaluate((element) => element.scrollLeft)).toBe(0); // the row scrolls to its start
+  await page.mouse.move(left + 1, y);
   await page.mouse.up();
   await page.reload();
 
   await expect(chips(page).first()).toHaveText("免費餐點");
   await expect(page.getByRole("button", { name: "免費餐點" })).toHaveAttribute("aria-pressed", "false");
   await page.getByRole("button", { name: "設定" }).click();
-  await page.getByRole("button", { name: "調整" }).click();
+  await page.getByRole("button", { name: "調整", exact: true }).click();
   await expect(page.getByRole("dialog").getByRole("listitem").first()).toHaveText("免費餐點");
 });
 
 test("Alt+Left and Alt+Right move a focused chip", async ({ page }) => {
-  test.fail(true, "Topic chips and unit filter");
   await answer(page);
   await saved(page);
   await page.goto("/");
@@ -79,12 +81,11 @@ test("Alt+Left and Alt+Right move a focused chip", async ({ page }) => {
 });
 
 test("the settings reorder topics with the arrow keys", async ({ page }) => {
-  test.fail(true, "Topic chips and unit filter");
   await answer(page);
   await saved(page);
   await page.goto("/");
   await page.getByRole("button", { name: "設定" }).click();
-  await page.getByRole("button", { name: "調整" }).click();
+  await page.getByRole("button", { name: "調整", exact: true }).click();
 
   await page.getByRole("button", { name: "移動「獎助學金」" }).focus();
   await page.keyboard.press("ArrowUp");
@@ -96,17 +97,16 @@ test("the settings reorder topics with the arrow keys", async ({ page }) => {
 });
 
 test("One unit with a hidden board: its boards stay out", async ({ page }) => {
-  test.fail(true, "Topic chips and unit filter");
   const sent = await answer(page);
   await saved(page, { sites: [1045, 1049], hiddenBoards: ["1049-203"] });
   await page.goto("/");
 
-  await page.getByRole("button", { name: "所有單位" }).click();
+  await unitMenu(page, "所有單位").click();
   await page.getByRole("menuitem", { name: "圖書館" }).click();
 
-  await expect(page.getByRole("button", { name: "圖書館" })).toHaveAttribute("aria-pressed", "true");
+  await expect(unitMenu(page, "圖書館")).toHaveAttribute("aria-pressed", "true");
   await expect.poll(async () => (await lastQuery(sent)).toString()).toBe("board=1049-1&board=1049-204");
-  await page.getByRole("button", { name: "圖書館" }).click();
+  await unitMenu(page, "圖書館").click();
   await page.getByRole("menuitem", { name: "所有單位" }).click();
   await expect.poll(async () => (await lastQuery(sent)).toString()).toBe("board=1049-1&board=1049-204&site=1045");
 });
