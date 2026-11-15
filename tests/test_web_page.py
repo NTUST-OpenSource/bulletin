@@ -93,3 +93,26 @@ async def test_api_answers_keep_their_headers(tmp_path: Path) -> None:
 
     assert response.status_code == 200
     assert "Content-Security-Policy" not in response.headers
+
+
+@pytest.mark.xfail(strict=True, reason="Unknown paths")
+@pytest.mark.parametrize("path", ["/notices", "/a/x", "/index.html"])
+async def test_an_unknown_path(tmp_path: Path, path: str) -> None:
+    """Unknown paths: an unknown path answers 404 with the page, revalidated and never framed."""
+    async with client(built(tmp_path), tmp_path) as http:
+        response = await http.get(path)
+
+    assert response.status_code == 404
+    assert response.text == PAGE
+    assert response.headers["Cache-Control"] == REVALIDATE
+    assert response.headers["Content-Security-Policy"] == NO_FRAMES
+
+
+@pytest.mark.parametrize("path", ["/api/v1/notices", "/assets/missing.js"])
+async def test_an_unknown_api_path(tmp_path: Path, path: str) -> None:
+    """Unknown paths: the API and the built files keep their own 404 answers."""
+    async with client(built(tmp_path), tmp_path) as http:
+        response = await http.get(path)
+
+    assert response.status_code == 404
+    assert response.headers["Content-Type"] == "application/json"

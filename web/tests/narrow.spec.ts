@@ -54,6 +54,15 @@ test("the stream, its menus and a long search do not scroll sideways", async ({ 
   await flat(page, "search");
 });
 
+test("the not-found view does not scroll sideways", async ({ page }) => {
+  test.fail(true, "Unknown paths");
+  await page.setViewportSize({ width: 320, height: 640 });
+  await answer(page);
+  await page.goto("/notices");
+  await expect(page.getByRole("heading", { name: "找不到這個頁面" })).toBeVisible({ timeout: 3000 });
+  await flat(page, "not found");
+});
+
 test("the first visit, settings and their views do not scroll sideways", async ({ page }) => {
   await answer(page);
   await page.goto("/");
